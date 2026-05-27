@@ -145,7 +145,9 @@ input.field::placeholder{color:var(--muted);}
   <div class="box">
     <div class="box-title">👤 Enter your name to join</div>
     <input class="field" id="nameInput" placeholder="Your name..." maxlength="20" autocomplete="off">
+    <input class="field" id="pinInput" type="tel" inputmode="numeric" maxlength="6" placeholder="PIN (4-6 digits)" autocomplete="off">
     <button class="btn btn-grad" id="btnLogin">Join 🚀</button>
+    <div class="hint" style="text-align:center">First time: pick a PIN to protect your name. To use the same name on another device, enter the same name + PIN.</div>
   </div>
   <div class="err" id="loginErr"></div>
   <div class="rules">
@@ -385,52 +387,55 @@ function pointsFor(pred,r){
 // ===== LOGIN =====
 // Claim a name atomically: first device to use a name owns it; the same
 // device can always reclaim it; anyone else is rejected as "taken".
-function claimName(cb){
-  var ref=ROOT.child('users/'+myKey);
-  ref.transaction(function(cur){
-    if(cur===null) return {name:myName,uid:myUid};        // free -> claim
-    if(cur&&cur.uid===myUid) return {name:myName,uid:myUid}; // mine -> keep
-    return; // owned by someone else -> abort
-  },function(err,committed){
-    if(err){cb(false,'Connection error. Check your internet and try again.');return;}
-    if(!committed){cb(false,'That name is already taken — please pick another.');return;}
-    cb(true);
-  });
-}
-function attemptLogin(v,fromAuto){
-  myName=v; myKey=sanitize(v);
-  claimName(function(ok,msg){
-    if(!ok){
-      myName='';myKey='';
-      try{localStorage.removeItem('wc_name');}catch(e){}
-      if(fromAuto){show('sLogin');}
-      document.getElementById('loginErr').textContent=msg;
-      return;
+// lightweight non-crypto hash for the PIN (friends game, not high security)
+function hashPin(s){var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h)+s.charCodeAt(i);h|=0;}return 'p'+(h>>>0).toString(36);}
+// A name is owned by whoever set its PIN. Same name + PIN = same account on any device.
+function attemptLogin(name,pin,fromAuto){
+  myName=name; myKey=sanitize(name);
+  ROOT.child('users/'+myKey).once('value').then(function(snap){
+    var u=snap.val();
+    if(u){ // existing name -> verify PIN
+      if(u.ph && u.ph!==hashPin(pin)){ fail('Wrong PIN for this name.',fromAuto); return; }
+      var upd={name:myName}; if(!u.ph) upd.ph=hashPin(pin); // adopt PIN if legacy record had none
+      ROOT.child('users/'+myKey).update(upd).then(function(){ok(name,pin);}).catch(function(){fail('Connection error.',fromAuto);});
+    } else { // new name -> create with PIN
+      if(!/^[0-9]{4,6}$/.test(pin)){ fail('Pick a 4-6 digit PIN to protect your name.',fromAuto); return; }
+      ROOT.child('users/'+myKey).set({name:myName,ph:hashPin(pin)}).then(function(){ok(name,pin);}).catch(function(){fail('Connection error.',fromAuto);});
     }
-    try{localStorage.setItem('wc_name',v);}catch(e){}
-    document.getElementById('loginErr').textContent='';
-    enter();
-  });
+  }).catch(function(){fail('Connection error. Check your internet and try again.',fromAuto);});
+}
+function ok(name,pin){
+  try{localStorage.setItem('wc_name',name);localStorage.setItem('wc_pin',pin);}catch(e){}
+  document.getElementById('loginErr').textContent='';
+  enter();
+}
+function fail(msg,fromAuto){
+  myName='';myKey='';
+  if(fromAuto){try{localStorage.removeItem('wc_name');localStorage.removeItem('wc_pin');}catch(e){}show('sLogin');}
+  document.getElementById('loginErr').textContent=msg;
 }
 function doLogin(){
   var v=document.getElementById('nameInput').value.trim();
+  var pin=document.getElementById('pinInput').value.trim();
   if(!v){document.getElementById('loginErr').textContent='Please enter your name';return;}
+  if(!/^[0-9]{4,6}$/.test(pin)){document.getElementById('loginErr').textContent='Enter a 4-6 digit PIN';return;}
   if(!configReady){document.getElementById('loginErr').textContent='Firebase must be configured first (see the notice above).';return;}
   if(!myUid){document.getElementById('loginErr').textContent=authError||'Connecting… please try again in a second.';return;}
-  attemptLogin(v,false);
+  attemptLogin(v,pin,false);
 }
 document.getElementById('btnLogin').addEventListener('click',doLogin);
-document.getElementById('nameInput').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.getElementById('pinInput').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.getElementById('nameInput').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('pinInput').focus();});
 try{if(localStorage.getItem('wc_admin')==='1')isAdmin=true;}catch(e){}
 
-// Anonymous sign-in gives each device a stable identity that the
-// security rules use to protect each player's own data.
+// Anonymous sign-in is still required by the security rules (auth != null);
+// the player's identity itself is the name + PIN, so it works across devices.
 if(configReady){
   auth.onAuthStateChanged(function(user){
     if(!user)return;
     myUid=user.uid;
-    if(!myKey){ // not logged in yet -> try saved name
-      try{var sv=localStorage.getItem('wc_name'); if(sv)attemptLogin(sv,true);}catch(e){}
+    if(!myKey){ // not logged in yet -> try saved name + pin
+      try{var sv=localStorage.getItem('wc_name'),sp=localStorage.getItem('wc_pin'); if(sv&&sp)attemptLogin(sv,sp,true);}catch(e){}
     }
   });
   auth.signInAnonymously().catch(function(e){
@@ -467,9 +472,10 @@ function enter(){
 function logout(){
   if(!myKey)return;
   if(!confirm('Sign out and use a different name?'))return;
-  try{localStorage.removeItem('wc_name');}catch(e){}
+  try{localStorage.removeItem('wc_name');localStorage.removeItem('wc_pin');}catch(e){}
   myName=''; myKey='';
   document.getElementById('nameInput').value='';
+  document.getElementById('pinInput').value='';
   document.getElementById('loginErr').textContent='';
   document.getElementById('tabbar').style.display='none';
   show('sLogin');
