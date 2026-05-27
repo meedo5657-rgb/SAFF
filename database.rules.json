@@ -5,7 +5,12 @@
     "users": {
       "$key": {
         ".write": "auth != null && newData.exists()",
-        ".validate": "newData.hasChildren(['name']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 30 && (!data.child('ph').exists() || newData.child('ph').val() === data.child('ph').val())"
+        "name": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
+        },
+        "ph": {
+          ".validate": "!data.exists() || newData.val() === data.val()"
+        }
       }
     },
 
