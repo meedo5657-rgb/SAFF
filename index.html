@@ -172,8 +172,8 @@ input.field::placeholder{color:var(--muted);}
   </div>
   <div class="section-title">⚽ Matches</div>
   <div class="modes" id="modes">
-    <button class="mode active" data-mode="days">📅 By day</button>
-    <button class="mode" data-mode="groups">🏆 By group</button>
+    <button class="mode active" data-mode="upcoming">⏰ Upcoming</button>
+    <button class="mode" data-mode="groups">🏆 Groups</button>
   </div>
   <div class="chips" id="chips"></div>
   <div class="hint" id="matchHint">Set your prediction and tap save. Predictions lock at kickoff.</div>
@@ -363,8 +363,7 @@ var myName='', myKey='', isAdmin=false, authError=null;
 var predsData={}, resultsData={}, teamsData={}, usersData={};
 // auto-pulled from openfootball (knockout teams + official results)
 var apiResults={}, apiTeams={};
-var viewMode='days';          // 'days' | 'groups'
-var currentDay=null;          // selected date in days mode
+var viewMode='upcoming';      // 'upcoming' | 'groups'
 var currentFilter='g:A';      // selected chip in groups mode
 var editingMatch=null;
 var draft={}; // matchId -> {h,a}
@@ -523,11 +522,6 @@ var GROUP_FILTERS=[];
 ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(function(g){GROUP_FILTERS.push({k:'g:'+g,label:'Group '+g});});
 [['R32','Round of 32'],['R16','Round of 16'],['QF','Quarter-finals'],['SF','Semi-finals'],['3RD','3rd place'],['FINAL','Final']]
   .forEach(function(r){GROUP_FILTERS.push({k:'r:'+r[0],label:r[1]});});
-// Day-mode chips: every distinct match date (official venue date)
-var DATES=[]; (function(){var seen={};MATCHES.forEach(function(m){if(m.date&&!seen[m.date]){seen[m.date]=1;DATES.push(m.date);}});DATES.sort();})();
-function fmtDay(d){var dt=new Date(d+'T12:00:00');return isNaN(dt)?d:dt.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'});}
-function defaultDay(){var today=new Date().toISOString().slice(0,10);for(var i=0;i<DATES.length;i++){if(DATES[i]>=today)return DATES[i];}return DATES[0];}
-if(!currentDay)currentDay=defaultDay();
 
 function buildModes(){
   document.querySelectorAll('.mode').forEach(function(b){
@@ -540,30 +534,22 @@ function buildModes(){
 }
 function buildChips(){
   var c=document.getElementById('chips');c.innerHTML='';
-  if(viewMode==='days'){
-    DATES.forEach(function(d){
-      var b=document.createElement('button');
-      b.className='chip'+(d===currentDay?' active':'');
-      b.textContent=fmtDay(d);
-      b.addEventListener('click',function(){currentDay=d;buildChips();renderMatches();});
-      c.appendChild(b);
-    });
-  } else {
-    GROUP_FILTERS.forEach(function(f){
-      var b=document.createElement('button');
-      b.className='chip'+(f.k===currentFilter?' active':'');
-      b.textContent=f.label;
-      b.addEventListener('click',function(){currentFilter=f.k;buildChips();renderMatches();});
-      c.appendChild(b);
-    });
-  }
+  if(viewMode!=='groups'){ c.style.display='none'; return; }  // upcoming: no chips
+  c.style.display='flex';
+  GROUP_FILTERS.forEach(function(f){
+    var b=document.createElement('button');
+    b.className='chip'+(f.k===currentFilter?' active':'');
+    b.textContent=f.label;
+    b.addEventListener('click',function(){currentFilter=f.k;buildChips();renderMatches();});
+    c.appendChild(b);
+  });
   var active=c.querySelector('.chip.active');
   if(active) c.scrollLeft = active.offsetLeft - c.clientWidth/2 + active.clientWidth/2;
 }
 
 function filteredMatches(){
-  if(viewMode==='days'){
-    return MATCHES.filter(function(m){return m.date===currentDay;})
+  if(viewMode!=='groups'){ // upcoming: matches that haven't kicked off yet
+    return MATCHES.filter(function(m){return statusOf(m)==='open';})
       .sort(function(a,b){return kickoffMs(a)-kickoffMs(b);});
   }
   if(currentFilter.indexOf('g:')===0){
@@ -586,7 +572,7 @@ function renderMatches(){
   list.innerHTML='';
   var ms=filteredMatches();
   if(!ms.length){
-    list.innerHTML='<div class="empty">No matches here.</div>';
+    list.innerHTML='<div class="empty">'+(viewMode==='groups'?'No matches here.':'No upcoming matches — all done! Check the Groups tab. 🏟️')+'</div>';
     return;
   }
   ms.forEach(function(m){list.appendChild(matchCard(m));});
