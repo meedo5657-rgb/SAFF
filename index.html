@@ -59,7 +59,9 @@ input.field::placeholder{color:var(--muted);}
 .modes{width:100%;display:flex;gap:8px;}
 .mode{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-family:'Inter',sans-serif;font-size:.85rem;font-weight:700;padding:10px;border-radius:12px;cursor:pointer;}
 .mode.active{background:rgba(52,211,153,.12);border-color:var(--accent2);color:var(--accent2);}
-.chips{width:100%;display:flex;flex-wrap:wrap;gap:8px;padding-bottom:4px;}
+.chips{width:100%;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;}
+.chips::-webkit-scrollbar{height:5px;}
+.chips::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px;}
 .chips::-webkit-scrollbar{height:0;}
 .chip{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:700;padding:7px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;}
 .chip.active{background:rgba(250,204,21,.12);border-color:var(--accent1);color:var(--accent1);}
@@ -555,6 +557,8 @@ function buildChips(){
       c.appendChild(b);
     });
   }
+  var active=c.querySelector('.chip.active');
+  if(active) c.scrollLeft = active.offsetLeft - c.clientWidth/2 + active.clientWidth/2;
 }
 
 function filteredMatches(){
