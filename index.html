@@ -397,17 +397,17 @@ function attemptLogin(name,pin,fromAuto){
     if(u){ // existing name -> verify PIN
       if(u.ph && u.ph!==hashPin(pin)){ fail('Wrong PIN for this name.',fromAuto); return; }
       var upd={name:myName}; if(!u.ph) upd.ph=hashPin(pin); // adopt PIN if legacy record had none
-      ROOT.child('users/'+myKey).update(upd).then(function(){ok(name,pin);}).catch(function(e){fail(writeErr(e),fromAuto);});
+      ROOT.child('users/'+myKey).update(upd).then(function(){ok(name,pin);}).catch(function(e){fail('WRITE '+writeErr(e),fromAuto);});
     } else { // new name -> create with PIN
       if(!/^[0-9]{4,6}$/.test(pin)){ fail('Pick a 4-6 digit PIN to protect your name.',fromAuto); return; }
-      ROOT.child('users/'+myKey).set({name:myName,ph:hashPin(pin)}).then(function(){ok(name,pin);}).catch(function(e){fail(writeErr(e),fromAuto);});
+      ROOT.child('users/'+myKey).set({name:myName,ph:hashPin(pin)}).then(function(){ok(name,pin);}).catch(function(e){fail('WRITE '+writeErr(e),fromAuto);});
     }
-  }).catch(function(e){fail(writeErr(e),fromAuto);});
+  }).catch(function(e){fail('READ '+writeErr(e),fromAuto);});
 }
 function writeErr(e){
   var m=(e&&(e.code||e.message))?(''+(e.code||e.message)):'';
-  if(/permission|denied/i.test(m)) return 'Permission denied by database rules. Update the Realtime Database Rules (republish the latest version), then retry.';
-  return 'Connection error'+(m?(': '+m):'. Check your internet and try again.');
+  if(/permission|denied/i.test(m)) return 'denied by rules ['+m+']';
+  return 'error'+(m?(' ['+m+']'):'. Check your internet.');
 }
 function ok(name,pin){
   try{localStorage.setItem('wc_name',name);localStorage.setItem('wc_pin',pin);}catch(e){}
