@@ -446,19 +446,38 @@ if(configReady){
   });
 }
 
+var booted=false;
 function enter(){
   document.getElementById('meName').textContent=myName;
   document.getElementById('meName2').textContent=myName;
   document.getElementById('meName3').textContent=myName;
   document.getElementById('tabbar').style.display='flex';
-  buildChips();
-  listen();
   applyAdminUI();
   show('sMatches');
+  if(booted){renderMatches();renderLeader();return;}  // re-login: don't re-attach listeners/timers
+  booted=true;
+  buildChips();
+  listen();
   setInterval(function(){renderMatches();},30000);   // refresh locks over time
   loadOpenfootball();                                 // initial auto data pull
   setInterval(loadOpenfootball,300000);               // refresh teams/results every 5 min
 }
+
+// Sign out / switch name — triggered by tapping your name chip
+function logout(){
+  if(!myKey)return;
+  if(!confirm('Sign out and use a different name?'))return;
+  try{localStorage.removeItem('wc_name');}catch(e){}
+  myName=''; myKey='';
+  document.getElementById('nameInput').value='';
+  document.getElementById('loginErr').textContent='';
+  document.getElementById('tabbar').style.display='none';
+  show('sLogin');
+}
+document.querySelectorAll('.me-chip').forEach(function(c){
+  c.style.cursor='pointer'; c.title='Sign out';
+  c.addEventListener('click',logout);
+});
 
 function listen(){
   ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};renderMatches();renderLeader();});
