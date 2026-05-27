@@ -56,9 +56,6 @@ input.field::placeholder{color:var(--muted);}
 .section-title{width:100%;font-size:1rem;font-weight:800;color:var(--accent1);}
 .hint{width:100%;font-size:.76rem;color:var(--muted);line-height:1.7;}
 
-.modes{width:100%;display:flex;gap:8px;}
-.mode{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-family:'Inter',sans-serif;font-size:.85rem;font-weight:700;padding:10px;border-radius:12px;cursor:pointer;}
-.mode.active{background:rgba(52,211,153,.12);border-color:var(--accent2);color:var(--accent2);}
 .chips{width:100%;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;}
 .chips::-webkit-scrollbar{height:5px;}
 .chips::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px;}
@@ -171,10 +168,6 @@ input.field::placeholder{color:var(--muted);}
     <button class="icon-btn" id="btnSettings">⚙️</button>
   </div>
   <div class="section-title">⚽ Matches</div>
-  <div class="modes" id="modes">
-    <button class="mode active" data-mode="upcoming">⏰ Upcoming</button>
-    <button class="mode" data-mode="groups">🏆 Groups</button>
-  </div>
   <div class="chips" id="chips"></div>
   <div class="hint" id="matchHint">Set your prediction and tap save. Predictions lock at kickoff.</div>
   <div id="matchList" style="width:100%;display:flex;flex-direction:column;gap:12px;"></div>
@@ -363,8 +356,7 @@ var myName='', myKey='', isAdmin=false, authError=null;
 var predsData={}, resultsData={}, teamsData={}, usersData={};
 // auto-pulled from openfootball (knockout teams + official results)
 var apiResults={}, apiTeams={};
-var viewMode='upcoming';      // 'upcoming' | 'groups'
-var currentFilter='g:A';      // selected chip in groups mode
+var currentFilter='upcoming'; // selected chip: 'upcoming' | 'g:X' | 'r:R'
 var editingMatch=null;
 var draft={}; // matchId -> {h,a}
 
@@ -484,7 +476,6 @@ function enter(){
   show('sMatches');
   if(booted){renderMatches();renderLeader();return;}  // re-login: don't re-attach listeners/timers
   booted=true;
-  buildModes();
   buildChips();
   listen();
   setInterval(function(){renderMatches();},30000);   // refresh locks over time
@@ -516,27 +507,15 @@ function listen(){
   ROOT.child('users').on('value',function(s){usersData=s.val()||{};renderLeader();});
 }
 
-// ===== VIEW MODES & FILTER CHIPS =====
-// Group-mode chips: groups A-L + knockout rounds
-var GROUP_FILTERS=[];
-['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(function(g){GROUP_FILTERS.push({k:'g:'+g,label:'Group '+g});});
+// ===== FILTER CHIPS ===== (Upcoming first, then groups A-L, then knockout rounds)
+var FILTERS=[{k:'upcoming',label:'⏰ Upcoming'}];
+['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(function(g){FILTERS.push({k:'g:'+g,label:'Group '+g});});
 [['R32','Round of 32'],['R16','Round of 16'],['QF','Quarter-finals'],['SF','Semi-finals'],['3RD','3rd place'],['FINAL','Final']]
-  .forEach(function(r){GROUP_FILTERS.push({k:'r:'+r[0],label:r[1]});});
+  .forEach(function(r){FILTERS.push({k:'r:'+r[0],label:r[1]});});
 
-function buildModes(){
-  document.querySelectorAll('.mode').forEach(function(b){
-    b.addEventListener('click',function(){
-      viewMode=b.dataset.mode;
-      document.querySelectorAll('.mode').forEach(function(x){x.classList.toggle('active',x===b);});
-      buildChips(); renderMatches();
-    });
-  });
-}
 function buildChips(){
   var c=document.getElementById('chips');c.innerHTML='';
-  if(viewMode!=='groups'){ c.style.display='none'; return; }  // upcoming: no chips
-  c.style.display='flex';
-  GROUP_FILTERS.forEach(function(f){
+  FILTERS.forEach(function(f){
     var b=document.createElement('button');
     b.className='chip'+(f.k===currentFilter?' active':'');
     b.textContent=f.label;
@@ -548,7 +527,7 @@ function buildChips(){
 }
 
 function filteredMatches(){
-  if(viewMode!=='groups'){ // upcoming: matches that haven't kicked off yet
+  if(currentFilter==='upcoming'){ // matches that haven't kicked off yet
     return MATCHES.filter(function(m){return statusOf(m)==='open';})
       .sort(function(a,b){return kickoffMs(a)-kickoffMs(b);});
   }
@@ -572,7 +551,7 @@ function renderMatches(){
   list.innerHTML='';
   var ms=filteredMatches();
   if(!ms.length){
-    list.innerHTML='<div class="empty">'+(viewMode==='groups'?'No matches here.':'No upcoming matches — all done! Check the Groups tab. 🏟️')+'</div>';
+    list.innerHTML='<div class="empty">'+(currentFilter==='upcoming'?'No upcoming matches — all done! Pick a group or round. 🏟️':'No matches here.')+'</div>';
     return;
   }
   ms.forEach(function(m){list.appendChild(matchCard(m));});
