@@ -1,38 +1,40 @@
 {
   "rules": {
-    ".read": "auth != null",
+    "wc2026": {
+      ".read": "auth != null",
 
-    "users": {
-      "$key": {
-        ".write": "auth != null && newData.exists()",
-        "name": {
-          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
-        },
-        "ph": {
-          ".validate": "!data.exists() || newData.val() === data.val()"
-        }
-      }
-    },
-
-    "predictions": {
-      "$mid": {
+      "users": {
         "$key": {
-          ".write": "auth != null",
-          ".validate": "newData.hasChildren(['h','a']) && newData.child('h').isNumber() && newData.child('a').isNumber() && newData.child('h').val() >= 0 && newData.child('h').val() <= 30 && newData.child('a').val() >= 0 && newData.child('a').val() <= 30"
+          ".write": "auth != null && newData.exists()",
+          "name": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
+          },
+          "ph": {
+            ".validate": "!data.exists() || newData.val() === data.val()"
+          }
         }
-      }
-    },
+      },
 
-    "results": {
-      "$mid": {
-        ".write": "auth != null",
-        ".validate": "newData.hasChildren(['h','a']) && newData.child('h').isNumber() && newData.child('a').isNumber() && newData.child('h').val() >= 0 && newData.child('a').val() >= 0"
-      }
-    },
+      "predictions": {
+        "$mid": {
+          "$key": {
+            ".write": "auth != null",
+            ".validate": "newData.hasChildren(['h','a']) && newData.child('h').isNumber() && newData.child('a').isNumber() && newData.child('h').val() >= 0 && newData.child('h').val() <= 30 && newData.child('a').val() >= 0 && newData.child('a').val() <= 30"
+          }
+        }
+      },
 
-    "teams": {
-      "$mid": {
-        ".write": "auth != null"
+      "results": {
+        "$mid": {
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['h','a']) && newData.child('h').isNumber() && newData.child('a').isNumber() && newData.child('h').val() >= 0 && newData.child('a').val() >= 0"
+        }
+      },
+
+      "teams": {
+        "$mid": {
+          ".write": "auth != null"
+        }
       }
     }
   }
