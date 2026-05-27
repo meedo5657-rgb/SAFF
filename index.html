@@ -56,7 +56,7 @@ input.field::placeholder{color:var(--muted);}
 .section-title{width:100%;font-size:1rem;font-weight:800;color:var(--accent1);}
 .hint{width:100%;font-size:.76rem;color:var(--muted);line-height:1.7;}
 
-.chips{width:100%;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
+.chips{width:100%;display:flex;flex-wrap:wrap;gap:8px;padding-bottom:4px;}
 .chips::-webkit-scrollbar{height:0;}
 .chip{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:700;padding:7px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;}
 .chip.active{background:rgba(250,204,21,.12);border-color:var(--accent1);color:var(--accent1);}
@@ -74,6 +74,7 @@ input.field::placeholder{color:var(--muted);}
 .teams{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .team{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;}
 .team .flag{font-size:2rem;line-height:1;}
+.team .flagimg{width:46px;height:31px;object-fit:cover;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.45);}
 .team .tname{font-size:.88rem;font-weight:700;}
 .vs{font-size:.8rem;color:var(--muted);font-weight:700;padding:0 4px;}
 .score-in{display:flex;align-items:center;gap:6px;}
@@ -178,10 +179,47 @@ input.field::placeholder{color:var(--muted);}
   <div id="leaderList" style="width:100%;display:flex;flex-direction:column;gap:10px;"></div>
 </div>
 
+<!-- RULES -->
+<div class="screen" id="sRules">
+  <div class="topbar">
+    <div class="me-chip">👤 <b id="meName3">--</b></div>
+    <button class="icon-btn" id="btnSettings3">⚙️</button>
+  </div>
+  <div class="section-title">📖 Rules & How it works</div>
+  <div class="rules">
+    <b>🎯 Scoring</b><br>
+    • Exact score (e.g. you said 2-1, it ends 2-1) = <b>5 points</b><br>
+    • Correct outcome only (right winner, or a draw) = <b>2 points</b><br>
+    • Wrong outcome = <b>0 points</b>
+  </div>
+  <div class="rules">
+    <b>⏰ Predictions</b><br>
+    • Pick a score for any match with the + / − buttons, then tap <b>Save</b>.<br>
+    • You can change your pick any time <b>before kickoff</b>.<br>
+    • Each match <b>locks automatically at its real kickoff time</b> — no edits after that.<br>
+    • Kickoff times are shown in <b>your device's local time</b>.
+  </div>
+  <div class="rules">
+    <b>🏟️ Stages</b><br>
+    • Browse the group stage by group (A–L) and the knockout rounds (Round of 32 → Final) from the filter buttons.<br>
+    • Knockout teams appear as placeholders (e.g. "Winner Group A") until the admin sets the qualified teams.
+  </div>
+  <div class="rules">
+    <b>🏅 Leaderboard</b><br>
+    • Points are added automatically once a match's official result is entered.<br>
+    • Ties are broken by the number of exact-score predictions.
+  </div>
+  <div class="rules">
+    <b>👤 Names</b><br>
+    • Each name can be used by one person only — first to claim it owns it.
+  </div>
+</div>
+
 <!-- TABBAR -->
 <div class="tabbar" id="tabbar" style="display:none">
   <button class="tab active" data-tab="sMatches"><span class="ico">⚽</span>Matches</button>
   <button class="tab" data-tab="sLeader"><span class="ico">🏅</span>Leaderboard</button>
+  <button class="tab" data-tab="sRules"><span class="ico">📖</span>Rules</button>
 </div>
 
 <!-- TEAMS MODAL (admin) -->
@@ -214,6 +252,30 @@ var SCHEDULE_DATA = {"groups":{"A":[{"name":"Mexico","flag":"🇲🇽"},{"name":
 var GROUPS = SCHEDULE_DATA.groups;
 var MATCHES = SCHEDULE_DATA.matches;            // array
 var MATCH_BY_ID = {}; MATCHES.forEach(function(m){MATCH_BY_ID[m.id]=m;});
+
+// ISO codes for real flag images (flagcdn). England/Scotland use UK subdivisions.
+var FLAG_CODE={
+ "Algeria":"dz","Argentina":"ar","Australia":"au","Austria":"at","Belgium":"be",
+ "Bosnia and Herzegovina":"ba","Brazil":"br","Canada":"ca","Cape Verde":"cv","Colombia":"co",
+ "Croatia":"hr","Curacao":"cw","Czechia":"cz","DR Congo":"cd","Ecuador":"ec","Egypt":"eg",
+ "England":"gb-eng","France":"fr","Germany":"de","Ghana":"gh","Haiti":"ht","Iran":"ir",
+ "Iraq":"iq","Ivory Coast":"ci","Japan":"jp","Jordan":"jo","Mexico":"mx","Morocco":"ma",
+ "Netherlands":"nl","New Zealand":"nz","Norway":"no","Panama":"pa","Paraguay":"py",
+ "Portugal":"pt","Qatar":"qa","Saudi Arabia":"sa","Scotland":"gb-sct","Senegal":"sn",
+ "South Africa":"za","South Korea":"kr","Spain":"es","Sweden":"se","Switzerland":"ch",
+ "Tunisia":"tn","Turkiye":"tr","United States":"us","Uruguay":"uy","Uzbekistan":"uz"
+};
+function flagHTML(name,emoji){
+  var code=FLAG_CODE[name];
+  if(code) return '<img class="flagimg" src="https://flagcdn.com/w80/'+code+'.png" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
+  return '<div class="flag">'+esc(emoji||'⚽')+'</div>';
+}
+// kickoff shown in the viewer's own device timezone (from the match UTC time)
+function localKick(m){
+  var t=Date.parse(m.utc);
+  if(isNaN(t)) return m.date+(m.time?(' • '+m.time):'');
+  return new Date(t).toLocaleString([], {weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+}
 
 // ===== FIREBASE =====
 // ⚠️ Replace these with your own Firebase project config from:
@@ -345,6 +407,7 @@ if(configReady){
 function enter(){
   document.getElementById('meName').textContent=myName;
   document.getElementById('meName2').textContent=myName;
+  document.getElementById('meName3').textContent=myName;
   document.getElementById('tabbar').style.display='flex';
   buildChips();
   listen();
@@ -433,13 +496,13 @@ function matchCard(m){
   el.appendChild(head);
 
   var teams=document.createElement('div');teams.className='teams';
-  teams.innerHTML='<div class="team"><div class="flag">'+esc(t.hf)+'</div><div class="tname">'+esc(t.home)+'</div></div>'+
+  teams.innerHTML='<div class="team">'+flagHTML(t.home,t.hf)+'<div class="tname">'+esc(t.home)+'</div></div>'+
     '<div class="vs">vs</div>'+
-    '<div class="team"><div class="flag">'+esc(t.af)+'</div><div class="tname">'+esc(t.away)+'</div></div>';
+    '<div class="team">'+flagHTML(t.away,t.af)+'<div class="tname">'+esc(t.away)+'</div></div>';
   el.appendChild(teams);
 
   var meta=document.createElement('div');meta.className='match-meta';
-  meta.textContent='📅 '+m.date+'  •  '+(m.time?('🕐 '+m.time+' local'):'')+'  •  📍 '+m.venue;
+  meta.textContent='🕐 '+localKick(m)+' (your time)  •  📍 '+m.venue;
   el.appendChild(meta);
 
   if(st==='finished'){
@@ -534,6 +597,7 @@ function adminStepper(rd,k){
 function applyAdminUI(){
   document.getElementById('btnSettings').classList.toggle('admin-on',isAdmin);
   document.getElementById('btnSettings2').classList.toggle('admin-on',isAdmin);
+  document.getElementById('btnSettings3').classList.toggle('admin-on',isAdmin);
 }
 function openSettings(){
   if(isAdmin){
@@ -550,6 +614,7 @@ function openSettings(){
 }
 document.getElementById('btnSettings').addEventListener('click',openSettings);
 document.getElementById('btnSettings2').addEventListener('click',openSettings);
+document.getElementById('btnSettings3').addEventListener('click',openSettings);
 
 // ===== TEAMS MODAL =====
 function openTeamModal(m){
