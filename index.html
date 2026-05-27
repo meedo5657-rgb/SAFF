@@ -243,7 +243,7 @@ if(configReady){
 }
 
 // ===== STATE (Firebase: only predictions, results, team overrides, users) =====
-var myName='', myKey='', isAdmin=false;
+var myName='', myKey='', isAdmin=false, authError=null;
 var predsData={}, resultsData={}, teamsData={}, usersData={};
 var currentFilter='upcoming';
 var editingMatch=null;
@@ -312,7 +312,7 @@ function doLogin(){
   var v=document.getElementById('nameInput').value.trim();
   if(!v){document.getElementById('loginErr').textContent='Please enter your name';return;}
   if(!configReady){document.getElementById('loginErr').textContent='Firebase must be configured first (see the notice above).';return;}
-  if(!myUid){document.getElementById('loginErr').textContent='Connecting… please try again in a second.';return;}
+  if(!myUid){document.getElementById('loginErr').textContent=authError||'Connecting… please try again in a second.';return;}
   attemptLogin(v,false);
 }
 document.getElementById('btnLogin').addEventListener('click',doLogin);
@@ -331,7 +331,14 @@ if(configReady){
   });
   auth.signInAnonymously().catch(function(e){
     console.error(e);
-    document.getElementById('loginErr').textContent='Could not sign in. In Firebase Console open Authentication → Sign-in method and enable Anonymous, then refresh.';
+    if(e&&e.code==='auth/operation-not-allowed'){
+      authError='Anonymous sign-in is OFF. In Firebase Console: Authentication → Sign-in method → enable Anonymous, then refresh.';
+    }else if(e&&(e.code==='auth/unauthorized-domain'||e.code==='auth/argument-error')){
+      authError='This page\'s address is not authorized in Firebase. Open the hosted link (https), not the local file, or add the domain under Authentication → Settings → Authorized domains.';
+    }else{
+      authError='Sign-in failed ('+((e&&e.code)||'unknown')+'). Open the hosted https link (not the local file) and check your internet.';
+    }
+    document.getElementById('loginErr').textContent=authError;
   });
 }
 
