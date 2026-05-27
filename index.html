@@ -205,7 +205,6 @@ input.field::placeholder{color:var(--muted);}
     <b>🏅 Leaderboard</b><br>
     • Points are added automatically once a match's official result is entered.<br>
     • <b>exact</b> = how many of your predictions matched the final score exactly.<br>
-    • <b>graded</b> = how many of your predictions have been counted so far (matches that finished and you had predicted).<br>
     • Ties are broken by the number of exact-score predictions.
   </div>
   <div class="rules">
@@ -744,14 +743,14 @@ function renderLeader(){
   var keys=Object.keys(usersData);
   if(!keys.length){list.innerHTML='<div class="empty">No players yet 🏟️</div>';return;}
   var rows=keys.map(function(k){
-    var total=0,exact=0,played=0;
+    var total=0,exact=0;
     MATCHES.forEach(function(m){
       var r=result(m);if(!r)return;
       var pred=predsData[m.id]&&predsData[m.id][k];if(!pred)return;
-      var pts=pointsFor(pred,r);total+=pts;played++;if(pts===5)exact++;
+      var pts=pointsFor(pred,r);total+=pts;if(pts===5)exact++;
     });
     var u=usersData[k];
-    return {key:k,name:(u&&u.name)?u.name:k,total:total,exact:exact,played:played};
+    return {key:k,name:(u&&u.name)?u.name:k,total:total,exact:exact};
   });
   rows.sort(function(a,b){return b.total-a.total||b.exact-a.exact;});
   rows.forEach(function(r,i){
@@ -761,7 +760,7 @@ function renderLeader(){
     var medal=rank===1?'🥇':(rank===2?'🥈':(rank===3?'🥉':rank));
     el.innerHTML='<div class="lb-rank">'+medal+'</div>'+
       '<div class="lb-name">'+esc(r.name)+(r.key===myKey?' <span class="lb-sub">(you)</span>':'')+
-      '<div class="lb-sub">🎯 '+r.exact+' exact • '+r.played+' graded</div></div>'+
+      '<div class="lb-sub">🎯 '+r.exact+' exact</div></div>'+
       '<div class="lb-pts">'+r.total+' <span>pts</span></div>';
     list.appendChild(el);
   });
