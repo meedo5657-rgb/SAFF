@@ -1,0 +1,34 @@
+{
+  "rules": {
+    ".read": "auth != null",
+
+    "users": {
+      "$key": {
+        ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid) && newData.child('uid').val() === auth.uid",
+        ".validate": "newData.hasChildren(['name','uid']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 30"
+      }
+    },
+
+    "predictions": {
+      "$mid": {
+        "$key": {
+          ".write": "auth != null && root.child('users').child($key).child('uid').val() === auth.uid",
+          ".validate": "newData.hasChildren(['h','a']) && newData.child('h').isNumber() && newData.child('a').isNumber() && newData.child('h').val() >= 0 && newData.child('h').val() <= 30 && newData.child('a').val() >= 0 && newData.child('a').val() <= 30"
+        }
+      }
+    },
+
+    "results": {
+      "$mid": {
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['h','a']) && newData.child('h').isNumber() && newData.child('a').isNumber() && newData.child('h').val() >= 0 && newData.child('a').val() >= 0"
+      }
+    },
+
+    "teams": {
+      "$mid": {
+        ".write": "auth != null"
+      }
+    }
+  }
+}

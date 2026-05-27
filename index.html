@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
 :root{
   --bg:#08150d; --surface:#0f2a1c; --card:#0c2317;
@@ -231,21 +232,18 @@ var firebaseConfig = {
 var ADMIN_CODE = "2026";
 
 var configReady = firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('YOUR_')!==0;
-var db=null, ROOT=null;
+var db=null, ROOT=null, auth=null, myUid=null;
 if(configReady){
   firebase.initializeApp(firebaseConfig);
   db=firebase.database();
   ROOT=db.ref('wc2026');
+  auth=firebase.auth();
 }else{
   document.getElementById('setupBanner').classList.add('show');
 }
 
 // ===== STATE (Firebase: only predictions, results, team overrides, users) =====
 var myName='', myKey='', isAdmin=false;
-// stable per-device id so a returning player can reclaim their own name
-var deviceId='';
-try{deviceId=localStorage.getItem('wc_device')||'';}catch(e){}
-if(!deviceId){deviceId='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);try{localStorage.setItem('wc_device',deviceId);}catch(e){}}
 var predsData={}, resultsData={}, teamsData={}, usersData={};
 var currentFilter='upcoming';
 var editingMatch=null;
@@ -286,8 +284,8 @@ function pointsFor(pred,r){
 function claimName(cb){
   var ref=ROOT.child('users/'+myKey);
   ref.transaction(function(cur){
-    if(cur===null) return {name:myName,owner:deviceId};        // free -> claim
-    if(cur&&cur.owner===deviceId) return {name:myName,owner:deviceId}; // mine -> keep
+    if(cur===null) return {name:myName,uid:myUid};        // free -> claim
+    if(cur&&cur.uid===myUid) return {name:myName,uid:myUid}; // mine -> keep
     return; // owned by someone else -> abort
   },function(err,committed){
     if(err){cb(false,'Connection error. Check your internet and try again.');return;}
@@ -314,12 +312,28 @@ function doLogin(){
   var v=document.getElementById('nameInput').value.trim();
   if(!v){document.getElementById('loginErr').textContent='Please enter your name';return;}
   if(!configReady){document.getElementById('loginErr').textContent='Firebase must be configured first (see the notice above).';return;}
+  if(!myUid){document.getElementById('loginErr').textContent='Connecting… please try again in a second.';return;}
   attemptLogin(v,false);
 }
 document.getElementById('btnLogin').addEventListener('click',doLogin);
 document.getElementById('nameInput').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
-try{var sv=localStorage.getItem('wc_name'); if(sv&&configReady){attemptLogin(sv,true);}}catch(e){}
 try{if(localStorage.getItem('wc_admin')==='1')isAdmin=true;}catch(e){}
+
+// Anonymous sign-in gives each device a stable identity that the
+// security rules use to protect each player's own data.
+if(configReady){
+  auth.onAuthStateChanged(function(user){
+    if(!user)return;
+    myUid=user.uid;
+    if(!myKey){ // not logged in yet -> try saved name
+      try{var sv=localStorage.getItem('wc_name'); if(sv)attemptLogin(sv,true);}catch(e){}
+    }
+  });
+  auth.signInAnonymously().catch(function(e){
+    console.error(e);
+    document.getElementById('loginErr').textContent='Could not sign in. In Firebase Console open Authentication → Sign-in method and enable Anonymous, then refresh.';
+  });
+}
 
 function enter(){
   document.getElementById('meName').textContent=myName;
