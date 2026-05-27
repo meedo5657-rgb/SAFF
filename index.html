@@ -204,6 +204,8 @@ input.field::placeholder{color:var(--muted);}
   <div class="rules">
     <b>🏅 Leaderboard</b><br>
     • Points are added automatically once a match's official result is entered.<br>
+    • <b>exact</b> = how many of your predictions matched the final score exactly.<br>
+    • <b>graded</b> = how many of your predictions have been counted so far (matches that finished and you had predicted).<br>
     • Ties are broken by the number of exact-score predictions.
   </div>
   <div class="rules">
@@ -286,6 +288,13 @@ function isRealTeam(n){return !!(n&&FLAG_CODE[canon(n)]);}
 function pairKey(a,b){return [a,b].sort().join(' :: ');}
 var GROUP_BY_PAIR={};
 MATCHES.forEach(function(m){if(m.stage==='group')GROUP_BY_PAIR[pairKey(m.home,m.away)]=m;});
+// group matchday (1-3): order each group's 6 matches by kickoff, two per matchday
+var GROUP_MD={};
+'ABCDEFGHIJKL'.split('').forEach(function(g){
+  MATCHES.filter(function(m){return m.stage==='group'&&m.group===g;})
+    .sort(function(a,b){return Date.parse(a.utc)-Date.parse(b.utc);})
+    .forEach(function(m,i){GROUP_MD[m.id]=Math.floor(i/2)+1;});
+});
 // Final and third-place play-off have no num in the feed -> map by round name
 var OF_ROUND_ID={'Final':'m104','Match for third place':'m103'};
 function loadOpenfootball(){
@@ -561,12 +570,13 @@ function matchCard(m){
 
   var stageLabel = m.stage==='group' ? ('Group '+m.group) :
     ({R32:'Round of 32',R16:'Round of 16',QF:'Quarter-final',SF:'Semi-final','3RD':'3rd place',FINAL:'Final'}[m.stage]||m.stage);
+  var roundLabel = m.stage==='group' ? ('Matchday '+(GROUP_MD[m.id]||'')) : ('Match #'+m.n);
   var stBadge = st==='finished'?'<span class="status-badge finished">FINISHED</span>'
     : st==='locked'?'<span class="status-badge locked">🔒 LOCKED</span>'
     : '<span class="status-badge open">OPEN</span>';
 
   var head=document.createElement('div');head.className='match-head';
-  head.innerHTML='<span class="grp-badge">'+esc(stageLabel)+'</span><span>#'+m.n+'</span>'+stBadge;
+  head.innerHTML='<span class="grp-badge">'+esc(stageLabel)+'</span><span>'+esc(roundLabel)+'</span>'+stBadge;
   el.appendChild(head);
 
   var teams=document.createElement('div');teams.className='teams';
@@ -751,7 +761,7 @@ function renderLeader(){
     var medal=rank===1?'🥇':(rank===2?'🥈':(rank===3?'🥉':rank));
     el.innerHTML='<div class="lb-rank">'+medal+'</div>'+
       '<div class="lb-name">'+esc(r.name)+(r.key===myKey?' <span class="lb-sub">(you)</span>':'')+
-      '<div class="lb-sub">🎯 '+r.exact+' exact • '+r.played+' scored</div></div>'+
+      '<div class="lb-sub">🎯 '+r.exact+' exact • '+r.played+' graded</div></div>'+
       '<div class="lb-pts">'+r.total+' <span>pts</span></div>';
     list.appendChild(el);
   });
