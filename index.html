@@ -569,7 +569,7 @@ function matchCard(m){
 
   var stageLabel = m.stage==='group' ? ('Group '+m.group) :
     ({R32:'Round of 32',R16:'Round of 16',QF:'Quarter-final',SF:'Semi-final','3RD':'3rd place',FINAL:'Final'}[m.stage]||m.stage);
-  var roundLabel = m.stage==='group' ? ('Matchday '+(GROUP_MD[m.id]||'')) : ('Match #'+m.n);
+  var roundLabel = m.stage==='group' ? ('Round '+(GROUP_MD[m.id]||'')) : ('Match #'+m.n);
   var stBadge = st==='finished'?'<span class="status-badge finished">FINISHED</span>'
     : st==='locked'?'<span class="status-badge locked">🔒 LOCKED</span>'
     : '<span class="status-badge open">OPEN</span>';
