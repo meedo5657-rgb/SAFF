@@ -56,6 +56,9 @@ input.field::placeholder{color:var(--muted);}
 .section-title{width:100%;font-size:1rem;font-weight:800;color:var(--accent1);}
 .hint{width:100%;font-size:.76rem;color:var(--muted);line-height:1.7;}
 
+.modes{width:100%;display:flex;gap:8px;}
+.mode{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-family:'Inter',sans-serif;font-size:.85rem;font-weight:700;padding:10px;border-radius:12px;cursor:pointer;}
+.mode.active{background:rgba(52,211,153,.12);border-color:var(--accent2);color:var(--accent2);}
 .chips{width:100%;display:flex;flex-wrap:wrap;gap:8px;padding-bottom:4px;}
 .chips::-webkit-scrollbar{height:0;}
 .chip{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:700;padding:7px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;}
@@ -166,6 +169,10 @@ input.field::placeholder{color:var(--muted);}
     <button class="icon-btn" id="btnSettings">⚙️</button>
   </div>
   <div class="section-title">⚽ Matches</div>
+  <div class="modes" id="modes">
+    <button class="mode active" data-mode="days">📅 By day</button>
+    <button class="mode" data-mode="groups">🏆 By group</button>
+  </div>
   <div class="chips" id="chips"></div>
   <div class="hint" id="matchHint">Set your prediction and tap save. Predictions lock at kickoff.</div>
   <div id="matchList" style="width:100%;display:flex;flex-direction:column;gap:12px;"></div>
@@ -354,7 +361,9 @@ var myName='', myKey='', isAdmin=false, authError=null;
 var predsData={}, resultsData={}, teamsData={}, usersData={};
 // auto-pulled from openfootball (knockout teams + official results)
 var apiResults={}, apiTeams={};
-var currentFilter='upcoming';
+var viewMode='days';          // 'days' | 'groups'
+var currentDay=null;          // selected date in days mode
+var currentFilter='g:A';      // selected chip in groups mode
 var editingMatch=null;
 var draft={}; // matchId -> {h,a}
 
@@ -474,6 +483,7 @@ function enter(){
   show('sMatches');
   if(booted){renderMatches();renderLeader();return;}  // re-login: don't re-attach listeners/timers
   booted=true;
+  buildModes();
   buildChips();
   listen();
   setInterval(function(){renderMatches();},30000);   // refresh locks over time
@@ -505,32 +515,52 @@ function listen(){
   ROOT.child('users').on('value',function(s){usersData=s.val()||{};renderLeader();});
 }
 
-// ===== FILTER CHIPS =====
-var FILTERS=[{k:'upcoming',label:'⏰ Upcoming'}];
-['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(function(g){FILTERS.push({k:'g:'+g,label:'Group '+g});});
+// ===== VIEW MODES & FILTER CHIPS =====
+// Group-mode chips: groups A-L + knockout rounds
+var GROUP_FILTERS=[];
+['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(function(g){GROUP_FILTERS.push({k:'g:'+g,label:'Group '+g});});
 [['R32','Round of 32'],['R16','Round of 16'],['QF','Quarter-finals'],['SF','Semi-finals'],['3RD','3rd place'],['FINAL','Final']]
-  .forEach(function(r){FILTERS.push({k:'r:'+r[0],label:r[1]});});
+  .forEach(function(r){GROUP_FILTERS.push({k:'r:'+r[0],label:r[1]});});
+// Day-mode chips: every distinct match date (official venue date)
+var DATES=[]; (function(){var seen={};MATCHES.forEach(function(m){if(m.date&&!seen[m.date]){seen[m.date]=1;DATES.push(m.date);}});DATES.sort();})();
+function fmtDay(d){var dt=new Date(d+'T12:00:00');return isNaN(dt)?d:dt.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'});}
+function defaultDay(){var today=new Date().toISOString().slice(0,10);for(var i=0;i<DATES.length;i++){if(DATES[i]>=today)return DATES[i];}return DATES[0];}
+if(!currentDay)currentDay=defaultDay();
 
+function buildModes(){
+  document.querySelectorAll('.mode').forEach(function(b){
+    b.addEventListener('click',function(){
+      viewMode=b.dataset.mode;
+      document.querySelectorAll('.mode').forEach(function(x){x.classList.toggle('active',x===b);});
+      buildChips(); renderMatches();
+    });
+  });
+}
 function buildChips(){
   var c=document.getElementById('chips');c.innerHTML='';
-  FILTERS.forEach(function(f){
-    var b=document.createElement('button');
-    b.className='chip'+(f.k===currentFilter?' active':'');
-    b.textContent=f.label;
-    b.addEventListener('click',function(){
-      currentFilter=f.k;
-      document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('active');});
-      b.classList.add('active');
-      renderMatches();
+  if(viewMode==='days'){
+    DATES.forEach(function(d){
+      var b=document.createElement('button');
+      b.className='chip'+(d===currentDay?' active':'');
+      b.textContent=fmtDay(d);
+      b.addEventListener('click',function(){currentDay=d;buildChips();renderMatches();});
+      c.appendChild(b);
     });
-    c.appendChild(b);
-  });
+  } else {
+    GROUP_FILTERS.forEach(function(f){
+      var b=document.createElement('button');
+      b.className='chip'+(f.k===currentFilter?' active':'');
+      b.textContent=f.label;
+      b.addEventListener('click',function(){currentFilter=f.k;buildChips();renderMatches();});
+      c.appendChild(b);
+    });
+  }
 }
 
 function filteredMatches(){
-  if(currentFilter==='upcoming'){
-    return MATCHES.filter(function(m){return statusOf(m)==='open';})
-      .sort(function(a,b){return kickoffMs(a)-kickoffMs(b);}).slice(0,24);
+  if(viewMode==='days'){
+    return MATCHES.filter(function(m){return m.date===currentDay;})
+      .sort(function(a,b){return kickoffMs(a)-kickoffMs(b);});
   }
   if(currentFilter.indexOf('g:')===0){
     var g=currentFilter.slice(2);
@@ -552,7 +582,7 @@ function renderMatches(){
   list.innerHTML='';
   var ms=filteredMatches();
   if(!ms.length){
-    list.innerHTML='<div class="empty">'+(currentFilter==='upcoming'?'No upcoming matches — everything has kicked off. Check the group and knockout tabs. 🏟️':'No matches here.')+'</div>';
+    list.innerHTML='<div class="empty">No matches here.</div>';
     return;
   }
   ms.forEach(function(m){list.appendChild(matchCard(m));});
