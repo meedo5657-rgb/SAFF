@@ -272,6 +272,46 @@ function localKick(m){
   return new Date(t).toLocaleString([], {weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 }
 
+// ===== LIVE DATA (openfootball: free, public, no key) =====
+// Auto-fills knockout teams once qualified and official final scores as they
+// are published. Admin entries always override this. Updates are community-
+// maintained so they can lag a little behind the live broadcast.
+var OF_URL='https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
+var OF_ALIAS={'Bosnia & Herzegovina':'Bosnia and Herzegovina','Curaçao':'Curacao','Czech Republic':'Czechia','Turkey':'Turkiye','USA':'United States','Korea Republic':'South Korea','IR Iran':'Iran','Côte d’Ivoire':'Ivory Coast'};
+function canon(n){return OF_ALIAS[n]||n;}
+function isRealTeam(n){return !!(n&&FLAG_CODE[canon(n)]);}
+// group matches are matched by their (unordered) team pair, not by position
+function pairKey(a,b){return [a,b].sort().join(' :: ');}
+var GROUP_BY_PAIR={};
+MATCHES.forEach(function(m){if(m.stage==='group')GROUP_BY_PAIR[pairKey(m.home,m.away)]=m;});
+// Final and third-place play-off have no num in the feed -> map by round name
+var OF_ROUND_ID={'Final':'m104','Match for third place':'m103'};
+function loadOpenfootball(){
+  if(typeof fetch!=='function')return;
+  fetch(OF_URL,{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
+    if(!d||!d.matches)return;
+    var nr={}, nt={};
+    d.matches.forEach(function(m){
+      var t1=canon(m.team1), t2=canon(m.team2), st;
+      if(m.num) st=MATCH_BY_ID['m'+m.num];          // knockout: official match number
+      else st=GROUP_BY_PAIR[pairKey(t1,t2)] || MATCH_BY_ID[OF_ROUND_ID[m.round]]; // group pair, or final/3rd
+      if(!st)return;
+      var swapped=(st.home===t2 && st.away===t1);    // align to our home/away order
+      // knockout teams once the qualifiers are known
+      if(st.stage!=='group' && (isRealTeam(m.team1)||isRealTeam(m.team2))){
+        nt[st.id]={home:isRealTeam(m.team1)?t1:null, away:isRealTeam(m.team2)?t2:null};
+      }
+      // official final score, oriented to our home/away
+      var ft=m.score&&m.score.ft;
+      if(ft&&ft.length===2&&typeof ft[0]==='number'&&typeof ft[1]==='number'){
+        nr[st.id]= swapped ? {h:ft[1],a:ft[0]} : {h:ft[0],a:ft[1]};
+      }
+    });
+    apiResults=nr; apiTeams=nt;
+    renderMatches(); renderLeader();
+  }).catch(function(){ /* offline or not yet updated -> admin entries still work */ });
+}
+
 // ===== FIREBASE =====
 // ⚠️ Replace these with your own Firebase project config from:
 // Firebase Console > Project settings > Your apps > Web app config
@@ -302,6 +342,8 @@ if(configReady){
 // ===== STATE (Firebase: only predictions, results, team overrides, users) =====
 var myName='', myKey='', isAdmin=false, authError=null;
 var predsData={}, resultsData={}, teamsData={}, usersData={};
+// auto-pulled from openfootball (knockout teams + official results)
+var apiResults={}, apiTeams={};
 var currentFilter='upcoming';
 var editingMatch=null;
 var draft={}; // matchId -> {h,a}
@@ -317,13 +359,18 @@ function sanitize(s){return s.replace(/[.#$\[\]\/]/g,'_').trim();}
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
 function sign(n){return n>0?1:(n<0?-1:0);}
 
-// effective teams (admin override wins, e.g. for knockout slots)
+// effective teams: admin override > auto API team > static fixture label
 function teamsOf(m){
-  var o=teamsData[m.id]||{};
-  return {home:o.home||m.home, away:o.away||m.away, hf:o.hf||m.hf||'⚽', af:o.af||m.af||'⚽'};
+  var o=teamsData[m.id]||{}, a=apiTeams[m.id]||{};
+  return {
+    home:o.home||a.home||m.home,
+    away:o.away||a.away||m.away,
+    hf:o.hf||m.hf||'', af:o.af||m.af||''   // flag drawn from team name; emoji is just a fallback
+  };
 }
 function kickoffMs(m){var t=Date.parse(m.utc); return isNaN(t)?Infinity:t;}
-function result(m){return resultsData[m.id];}
+// effective result: admin override wins, otherwise the auto API result
+function result(m){return resultsData[m.id]||apiResults[m.id]||null;}
 function statusOf(m){
   if(result(m))return 'finished';
   if(Date.now()>=kickoffMs(m))return 'locked';
@@ -408,7 +455,9 @@ function enter(){
   listen();
   applyAdminUI();
   show('sMatches');
-  setInterval(function(){renderMatches();},30000); // refresh locks over time
+  setInterval(function(){renderMatches();},30000);   // refresh locks over time
+  loadOpenfootball();                                 // initial auto data pull
+  setInterval(loadOpenfootball,300000);               // refresh teams/results every 5 min
 }
 
 function listen(){
@@ -657,7 +706,7 @@ function renderLeader(){
   var rows=keys.map(function(k){
     var total=0,exact=0,played=0;
     MATCHES.forEach(function(m){
-      var r=resultsData[m.id];if(!r)return;
+      var r=result(m);if(!r)return;
       var pred=predsData[m.id]&&predsData[m.id][k];if(!pred)return;
       var pts=pointsFor(pred,r);total+=pts;played++;if(pts===5)exact++;
     });
