@@ -864,7 +864,7 @@ function openSettings(){
     }
     return;
   }
-  var code=prompt('Enter admin code to enter results and assign teams:');
+  var code=prompt('Enter admin code');
   if(code===null)return;
   if(code===ADMIN_CODE){isAdmin=true;try{localStorage.setItem('wc_admin','1');}catch(e){}applyAdminUI();renderMatches();toast('Admin mode enabled 🔐');}
   else{toast('Wrong code ❌');}
