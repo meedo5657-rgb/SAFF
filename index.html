@@ -168,7 +168,7 @@ input.field::placeholder{color:var(--muted);}
     <b>Scoring:</b><br>
     🎯 Exact score = <b>6 points</b><br>
     ✅ Correct outcome (win/draw) = <b>3 points</b><br>
-    🥅 Knockout: correct shootout winner = <b>+1 bonus</b><br>
+    🥅 Knockout: correct penalties winner = <b>+1 bonus</b><br>
     ❌ Wrong = 0<br><br>
     ⏰ Predictions lock automatically at each match's real kickoff time.
   </div>
@@ -222,18 +222,40 @@ input.field::placeholder{color:var(--muted);}
         <td>Wrong outcome</td>
         <td>You predict a <b>home win</b> → the away team wins <span class="ex">(nothing)</span></td>
       </tr>
+    </table>
+  </div>
+
+  <div class="rules">
+    <b>🥅 Knockout matches that go to penalties</b><br>
+    Predict a <b>draw</b>, then you may pick the <b>penalties</b> winner. A <b>win</b> prediction earns nothing from the penalties.
+    <table class="ptable">
+      <tr><th>Points</th><th>When</th><th>Example</th></tr>
       <tr>
         <td class="pcell">7</td>
-        <td>Knockout: exact draw score <b>+</b> correct shootout winner</td>
-        <td>You predict <b>1–1, Brazil</b> on pens → ends <b>1–1</b>, Brazil win the shootout <span class="ex">(6 + 1)</span></td>
+        <td>Exact draw score <b>+</b> correct penalties winner</td>
+        <td>Predict <b>1–1, Brazil</b> on penalties → ends <b>1–1</b>, Brazil win penalties <span class="ex">(6 + 1)</span></td>
+      </tr>
+      <tr>
+        <td class="pcell">6</td>
+        <td>Exact draw score, but penalties winner <b>not picked</b> or wrong</td>
+        <td>Predict <b>1–1</b> (no winner chosen) → ends <b>1–1</b> <span class="ex">(score only)</span></td>
       </tr>
       <tr>
         <td class="pcell">4</td>
-        <td>Knockout: wrong score, but correct draw <b>+</b> shootout winner</td>
-        <td>You predict <b>2–2, Brazil</b> → ends <b>1–1</b>, Brazil win the shootout <span class="ex">(3 + 1)</span></td>
+        <td>Wrong score, but correct draw <b>+</b> penalties winner</td>
+        <td>Predict <b>2–2, Brazil</b> → ends <b>1–1</b>, Brazil win penalties <span class="ex">(3 + 1)</span></td>
+      </tr>
+      <tr>
+        <td class="pcell">3</td>
+        <td>Correct draw outcome only, penalties winner <b>not picked</b> or wrong</td>
+        <td>Predict <b>2–2</b> (no winner chosen) → ends <b>1–1</b> <span class="ex">(outcome only)</span></td>
+      </tr>
+      <tr>
+        <td class="pcell">0</td>
+        <td>Wrong (e.g. you predicted a win)</td>
+        <td>Predict <b>2–1</b> → match ends as a draw and goes to penalties</td>
       </tr>
     </table>
-    <div style="margin-top:10px">🥅 Shootout: only <b>draw</b> predictions can pick a winner. A <b>win</b> prediction earns nothing from the shootout. The +1 bonus needs the match to actually go to penalties.</div>
   </div>
 
   <div class="rules">
@@ -695,7 +717,7 @@ function penRow(obj,homeName,awayName){
     if(!draw)obj.pw=null;
     bh.classList.toggle('sel',obj.pw==='h');
     ba.classList.toggle('sel',obj.pw==='a');
-    lbl.textContent=draw?'🥅 If it goes to penalties, who wins?':'🥅 Pick a draw to set a shootout winner';
+    lbl.textContent=draw?'🥅 If it goes to penalties, who wins?':'🥅 Pick a draw to set the penalties winner';
   }
   bh.addEventListener('click',function(){if(bh.disabled)return;obj.pw='h';refresh();});
   ba.addEventListener('click',function(){if(ba.disabled)return;obj.pw='a';refresh();});
