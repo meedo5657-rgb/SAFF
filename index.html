@@ -90,10 +90,17 @@ input.field::placeholder{color:var(--muted);}
 .your-pred{font-size:.8rem;color:var(--muted);text-align:center;}
 .your-pred b{color:var(--text);}
 .pts-badge{font-size:.82rem;font-weight:800;border-radius:10px;padding:4px 12px;text-align:center;width:fit-content;margin:0 auto;}
-.pts-5{background:rgba(250,204,21,.15);color:var(--gold);}
-.pts-2{background:rgba(52,211,153,.15);color:var(--accent2);}
+.pts-hi{background:rgba(250,204,21,.15);color:var(--gold);}
+.pts-mid{background:rgba(52,211,153,.15);color:var(--accent2);}
 .pts-0{background:rgba(255,255,255,.06);color:var(--muted);}
 .save-pred{padding:10px;font-size:.9rem;}
+.pen-box{width:100%;background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;transition:opacity .2s;}
+.pen-lbl{font-size:.75rem;color:var(--muted);text-align:center;font-weight:700;}
+.pen-btns{display:flex;gap:8px;}
+.pen-btn{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-family:'Inter',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;}
+.pen-btn:disabled{cursor:default;}
+.pen-btn.sel{border-color:var(--accent1);background:rgba(250,204,21,.12);color:var(--accent1);}
+.pen-note{font-size:.72rem;color:var(--gold);text-align:center;}
 .locked-note{font-size:.75rem;color:var(--muted);text-align:center;}
 
 .admin-zone{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px;}
@@ -154,8 +161,9 @@ input.field::placeholder{color:var(--muted);}
   <div class="err" id="loginErr"></div>
   <div class="rules">
     <b>Scoring:</b><br>
-    🎯 Exact score = <b>5 points</b><br>
-    ✅ Correct outcome (win/draw) = <b>2 points</b><br>
+    🎯 Exact score = <b>6 points</b><br>
+    ✅ Correct outcome (win/draw) = <b>3 points</b><br>
+    🥅 Knockout: correct shootout winner = <b>+3 bonus</b><br>
     ❌ Wrong = 0<br><br>
     ⏰ Predictions lock automatically at each match's real kickoff time.
   </div>
@@ -192,13 +200,23 @@ input.field::placeholder{color:var(--muted);}
   <div class="section-title">📖 Rules & How it works</div>
   <div class="rules">
     <b>🎯 Scoring</b><br>
-    • Exact score (e.g. you said 2-1, it ends 2-1) = <b>5 points</b><br>
-    • Correct outcome only (right winner, or a draw) = <b>2 points</b><br>
+    • Exact score (e.g. you said 2-1, it ends 2-1) = <b>6 points</b><br>
+    • Correct outcome only (right winner, or a draw) = <b>3 points</b><br>
     • Wrong outcome = <b>0 points</b>
+  </div>
+  <div class="rules">
+    <b>🥅 Knockout penalties</b><br>
+    If a knockout match goes to a shootout, predict a <b>draw</b> and pick the <b>shootout winner</b>:<br>
+    • Exact draw score + correct shootout winner = <b>9 points</b><br>
+    • Exact score (no shootout needed) = <b>6 points</b><br>
+    • Wrong score but correct shootout winner = <b>6 points</b><br>
+    • Right outcome (draw) only, wrong shootout = <b>3 points</b><br>
+    • Otherwise = <b>0 points</b>
   </div>
   <div class="rules">
     <b>⏰ Predictions</b><br>
     • Pick a score for any match with the + / − buttons, then tap <b>Save</b>.<br>
+    • In knockout matches, picking a <b>draw</b> unlocks the shootout-winner buttons.<br>
     • You can change your pick any time <b>before kickoff</b>.<br>
     • Each match <b>locks automatically at its real kickoff time</b> — no edits after that.<br>
     • Kickoff times are shown in <b>your device's local time</b>.
@@ -313,10 +331,17 @@ function loadOpenfootball(){
       if(st.stage!=='group' && (isRealTeam(m.team1)||isRealTeam(m.team2))){
         nt[st.id]={home:isRealTeam(m.team1)?t1:null, away:isRealTeam(m.team2)?t2:null};
       }
-      // official final score, oriented to our home/away
-      var ft=m.score&&m.score.ft;
-      if(ft&&ft.length===2&&typeof ft[0]==='number'&&typeof ft[1]==='number'){
-        nr[st.id]= swapped ? {h:ft[1],a:ft[0]} : {h:ft[0],a:ft[1]};
+      // official score (after extra time if played), plus penalty-shootout winner
+      var sc=m.score||{};
+      var fin=(sc.et&&sc.et.length===2)?sc.et:sc.ft;   // score when penalties begin / final
+      if(fin&&fin.length===2&&typeof fin[0]==='number'&&typeof fin[1]==='number'){
+        var res= swapped ? {h:fin[1],a:fin[0]} : {h:fin[0],a:fin[1]};
+        var p=sc.p; // penalty shootout score
+        if(p&&p.length===2&&typeof p[0]==='number'&&typeof p[1]==='number'&&p[0]!==p[1]){
+          var homeWon = swapped ? (p[1]>p[0]) : (p[0]>p[1]);
+          res.pw = homeWon?'h':'a';
+        }
+        nr[st.id]=res;
       }
     });
     apiResults=nr; apiTeams=nt;
@@ -390,8 +415,13 @@ function statusOf(m){
 }
 function pointsFor(pred,r){
   if(!pred||!r)return null;
-  if(Number(pred.h)===Number(r.h)&&Number(pred.a)===Number(r.a))return 5;
-  return sign(pred.h-pred.a)===sign(r.h-r.a)?2:0;
+  var exact=Number(pred.h)===Number(r.h)&&Number(pred.a)===Number(r.a);
+  var base=exact?6:(sign(pred.h-pred.a)===sign(r.h-r.a)?3:0);
+  var bonus=0;
+  // penalty bonus: match went to a shootout (draw + pw), and the user predicted
+  // a draw and picked the correct shootout winner
+  if(r.pw&&pred.pw&&Number(r.h)===Number(r.a)&&Number(pred.h)===Number(pred.a)&&pred.pw===r.pw) bonus=3;
+  return base+bonus;
 }
 
 // ===== LOGIN =====
@@ -561,7 +591,7 @@ function matchCard(m){
   var st=statusOf(m);
   var t=teamsOf(m);
   var myPred=(predsData[m.id]&&predsData[m.id][myKey])?predsData[m.id][myKey]:null;
-  if(draft[m.id]===undefined) draft[m.id]=myPred?{h:Number(myPred.h),a:Number(myPred.a)}:{h:0,a:0};
+  if(draft[m.id]===undefined) draft[m.id]=myPred?{h:Number(myPred.h),a:Number(myPred.a),pw:myPred.pw||null}:{h:0,a:0,pw:null};
 
   var el=document.createElement('div');
   el.className='match'+(st==='locked'?' locked':'')+(st==='finished'?' finished':'');
@@ -587,29 +617,38 @@ function matchCard(m){
   meta.textContent='🕐 '+localKick(m)+' (your time)  •  📍 '+m.venue;
   el.appendChild(meta);
 
+  var ko=m.stage!=='group';
   if(st==='finished'){
     var r=result(m);
     var res=document.createElement('div');res.className='result-row';
     res.innerHTML='<span class="result-lbl">Final score</span><span class="result-big">'+r.h+' - '+r.a+'</span>';
     el.appendChild(res);
+    if(r.pw){
+      var pn=document.createElement('div');pn.className='pen-note';
+      pn.textContent='🥅 Penalties: '+(r.pw==='h'?t.home:t.away)+' won';el.appendChild(pn);
+    }
     if(myPred){
       var pts=pointsFor(myPred,r);
-      var yp=document.createElement('div');yp.className='your-pred';yp.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>';el.appendChild(yp);
-      var pb=document.createElement('div');pb.className='pts-badge pts-'+pts;
-      pb.textContent=(pts===5?'🎯 ':(pts===2?'✅ ':'❌ '))+'+'+pts+' pts';el.appendChild(pb);
+      var yp=document.createElement('div');yp.className='your-pred';
+      yp.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • pens: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'');el.appendChild(yp);
+      var cls=pts>=6?'pts-hi':(pts>=3?'pts-mid':'pts-0');
+      var pb=document.createElement('div');pb.className='pts-badge '+cls;
+      pb.textContent=(pts>=9?'🎯🥅 ':(pts===6?'🎯 ':(pts===3?'✅ ':'❌ ')))+'+'+pts+' pts';el.appendChild(pb);
     }else{
       var no=document.createElement('div');no.className='locked-note';no.textContent='You did not predict this match';el.appendChild(no);
     }
   }else if(st==='locked'){
     var ln=document.createElement('div');ln.className='locked-note';ln.textContent='🔒 Kicked off — predictions closed, awaiting official result';el.appendChild(ln);
-    if(myPred){var yp2=document.createElement('div');yp2.className='your-pred';yp2.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>';el.appendChild(yp2);}
+    if(myPred){var yp2=document.createElement('div');yp2.className='your-pred';yp2.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • pens: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'');el.appendChild(yp2);}
     else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='You did not predict this match';el.appendChild(no2);}
   }else{
+    var pen=null;
     var pr=document.createElement('div');pr.className='pred-row';
-    pr.appendChild(stepper(m.id,'h'));
+    pr.appendChild(stepper(m.id,'h',function(){if(pen)pen.refresh();}));
     var dash=document.createElement('div');dash.className='vs';dash.textContent='-';pr.appendChild(dash);
-    pr.appendChild(stepper(m.id,'a'));
+    pr.appendChild(stepper(m.id,'a',function(){if(pen)pen.refresh();}));
     el.appendChild(pr);
+    if(ko){ pen=penRow(draft[m.id],t.home,t.away); el.appendChild(pen.el); }
     var sb=document.createElement('button');sb.className='btn btn-green save-pred';
     sb.textContent=myPred?'Update prediction ✏️':'Save prediction ✅';
     sb.addEventListener('click',function(){savePred(m.id);});
@@ -620,22 +659,47 @@ function matchCard(m){
   return el;
 }
 
-function stepper(id,k){
+function stepper(id,k,onChange){
   var wrap=document.createElement('div');wrap.className='score-in';
   var minus=document.createElement('button');minus.className='stp';minus.textContent='−';
   var val=document.createElement('div');val.className='sval';val.textContent=draft[id][k];
   var plus=document.createElement('button');plus.className='stp';plus.textContent='+';
-  minus.addEventListener('click',function(){if(draft[id][k]>0){draft[id][k]--;val.textContent=draft[id][k];}});
-  plus.addEventListener('click',function(){if(draft[id][k]<20){draft[id][k]++;val.textContent=draft[id][k];}});
+  minus.addEventListener('click',function(){if(draft[id][k]>0){draft[id][k]--;val.textContent=draft[id][k];if(onChange)onChange();}});
+  plus.addEventListener('click',function(){if(draft[id][k]<20){draft[id][k]++;val.textContent=draft[id][k];if(onChange)onChange();}});
   wrap.appendChild(minus);wrap.appendChild(val);wrap.appendChild(plus);
   return wrap;
+}
+
+// penalty-shootout winner picker; enabled only when the score is a draw
+function penRow(obj,homeName,awayName){
+  var box=document.createElement('div');box.className='pen-box';
+  var lbl=document.createElement('div');lbl.className='pen-lbl';lbl.textContent='🥅 If it goes to penalties, who wins?';
+  var btns=document.createElement('div');btns.className='pen-btns';
+  var bh=document.createElement('button');bh.className='pen-btn';bh.textContent=homeName;
+  var ba=document.createElement('button');ba.className='pen-btn';ba.textContent=awayName;
+  function refresh(){
+    var draw=Number(obj.h)===Number(obj.a);
+    box.style.opacity=draw?'1':'.45';
+    bh.disabled=!draw;ba.disabled=!draw;
+    if(!draw)obj.pw=null;
+    bh.classList.toggle('sel',obj.pw==='h');
+    ba.classList.toggle('sel',obj.pw==='a');
+    lbl.textContent=draw?'🥅 If it goes to penalties, who wins?':'🥅 Pick a draw to set a shootout winner';
+  }
+  bh.addEventListener('click',function(){if(bh.disabled)return;obj.pw='h';refresh();});
+  ba.addEventListener('click',function(){if(ba.disabled)return;obj.pw='a';refresh();});
+  btns.appendChild(bh);btns.appendChild(ba);box.appendChild(lbl);box.appendChild(btns);
+  refresh();
+  return {el:box,refresh:refresh};
 }
 
 function savePred(id){
   var m=MATCH_BY_ID[id];
   if(statusOf(m)!=='open'){toast('Predictions are closed for this match');renderMatches();return;}
   var d=draft[id];
-  ROOT.child('predictions/'+id+'/'+myKey).set({h:d.h,a:d.a}).then(function(){toast('Prediction saved ✅');});
+  var data={h:d.h,a:d.a};
+  if(m.stage!=='group'&&Number(d.h)===Number(d.a)&&d.pw) data.pw=d.pw; // shootout pick on a draw
+  ROOT.child('predictions/'+id+'/'+myKey).set(data).then(function(){toast('Prediction saved ✅');});
 }
 
 // ===== ADMIN =====
@@ -643,15 +707,23 @@ function adminZone(m){
   var z=document.createElement('div');z.className='admin-zone';
   var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='🔐 Official result';z.appendChild(lbl);
   var r=result(m);
-  var rd={h:r?Number(r.h):0,a:r?Number(r.a):0};
+  var ko=m.stage!=='group';
+  var t=teamsOf(m);
+  var rd={h:r?Number(r.h):0,a:r?Number(r.a):0,pw:r&&r.pw?r.pw:null};
+  var pen=null;
   var row=document.createElement('div');row.className='pred-row';
-  row.appendChild(adminStepper(rd,'h'));
+  row.appendChild(adminStepper(rd,'h',function(){if(pen)pen.refresh();}));
   var dash=document.createElement('div');dash.className='vs';dash.textContent='-';row.appendChild(dash);
-  row.appendChild(adminStepper(rd,'a'));
+  row.appendChild(adminStepper(rd,'a',function(){if(pen)pen.refresh();}));
   z.appendChild(row);
+  if(ko){ pen=penRow(rd,t.home,t.away); z.appendChild(pen.el); }
   var save=document.createElement('button');save.className='btn btn-gold';save.style.padding='10px';
   save.textContent=r?'Update result 💾':'Set result 💾';
-  save.addEventListener('click',function(){ROOT.child('results/'+m.id).set({h:rd.h,a:rd.a}).then(function(){toast('Result saved ✅');});});
+  save.addEventListener('click',function(){
+    var data={h:rd.h,a:rd.a};
+    if(ko&&Number(rd.h)===Number(rd.a)&&rd.pw) data.pw=rd.pw;
+    ROOT.child('results/'+m.id).set(data).then(function(){toast('Result saved ✅');});
+  });
   z.appendChild(save);
   var acts=document.createElement('div');acts.className='admin-actions';
   var bt=document.createElement('button');bt.className='a-edit';bt.textContent='👥 Set teams';
@@ -666,13 +738,13 @@ function adminZone(m){
   z.appendChild(acts);
   return z;
 }
-function adminStepper(rd,k){
+function adminStepper(rd,k,onChange){
   var wrap=document.createElement('div');wrap.className='score-in';
   var minus=document.createElement('button');minus.className='stp';minus.textContent='−';
   var val=document.createElement('div');val.className='sval';val.textContent=rd[k];
   var plus=document.createElement('button');plus.className='stp';plus.textContent='+';
-  minus.addEventListener('click',function(){if(rd[k]>0){rd[k]--;val.textContent=rd[k];}});
-  plus.addEventListener('click',function(){if(rd[k]<20){rd[k]++;val.textContent=rd[k];}});
+  minus.addEventListener('click',function(){if(rd[k]>0){rd[k]--;val.textContent=rd[k];if(onChange)onChange();}});
+  plus.addEventListener('click',function(){if(rd[k]<20){rd[k]++;val.textContent=rd[k];if(onChange)onChange();}});
   wrap.appendChild(minus);wrap.appendChild(val);wrap.appendChild(plus);
   return wrap;
 }
