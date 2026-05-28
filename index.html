@@ -68,9 +68,10 @@ input.field::placeholder{color:var(--muted);}
 .match{width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;}
 .match.locked{border-color:rgba(225,29,72,.22);}
 .match.finished{border-color:rgba(251,113,133,.25);}
-.match-head{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--muted);gap:8px;flex-wrap:wrap;}
-.hl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.hmeta{color:var(--muted);}
+.match-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:.72rem;color:var(--muted);gap:8px;}
+.hc-l{justify-self:start;}
+.hc-c{justify-self:center;text-align:center;color:var(--muted);}
+.hc-r{justify-self:end;}
 .grp-badge{background:rgba(225,29,72,.28);color:#fff;border-radius:8px;padding:2px 9px;font-weight:700;white-space:nowrap;}
 .status-badge{font-weight:800;white-space:nowrap;}
 .status-badge.open{color:#fff;}
@@ -639,7 +640,9 @@ function matchCard(m){
     : '<span class="status-badge open">OPEN</span>';
 
   var head=document.createElement('div');head.className='match-head';
-  head.innerHTML='<span class="hl"><span class="grp-badge">'+esc(stageLabel)+'</span><span class="hmeta">'+esc(roundLabel)+' • '+esc(localKick(m))+'</span></span>'+stBadge;
+  head.innerHTML='<span class="hc-l"><span class="grp-badge">'+esc(stageLabel)+'</span></span>'
+    +'<span class="hc-c">'+esc(roundLabel)+' • '+esc(localKick(m))+'</span>'
+    +'<span class="hc-r">'+stBadge+'</span>';
   el.appendChild(head);
 
   var teams=document.createElement('div');teams.className='teams';
