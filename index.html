@@ -148,6 +148,7 @@ input.field::placeholder{color:var(--muted);}
 .lb-name{flex:1;font-size:.95rem;font-weight:700;}
 .lb-sub{font-size:.72rem;color:var(--muted);font-weight:400;}
 .lb-pts{font-size:1.3rem;font-weight:800;color:#fff;}
+.lb-del{margin-inline-start:8px;background:rgba(225,29,72,.15);border:1px solid rgba(225,29,72,.4);color:#fff;border-radius:9px;padding:6px 9px;font-size:.85rem;cursor:pointer;flex-shrink:0;}
 .lb-pts span{font-size:.68rem;color:var(--muted);font-weight:400;}
 .empty{color:var(--muted);font-size:.88rem;text-align:center;padding:30px 10px;line-height:1.8;}
 
@@ -860,13 +861,13 @@ function openSettings(){
   if(isAdmin){
     if(confirm('You are in admin mode.\nOK to exit admin mode, or Cancel to stay.')){
       isAdmin=false;try{localStorage.removeItem('wc_admin');}catch(e){}
-      applyAdminUI();renderMatches();toast('Exited admin mode');
+      applyAdminUI();renderMatches();renderLeader();toast('Exited admin mode');
     }
     return;
   }
   var code=prompt('Enter admin code');
   if(code===null)return;
-  if(code===ADMIN_CODE){isAdmin=true;try{localStorage.setItem('wc_admin','1');}catch(e){}applyAdminUI();renderMatches();toast('Admin mode enabled 🔐');}
+  if(code===ADMIN_CODE){isAdmin=true;try{localStorage.setItem('wc_admin','1');}catch(e){}applyAdminUI();renderMatches();renderLeader();toast('Admin mode enabled 🔐');}
   else{toast('Wrong code ❌');}
 }
 document.getElementById('btnSettings').addEventListener('click',openSettings);
@@ -914,7 +915,7 @@ function renderLeader(){
   var list=document.getElementById('leaderList');
   if(!list)return;
   list.innerHTML='';
-  var keys=Object.keys(usersData);
+  var keys=Object.keys(usersData).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
   if(!keys.length){list.innerHTML='<div class="empty">No players yet 🏟️</div>';return;}
   var rows=keys.map(function(k){
     var total=0,exact=0;
@@ -937,8 +938,25 @@ function renderLeader(){
       '<div class="lb-name">'+esc(r.name)+(r.key===myKey?' <span class="lb-sub">(you)</span>':'')+
       '<div class="lb-sub">'+r.exact+' exact scores</div></div>'+
       '<div class="lb-pts">'+r.total+' <span>pts</span></div>';
+    if(isAdmin){
+      var del=document.createElement('button');del.className='lb-del';del.textContent='🗑';del.title='Remove player';
+      del.addEventListener('click',function(){deletePlayer(r.key,r.name);});
+      el.appendChild(del);
+    }
     list.appendChild(el);
   });
+}
+
+// Admin: remove a player and all their predictions
+function deletePlayer(key,name){
+  if(!confirm('Remove player "'+name+'" and delete all their predictions? This cannot be undone.'))return;
+  var jobs=[];
+  Object.keys(predsData).forEach(function(mid){
+    if(predsData[mid]&&predsData[mid][key]) jobs.push(ROOT.child('predictions/'+mid+'/'+key).remove().catch(function(){}));
+  });
+  Promise.all(jobs).then(function(){
+    return ROOT.child('users/'+key).remove().catch(function(){return ROOT.child('users/'+key).update({removed:true});});
+  }).then(function(){toast('Player removed');});
 }
 
 // ===== TABS =====
