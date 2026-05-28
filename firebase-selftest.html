@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firebase self-test — WC2026</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<style>
+body{font-family:system-ui,Arial,sans-serif;background:#0c1430;color:#eaf0ff;margin:0;padding:18px;max-width:760px;margin:0 auto;}
+h1{font-size:1.2rem;}
+.row{padding:8px 10px;border-radius:8px;margin:5px 0;font-size:.9rem;display:flex;gap:8px;align-items:flex-start;border:1px solid rgba(255,255,255,.08);}
+.pass{background:rgba(52,211,153,.12);} .fail{background:rgba(225,29,72,.15);} .info{background:rgba(255,255,255,.05);color:#9fb0d6;}
+.tag{font-weight:800;min-width:54px;}
+.pass .tag{color:#34d399;} .fail .tag{color:#fb7185;}
+#summary{font-size:1.05rem;font-weight:800;margin:14px 0;padding:10px;border-radius:10px;}
+.sync{margin-top:20px;padding:14px;border:1px dashed rgba(255,255,255,.2);border-radius:10px;}
+button{background:#34d399;color:#04130b;border:none;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer;font-size:.95rem;}
+code{background:rgba(0,0,0,.35);padding:1px 5px;border-radius:5px;}
+.big{font-size:1.6rem;font-weight:800;color:#facc15;}
+</style>
+</head>
+<body>
+<h1>🔧 Firebase self-test — World Cup 2026</h1>
+<p class="info" style="padding:8px 10px;border-radius:8px;">Open this page in a normal browser. It connects to your live database and checks anonymous auth, allowed writes, data validation, delete-protection, and real-time updates. Test data is written under <code>wc2026/__selftest</code> and cleaned up afterwards.</p>
+<div id="out"></div>
+<div id="summary"></div>
+
+<div class="sync">
+  <h3>📡 Two-device real-time check</h3>
+  <p class="info" style="padding:0;border:0;background:none;">Open this same page on a <b>second device</b> (or tab). Press the button on one — the number should update on the other within a second, with no refresh.</p>
+  <p>Shared value: <span id="pingval" class="big">—</span></p>
+  <button id="pingbtn">Send ping 📲</button>
+</div>
+
+<script>
+var firebaseConfig={
+  apiKey:"AIzaSyDW2eFnZbAJkwbcuYCwme2fs8SK6oTZnHI",
+  authDomain:"world-cup-predictions-6c61b.firebaseapp.com",
+  databaseURL:"https://world-cup-predictions-6c61b-default-rtdb.firebaseio.com",
+  projectId:"world-cup-predictions-6c61b",
+  storageBucket:"world-cup-predictions-6c61b.firebasestorage.app",
+  messagingSenderId:"927763370478",
+  appId:"1:927763370478:web:711b8383f4d8ef4887feff"
+};
+firebase.initializeApp(firebaseConfig);
+var db=firebase.database(), ROOT=db.ref('wc2026');
+var out=document.getElementById('out');
+var P=0,F=0;
+function log(kind,name,detail){
+  var d=document.createElement('div'); d.className='row '+kind;
+  d.innerHTML='<span class="tag">'+(kind==='pass'?'PASS':kind==='fail'?'FAIL':'··')+'</span><span>'+name+(detail?(' — <span class="info" style="padding:0;border:0;background:none">'+detail+'</span>'):'')+'</span>';
+  out.appendChild(d);
+  if(kind==='pass')P++; if(kind==='fail')F++;
+}
+// expect a write to SUCCEED
+function expectOk(name,promise){return promise.then(function(){log('pass',name);},function(e){log('fail',name,'denied: '+(e&&e.code||e));});}
+// expect a write to be DENIED by rules
+function expectDenied(name,promise){return promise.then(function(){log('fail',name,'was allowed (should be blocked!)');},function(e){var c=(e&&e.code||''+e);if(/permission|denied/i.test(c))log('pass',name,'correctly blocked');else log('fail',name,'failed for another reason: '+c);});}
+
+var U='__selftest_user', M='__selftest';
+(async function(){
+ try{
+  await firebase.auth().signInAnonymously();
+  var uid=firebase.auth().currentUser&&firebase.auth().currentUser.uid;
+  log(uid?'pass':'fail','Anonymous sign-in', uid?('uid '+uid.slice(0,6)+'…'):'no uid — enable Anonymous in Auth');
+
+  // ALLOWED writes
+  await expectOk('Create user record (name+PIN)', ROOT.child('users/'+U).set({name:'ZZ_selftest (you can delete)',ph:'p_test'}));
+  await expectOk('Save a prediction {h,a}', ROOT.child('predictions/'+M+'/'+U).set({h:2,a:1}));
+  await expectOk('Admin write a result {h,a}', ROOT.child('results/'+M).set({h:1,a:0}));
+  await expectOk('Admin write knockout teams', ROOT.child('teams/'+M).set({home:'A',away:'B',hf:'',af:''}));
+
+  // VALIDATION (should be DENIED)
+  await expectDenied('Reject prediction with out-of-range score', ROOT.child('predictions/'+M+'/'+U).set({h:99,a:0}));
+  await expectDenied('Reject prediction missing a field', ROOT.child('predictions/'+M+'/'+U+'_bad').set({h:1}));
+  await expectDenied('Reject result with non-number', ROOT.child('results/'+M+'_bad').set({h:'x',a:0}));
+  await expectDenied('Reject user with empty name', ROOT.child('users/'+U+'_bad').set({name:'',ph:'p'}));
+
+  // SECURITY (should be DENIED)
+  await expectDenied("Block changing an existing PIN", ROOT.child('users/'+U+'/ph').set('HACKED'));
+  await expectDenied('Block deleting a user record', ROOT.child('users/'+U).remove());
+
+  // REAL-TIME within this client
+  await new Promise(function(res){
+    var got=false;
+    var ref=ROOT.child('predictions/'+M+'/'+U);
+    ref.on('value',function(s){var v=s.val(); if(v&&v.h===4&&v.a===4&&!got){got=true; log('pass','Real-time listener fires on update'); ref.off(); res();}});
+    ref.set({h:4,a:4});
+    setTimeout(function(){ if(!got){log('fail','Real-time listener fires on update','no event in 4s'); res();}},4000);
+  });
+
+  // CLEANUP (predictions/results/teams are deletable; the user node is protected by design)
+  await ROOT.child('predictions/'+M).remove().catch(function(){});
+  await ROOT.child('results/'+M).remove().catch(function(){});
+  await ROOT.child('teams/'+M).remove().catch(function(){});
+  log('info','Cleanup done. Note: the test user <code>'+U+'</code> can\'t be deleted by clients (that\'s the rule working). Delete it once from Firebase Console → Realtime Database if you want.');
+
+  var s=document.getElementById('summary');
+  s.textContent=(F===0?'✅ All '+P+' checks passed — sync & rules are working.':'⚠️ '+P+' passed, '+F+' failed — see red rows above.');
+  s.style.background=(F===0?'rgba(52,211,153,.18)':'rgba(225,29,72,.2)');
+ }catch(e){ log('fail','Test run crashed', (e&&e.message)||(''+e)); }
+})();
+
+// two-device ping
+var pingRef=ROOT.child('__selftest/ping');
+pingRef.on('value',function(s){var v=s.val(); document.getElementById('pingval').textContent=(v&&v.n!=null)?v.n:'—';});
+document.getElementById('pingbtn').addEventListener('click',function(){ pingRef.set({n:Math.floor(Math.random()*1000), t:Date.now()}); });
+</script>
+</body>
+</html>
