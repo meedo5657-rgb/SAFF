@@ -872,7 +872,7 @@ function renderLeader(){
     var medal=rank===1?'🥇':(rank===2?'🥈':(rank===3?'🥉':rank));
     el.innerHTML='<div class="lb-rank">'+medal+'</div>'+
       '<div class="lb-name">'+esc(r.name)+(r.key===myKey?' <span class="lb-sub">(you)</span>':'')+
-      '<div class="lb-sub">🎯 '+r.exact+' exact</div></div>'+
+      '<div class="lb-sub">'+r.exact+' exact scores</div></div>'+
       '<div class="lb-pts">'+r.total+' <span>pts</span></div>';
     list.appendChild(el);
   });
