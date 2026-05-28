@@ -568,7 +568,7 @@ function logout(){
   if(!myKey)return;
   if(!confirm('Sign out and use a different name?'))return;
   try{localStorage.removeItem('wc_name');localStorage.removeItem('wc_pin');}catch(e){}
-  myName=''; myKey='';
+  myName=''; myKey=''; draft={};   // clear the previous user's unsaved inputs
   document.getElementById('nameInput').value='';
   document.getElementById('pinInput').value='';
   document.getElementById('loginErr').textContent='';
