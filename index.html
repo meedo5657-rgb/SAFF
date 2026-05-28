@@ -113,6 +113,9 @@ input.field::placeholder{color:var(--muted);}
 .pts-mid{background:rgba(225,29,72,.45);color:#fff;}
 .pts-0{background:rgba(255,255,255,.06);color:var(--muted);}
 .save-pred{padding:10px;font-size:.9rem;}
+.x2-btn{width:100%;padding:9px;border-radius:11px;border:1px solid rgba(245,179,1,.5);background:rgba(245,179,1,.10);color:#f5b301;font-family:'Poppins',sans-serif;font-weight:700;font-size:.84rem;cursor:pointer;}
+.x2-btn.on{background:#f5b301;color:#241a00;border-color:#f5b301;}
+.x2-badge{font-size:.72rem;font-weight:800;color:#f5b301;}
 .pen-box{width:100%;background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;transition:opacity .2s;}
 .pen-lbl{font-size:.75rem;color:var(--muted);text-align:center;font-weight:700;}
 .pen-btns{display:flex;gap:8px;}
@@ -289,6 +292,7 @@ input.field::placeholder{color:var(--muted);}
 
   <div class="rules">
     <b>📌 Other notes</b><br>
+    • <b>⚡ 2x cards:</b> you get <b>5</b> for the whole tournament. Activate one on a match before kickoff to <b>double your points</b> there<br>
     • You can change your prediction freely, but it <b>stops at the match's real kickoff</b> — no edits after the match starts<br>
     • <b>Ties in the standings</b> are settled by who has more <b>exact-score predictions</b>
   </div>
@@ -484,6 +488,10 @@ function pointsFor(pred,r){
   if(r.pw&&pred.pw&&Number(r.h)===Number(r.a)&&Number(pred.h)===Number(pred.a)&&pred.pw===r.pw) bonus=1;
   return base+bonus;
 }
+// ===== 2x BOOST CARDS (5 per player; stored inside the prediction as x2) =====
+var MAX_BOOST=5;
+function boostsUsed(key,exceptId){var n=0;MATCHES.forEach(function(m){if(m.id===exceptId)return;var p=predsData[m.id]&&predsData[m.id][key];if(p&&p.x2)n++;});return n;}
+function scoreOf(pred,r){var p=pointsFor(pred,r);return p==null?null:p*((pred&&pred.x2)?2:1);}
 
 // ===== LOGIN =====
 // Claim a name atomically: first device to use a name owns it; the same
@@ -660,7 +668,7 @@ function matchCard(m){
   var st=statusOf(m);
   var t=teamsOf(m);
   var myPred=(predsData[m.id]&&predsData[m.id][myKey])?predsData[m.id][myKey]:null;
-  if(draft[m.id]===undefined) draft[m.id]=myPred?{h:Number(myPred.h),a:Number(myPred.a),pw:myPred.pw||null}:{h:0,a:0,pw:null};
+  if(draft[m.id]===undefined) draft[m.id]=myPred?{h:Number(myPred.h),a:Number(myPred.a),pw:myPred.pw||null,x2:!!myPred.x2}:{h:0,a:0,pw:null,x2:false};
 
   var el=document.createElement('div');
   el.className='match'+(st==='locked'?' live':'')+(st==='finished'?' finished':'');
@@ -695,11 +703,11 @@ function matchCard(m){
       pn.textContent='🥅 Penalties: '+(r.pw==='h'?t.home:t.away)+' won';el.appendChild(pn);
     }
     if(myPred){
-      var pts=pointsFor(myPred,r);
+      var base=pointsFor(myPred,r), pts=base*(myPred.x2?2:1);
       var yp=document.createElement('div');yp.className='your-pred';
-      yp.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • pens: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'');el.appendChild(yp);
+      yp.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • pens: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'')+(myPred.x2?' <span class="x2-badge">⚡2x</span>':'');el.appendChild(yp);
       var cls=pts>=5?'pts-hi':(pts>=3?'pts-mid':'pts-0');
-      var icon=pts===0?'':((pts>=5?'🎯 ':'')+((pts===6||pts===4)?'🥅 ':''));
+      var icon=(myPred.x2?'⚡ ':'')+(base===0?'':((base>=5?'🎯 ':'')+((base===6||base===4)?'🥅 ':'')));
       var pb=document.createElement('div');pb.className='pts-badge '+cls;
       pb.textContent=icon+'+'+pts+' pts';el.appendChild(pb);
     }else{
@@ -707,7 +715,7 @@ function matchCard(m){
     }
   }else if(st==='locked'){
     var ln=document.createElement('div');ln.className='locked-note';ln.textContent='● Live — predictions closed, awaiting the official result';el.appendChild(ln);
-    if(myPred){var yp2=document.createElement('div');yp2.className='your-pred';yp2.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • pens: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'');el.appendChild(yp2);}
+    if(myPred){var yp2=document.createElement('div');yp2.className='your-pred';yp2.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • pens: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'')+(myPred.x2?' <span class="x2-badge">⚡2x</span>':'');el.appendChild(yp2);}
     else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='You did not predict this match';el.appendChild(no2);}
   }else{
     var pen=null;
@@ -717,6 +725,16 @@ function matchCard(m){
     pr.appendChild(stepper(m.id,'a',function(){if(pen)pen.refresh();}));
     el.appendChild(pr);
     if(ko){ pen=penRow(draft[m.id],t.home,t.away); el.appendChild(pen.el); }
+    var x2btn=document.createElement('button');
+    function x2lbl(){var left=MAX_BOOST-boostsUsed(myKey,m.id)-(draft[m.id].x2?1:0);return (draft[m.id].x2?'⚡ 2x activated':'⚡ Use a 2x card')+'  ·  '+left+' left';}
+    function x2cls(){x2btn.className='btn x2-btn'+(draft[m.id].x2?' on':'');x2btn.textContent=x2lbl();}
+    x2cls();
+    x2btn.addEventListener('click',function(){
+      if(!draft[m.id].x2){ if(boostsUsed(myKey,m.id)>=MAX_BOOST){toast('No 2x cards left (max '+MAX_BOOST+')');return;} draft[m.id].x2=true; }
+      else draft[m.id].x2=false;
+      x2cls();
+    });
+    el.appendChild(x2btn);
     var sb=document.createElement('button');sb.className='btn btn-green save-pred';
     sb.textContent=myPred?'Update prediction':'Save prediction';
     sb.addEventListener('click',function(){savePred(m.id);});
@@ -738,7 +756,7 @@ function allPredsBlock(m,r){
   if(!keys.length){var e=document.createElement('div');e.className='ap-empty';e.textContent='No one predicted this match';list.appendChild(e);}
   var entries=keys.map(function(k){
     var nm=(usersData[k]&&usersData[k].name)?usersData[k].name:k;
-    return {key:k,name:nm,p:obj[k],pt:r?pointsFor(obj[k],r):null};
+    return {key:k,name:nm,p:obj[k],pt:r?scoreOf(obj[k],r):null};
   });
   if(r) entries.sort(function(a,b){return b.pt-a.pt;});
   else entries.sort(function(a,b){return (''+a.name).localeCompare(''+b.name);});
@@ -747,7 +765,7 @@ function allPredsBlock(m,r){
     var nm=document.createElement('span');nm.className='ap-name';nm.textContent=en.name+(en.key===myKey?' (you)':'');
     var rt=document.createElement('span');rt.className='ap-right';
     var pk=document.createElement('span');pk.className='ap-pick';
-    pk.textContent=en.p.h+' - '+en.p.a+(en.p.pw?(' · '+(en.p.pw==='h'?t.home:t.away)+' pens'):'');
+    pk.textContent=en.p.h+' - '+en.p.a+(en.p.x2?' ⚡':'')+(en.p.pw?(' · '+(en.p.pw==='h'?t.home:t.away)+' pens'):'');
     rt.appendChild(pk);
     if(r){var pb=document.createElement('span');pb.className='ap-pts';pb.textContent='+'+en.pt;rt.appendChild(pb);}
     row.appendChild(nm);row.appendChild(rt);list.appendChild(row);
@@ -800,6 +818,7 @@ function savePred(id){
     if(!d.pw){toast('Pick the penalties winner');return;}
     data.pw=d.pw;
   }
+  if(d.x2) data.x2=true; // 2x boost card
   ROOT.child('predictions/'+id+'/'+myKey).set(data).then(function(){toast('Prediction saved ✅');});
 }
 
@@ -922,7 +941,7 @@ function renderLeader(){
     MATCHES.forEach(function(m){
       var r=result(m);if(!r)return;
       var pred=predsData[m.id]&&predsData[m.id][k];if(!pred)return;
-      var pts=pointsFor(pred,r);total+=pts;
+      total+=scoreOf(pred,r);
       if(Number(pred.h)===Number(r.h)&&Number(pred.a)===Number(r.a))exact++;
     });
     var u=usersData[k];
