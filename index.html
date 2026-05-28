@@ -138,6 +138,11 @@ input.field::placeholder{color:var(--muted);}
 
 .rules{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:.82rem;line-height:1.9;color:var(--muted);}
 .rules b{color:var(--accent1);}
+.ptable{width:100%;border-collapse:collapse;font-size:.78rem;line-height:1.5;margin-top:10px;}
+.ptable th,.ptable td{border:1px solid var(--line);padding:8px 9px;text-align:start;vertical-align:top;color:var(--text);}
+.ptable th{color:var(--accent1);font-weight:700;background:rgba(250,204,21,.06);}
+.ptable .pcell{font-weight:800;color:var(--accent2);text-align:center;white-space:nowrap;}
+.ptable td .ex{color:var(--muted);}
 </style>
 </head>
 <body>
@@ -199,37 +204,45 @@ input.field::placeholder{color:var(--muted);}
   </div>
   <div class="section-title">📖 Rules & How it works</div>
   <div class="rules">
-    <b>🎯 Scoring</b><br>
-    • Exact score (e.g. you said 2-1, it ends 2-1) = <b>6 points</b><br>
-    • Correct outcome only (right winner, or a draw) = <b>3 points</b><br>
-    • Wrong outcome = <b>0 points</b>
+    <b>🎯 How points work</b>
+    <table class="ptable">
+      <tr><th>Points</th><th>When</th><th>Example</th></tr>
+      <tr>
+        <td class="pcell">6</td>
+        <td>Exact final score</td>
+        <td>You predict <b>2–1</b> → match ends <b>2–1</b> <span class="ex">(spot on)</span></td>
+      </tr>
+      <tr>
+        <td class="pcell">3</td>
+        <td>Correct outcome only (right winner, or a draw)</td>
+        <td>You predict <b>2–0</b> → match ends <b>3–1</b> <span class="ex">(right that the home team wins, wrong score)</span></td>
+      </tr>
+      <tr>
+        <td class="pcell">0</td>
+        <td>Wrong outcome</td>
+        <td>You predict a <b>home win</b> → the away team wins <span class="ex">(nothing)</span></td>
+      </tr>
+      <tr>
+        <td class="pcell">7</td>
+        <td>Knockout: exact draw score <b>+</b> correct shootout winner</td>
+        <td>You predict <b>1–1, Brazil</b> on pens → ends <b>1–1</b>, Brazil win the shootout <span class="ex">(6 + 1)</span></td>
+      </tr>
+      <tr>
+        <td class="pcell">4</td>
+        <td>Knockout: wrong score, but correct draw <b>+</b> shootout winner</td>
+        <td>You predict <b>2–2, Brazil</b> → ends <b>1–1</b>, Brazil win the shootout <span class="ex">(3 + 1)</span></td>
+      </tr>
+    </table>
+    <div style="margin-top:10px">🥅 Shootout: only <b>draw</b> predictions can pick a winner. A <b>win</b> prediction earns nothing from the shootout. The +1 bonus needs the match to actually go to penalties.</div>
   </div>
+
   <div class="rules">
-    <b>🥅 Knockout penalties</b><br>
-    If a knockout match goes to a shootout, predict a <b>draw</b> and pick the <b>shootout winner</b> (a win prediction earns nothing from the shootout):<br>
-    • Exact draw score + correct shootout winner = <b>7 points</b><br>
-    • Exact score (no shootout needed) = <b>6 points</b><br>
-    • Wrong score but correct shootout winner = <b>4 points</b><br>
-    • Right outcome (draw) only, wrong shootout = <b>3 points</b><br>
-    • Otherwise = <b>0 points</b>
-  </div>
-  <div class="rules">
-    <b>⏰ Predictions</b><br>
-    • Pick a score for any match with the + / − buttons, then tap <b>Save</b>.<br>
-    • In knockout matches, picking a <b>draw</b> unlocks the shootout-winner buttons.<br>
-    • You can change your pick any time <b>before kickoff</b>.<br>
-    • Each match <b>locks automatically at its real kickoff time</b> — no edits after that.<br>
-    • Kickoff times are shown in <b>your device's local time</b>.
-  </div>
-  <div class="rules">
-    <b>🏅 Leaderboard</b><br>
-    • Points are added automatically once a match's official result is entered.<br>
-    • <b>exact</b> = how many of your predictions matched the final score exactly.<br>
-    • Ties are broken by the number of exact-score predictions.
-  </div>
-  <div class="rules">
-    <b>👤 Names</b><br>
-    • Each name can be used by one person only — first to claim it owns it.
+    <b>📌 Other notes</b><br>
+    • ✏️ You can change your prediction freely, but it <b>stops at the match's real kickoff</b> — no edits after the match starts.<br>
+    • 🏅 <b>Ties in the standings</b> are settled by who has more <b>exact-score predictions</b>.<br>
+    • 🕐 Kickoff times show in <b>your device's local time</b>.<br>
+    • 🔄 Results &amp; knockout teams fill in automatically, and the leaderboard updates instantly.<br>
+    • 👤 Each name is used by one person only — first to claim it (with a PIN) owns it.
   </div>
 </div>
 
