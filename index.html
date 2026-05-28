@@ -595,9 +595,17 @@ function buildChips(){
     var b=document.createElement('button');
     b.className='chip'+(f.k===currentFilter?' active':'');
     b.textContent=f.label;
-    b.addEventListener('click',function(){currentFilter=f.k;buildChips();renderMatches();});
+    b.addEventListener('click',function(){
+      if(currentFilter===f.k)return;
+      currentFilter=f.k;
+      // just move the highlight; don't rebuild or scroll the strip
+      document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      renderMatches();
+    });
     c.appendChild(b);
   });
+  // center the active chip only on initial build (not on user taps)
   var active=c.querySelector('.chip.active');
   if(active) c.scrollLeft = active.offsetLeft - c.clientWidth/2 + active.clientWidth/2;
 }
