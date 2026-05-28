@@ -730,7 +730,7 @@ function matchCard(m){
     function x2cls(){x2btn.className='btn x2-btn'+(draft[m.id].x2?' on':'');x2btn.textContent=x2lbl();}
     x2cls();
     x2btn.addEventListener('click',function(){
-      if(!draft[m.id].x2){ if(boostsUsed(myKey,m.id)>=MAX_BOOST){toast('No 2x cards left (max '+MAX_BOOST+')');return;} draft[m.id].x2=true; }
+      if(!draft[m.id].x2){ if(boostsUsed(myKey,m.id)>=MAX_BOOST){toast("You've used all "+MAX_BOOST+" of your 2x cards");return;} draft[m.id].x2=true; }
       else draft[m.id].x2=false;
       x2cls();
     });
