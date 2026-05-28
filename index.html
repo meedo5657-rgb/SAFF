@@ -188,7 +188,7 @@ input.field::placeholder{color:var(--muted);}
   <div class="err" id="loginErr"></div>
   <div class="rules">
     <b>How it works</b><br>
-    📊 Exact score = <b>6 pts</b> · right winner/draw = <b>3 pts</b><br>
+    📊 Exact score = <b>5 pts</b> · right winner/draw = <b>3 pts</b><br>
     ⏰ Picks lock when the match kicks off<br>
     📖 Full details in the <b>Rules</b> tab
   </div>
@@ -228,7 +228,7 @@ input.field::placeholder{color:var(--muted);}
     <table class="ptable">
       <tr><th>Points</th><th>When</th><th>Example</th></tr>
       <tr>
-        <td class="pcell">6</td>
+        <td class="pcell">5</td>
         <td>Exact score — both teams' goals correct</td>
         <td>You predict <b>Brazil 2–1 Spain</b>, and it ends <b>Brazil 2–1 Spain</b></td>
       </tr>
@@ -250,12 +250,12 @@ input.field::placeholder{color:var(--muted);}
     <table class="ptable">
       <tr><th>Points</th><th>When</th><th>Example</th></tr>
       <tr>
-        <td class="pcell">7</td>
+        <td class="pcell">6</td>
         <td>Exact draw score and correct penalties winner</td>
         <td>You predict <b>Brazil 1–1 Spain, Brazil win penalties</b>, and that is exactly what happens</td>
       </tr>
       <tr>
-        <td class="pcell">6</td>
+        <td class="pcell">5</td>
         <td>Exact draw score, wrong penalties winner</td>
         <td>You predict <b>Brazil 1–1 Spain, Brazil win penalties</b>, but it ends <b>1–1</b> and Spain win penalties</td>
       </tr>
@@ -467,7 +467,7 @@ function statusOf(m){
 function pointsFor(pred,r){
   if(!pred||!r)return null;
   var exact=Number(pred.h)===Number(r.h)&&Number(pred.a)===Number(r.a);
-  var base=exact?6:(sign(pred.h-pred.a)===sign(r.h-r.a)?3:0);
+  var base=exact?5:(sign(pred.h-pred.a)===sign(r.h-r.a)?3:0);
   var bonus=0;
   // penalty bonus: match went to a shootout (draw + pw), and the user predicted
   // a draw and picked the correct shootout winner
@@ -688,8 +688,8 @@ function matchCard(m){
       var pts=pointsFor(myPred,r);
       var yp=document.createElement('div');yp.className='your-pred';
       yp.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • pens: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'');el.appendChild(yp);
-      var cls=pts>=6?'pts-hi':(pts>=3?'pts-mid':'pts-0');
-      var icon=pts===0?'':((pts>=6?'🎯 ':'')+((pts===7||pts===4)?'🥅 ':''));
+      var cls=pts>=5?'pts-hi':(pts>=3?'pts-mid':'pts-0');
+      var icon=pts===0?'':((pts>=5?'🎯 ':'')+((pts===6||pts===4)?'🥅 ':''));
       var pb=document.createElement('div');pb.className='pts-badge '+cls;
       pb.textContent=icon+'+'+pts+' pts';el.appendChild(pb);
     }else{
