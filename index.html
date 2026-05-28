@@ -121,6 +121,17 @@ input.field::placeholder{color:var(--muted);}
 .pen-btn.sel{border-color:var(--accent1);background:var(--accent1);color:#fff;}
 .pen-note{font-size:.72rem;color:#fff;text-align:center;}
 .locked-note{font-size:.75rem;color:var(--muted);text-align:center;}
+.allpreds-wrap{width:100%;border-top:1px dashed var(--line);padding-top:10px;}
+.see-preds{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:8px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;}
+.allpreds{display:none;flex-direction:column;gap:7px;margin-top:8px;}
+.allpreds.show{display:flex;}
+.ap-row{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;gap:8px;}
+.ap-name{color:var(--muted);}
+.ap-row.me .ap-name{color:#fff;font-weight:700;}
+.ap-right{display:flex;align-items:center;gap:10px;}
+.ap-pick{font-weight:700;color:#fff;}
+.ap-pts{font-size:.72rem;color:#fff;font-weight:800;min-width:26px;text-align:right;}
+.ap-empty{color:var(--muted);font-size:.78rem;text-align:center;}
 
 .admin-zone{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px;}
 .admin-zone .lbl{font-size:.72rem;color:var(--muted);font-weight:700;}
@@ -712,8 +723,38 @@ function matchCard(m){
     el.appendChild(sb);
   }
 
+  if(st!=='open') el.appendChild(allPredsBlock(m,result(m)));
   if(isAdmin) el.appendChild(adminZone(m));
   return el;
+}
+
+// Everyone's predictions for a match — revealed only after kickoff (live/finished)
+function allPredsBlock(m,r){
+  var box=document.createElement('div');box.className='allpreds-wrap';
+  var obj=predsData[m.id]||{}, keys=Object.keys(obj), t=teamsOf(m);
+  var btn=document.createElement('button');btn.className='see-preds';
+  btn.textContent='👥 All predictions ('+keys.length+')';
+  var list=document.createElement('div');list.className='allpreds';
+  if(!keys.length){var e=document.createElement('div');e.className='ap-empty';e.textContent='No one predicted this match';list.appendChild(e);}
+  var entries=keys.map(function(k){
+    var nm=(usersData[k]&&usersData[k].name)?usersData[k].name:k;
+    return {key:k,name:nm,p:obj[k],pt:r?pointsFor(obj[k],r):null};
+  });
+  if(r) entries.sort(function(a,b){return b.pt-a.pt;});
+  else entries.sort(function(a,b){return (''+a.name).localeCompare(''+b.name);});
+  entries.forEach(function(en){
+    var row=document.createElement('div');row.className='ap-row'+(en.key===myKey?' me':'');
+    var nm=document.createElement('span');nm.className='ap-name';nm.textContent=en.name+(en.key===myKey?' (you)':'');
+    var rt=document.createElement('span');rt.className='ap-right';
+    var pk=document.createElement('span');pk.className='ap-pick';
+    pk.textContent=en.p.h+' - '+en.p.a+(en.p.pw?(' · '+(en.p.pw==='h'?t.home:t.away)+' pens'):'');
+    rt.appendChild(pk);
+    if(r){var pb=document.createElement('span');pb.className='ap-pts';pb.textContent='+'+en.pt;rt.appendChild(pb);}
+    row.appendChild(nm);row.appendChild(rt);list.appendChild(row);
+  });
+  btn.addEventListener('click',function(){list.classList.toggle('show');});
+  box.appendChild(btn);box.appendChild(list);
+  return box;
 }
 
 function stepper(id,k,onChange){
