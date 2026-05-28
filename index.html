@@ -23,7 +23,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 .screen{display:none;width:100%;max-width:480px;flex-direction:column;align-items:center;gap:14px;}
 .screen.active{display:flex;}
 .logo{display:flex;align-items:center;justify-content:center;background:#fff;padding:16px 28px;border-radius:16px;width:fit-content;margin:0 auto;}
-.logo-svg{width:172px;height:auto;display:block;}
+.logo-img{width:180px;height:auto;display:block;}
 .tagline{font-size:.85rem;color:var(--muted);text-align:center;}
 .subtitle{font-size:1.5rem;font-weight:700;color:#fff;text-align:center;margin-top:16px;line-height:1.25;}
 .box{width:100%;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 18px;display:flex;flex-direction:column;gap:12px;}
@@ -152,13 +152,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- LOGIN -->
 <div class="screen active" id="sLogin">
   <div style="margin:24px 0 6px">
-    <div class="logo">
-      <svg class="logo-svg" viewBox="0 0 200 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CAA Portas">
-        <circle cx="40" cy="28" r="24" fill="none" stroke="#D6002A" stroke-width="6.5"/>
-        <text x="16" y="40" font-family="Poppins,system-ui,sans-serif" font-weight="800" font-size="33" fill="#D6002A" letter-spacing="1">CAA</text>
-        <text x="2" y="88" font-family="Poppins,system-ui,sans-serif" font-weight="700" font-size="46" fill="#16294F" letter-spacing="0.5">portas</text>
-      </svg>
-    </div>
+    <div class="logo"><img class="logo-img" src="image.png" alt="CAA Portas"></div>
     <div class="subtitle">World Cup 2026 Predictions</div>
   </div>
   <div class="setup-banner" id="setupBanner">
