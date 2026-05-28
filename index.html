@@ -163,7 +163,7 @@ input.field::placeholder{color:var(--muted);}
     <b>Scoring:</b><br>
     🎯 Exact score = <b>6 points</b><br>
     ✅ Correct outcome (win/draw) = <b>3 points</b><br>
-    🥅 Knockout: correct shootout winner = <b>+3 bonus</b><br>
+    🥅 Knockout: correct shootout winner = <b>+1 bonus</b><br>
     ❌ Wrong = 0<br><br>
     ⏰ Predictions lock automatically at each match's real kickoff time.
   </div>
@@ -206,10 +206,10 @@ input.field::placeholder{color:var(--muted);}
   </div>
   <div class="rules">
     <b>🥅 Knockout penalties</b><br>
-    If a knockout match goes to a shootout, predict a <b>draw</b> and pick the <b>shootout winner</b>:<br>
-    • Exact draw score + correct shootout winner = <b>9 points</b><br>
+    If a knockout match goes to a shootout, predict a <b>draw</b> and pick the <b>shootout winner</b> (a win prediction earns nothing from the shootout):<br>
+    • Exact draw score + correct shootout winner = <b>7 points</b><br>
     • Exact score (no shootout needed) = <b>6 points</b><br>
-    • Wrong score but correct shootout winner = <b>6 points</b><br>
+    • Wrong score but correct shootout winner = <b>4 points</b><br>
     • Right outcome (draw) only, wrong shootout = <b>3 points</b><br>
     • Otherwise = <b>0 points</b>
   </div>
@@ -420,7 +420,7 @@ function pointsFor(pred,r){
   var bonus=0;
   // penalty bonus: match went to a shootout (draw + pw), and the user predicted
   // a draw and picked the correct shootout winner
-  if(r.pw&&pred.pw&&Number(r.h)===Number(r.a)&&Number(pred.h)===Number(pred.a)&&pred.pw===r.pw) bonus=3;
+  if(r.pw&&pred.pw&&Number(r.h)===Number(r.a)&&Number(pred.h)===Number(pred.a)&&pred.pw===r.pw) bonus=1;
   return base+bonus;
 }
 
@@ -632,8 +632,9 @@ function matchCard(m){
       var yp=document.createElement('div');yp.className='your-pred';
       yp.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • pens: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'');el.appendChild(yp);
       var cls=pts>=6?'pts-hi':(pts>=3?'pts-mid':'pts-0');
+      var icon=pts===0?'❌ ':((pts>=6?'🎯 ':'✅ ')+((pts===7||pts===4)?'🥅 ':''));
       var pb=document.createElement('div');pb.className='pts-badge '+cls;
-      pb.textContent=(pts>=9?'🎯🥅 ':(pts===6?'🎯 ':(pts===3?'✅ ':'❌ ')))+'+'+pts+' pts';el.appendChild(pb);
+      pb.textContent=icon+'+'+pts+' pts';el.appendChild(pb);
     }else{
       var no=document.createElement('div');no.className='locked-note';no.textContent='You did not predict this match';el.appendChild(no);
     }
