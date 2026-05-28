@@ -113,7 +113,9 @@ input.field::placeholder{color:var(--muted);}
 .pts-mid{background:rgba(225,29,72,.45);color:#fff;}
 .pts-0{background:rgba(255,255,255,.06);color:var(--muted);}
 .save-pred{padding:10px;font-size:.9rem;}
-.x2-btn{width:100%;padding:9px;border-radius:11px;border:1px solid rgba(245,179,1,.5);background:rgba(245,179,1,.10);color:#f5b301;font-family:'Poppins',sans-serif;font-weight:700;font-size:.84rem;cursor:pointer;}
+.pred-actions{display:flex;gap:8px;width:100%;}
+.pred-actions .save-pred{flex:1;}
+.x2-btn{flex:0 0 auto;padding:0 12px;border-radius:11px;border:1px solid rgba(245,179,1,.5);background:rgba(245,179,1,.12);color:#f5b301;font-family:'Poppins',sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;white-space:nowrap;}
 .x2-btn.on{background:#f5b301;color:#241a00;border-color:#f5b301;}
 .x2-badge{font-size:.72rem;font-weight:800;color:#f5b301;}
 .pen-box{width:100%;background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;transition:opacity .2s;}
@@ -726,19 +728,21 @@ function matchCard(m){
     el.appendChild(pr);
     if(ko){ pen=penRow(draft[m.id],t.home,t.away); el.appendChild(pen.el); }
     var x2btn=document.createElement('button');
-    function x2lbl(){var left=MAX_BOOST-boostsUsed(myKey,m.id)-(draft[m.id].x2?1:0);return (draft[m.id].x2?'⚡ 2x activated':'⚡ Use a 2x card')+'  ·  '+left+' left';}
-    function x2cls(){x2btn.className='btn x2-btn'+(draft[m.id].x2?' on':'');x2btn.textContent=x2lbl();}
+    function x2lbl(){var left=MAX_BOOST-boostsUsed(myKey,m.id)-(draft[m.id].x2?1:0);return draft[m.id].x2?'⚡ 2x ✓':'⚡ 2x ('+left+')';}
+    function x2cls(){x2btn.className='x2-btn'+(draft[m.id].x2?' on':'');x2btn.textContent=x2lbl();}
     x2cls();
+    x2btn.title='Double your points for this match';
     x2btn.addEventListener('click',function(){
       if(!draft[m.id].x2){ if(boostsUsed(myKey,m.id)>=MAX_BOOST){toast("You've used all "+MAX_BOOST+" of your 2x cards");return;} draft[m.id].x2=true; }
       else draft[m.id].x2=false;
       x2cls();
     });
-    el.appendChild(x2btn);
     var sb=document.createElement('button');sb.className='btn btn-green save-pred';
     sb.textContent=myPred?'Update prediction':'Save prediction';
     sb.addEventListener('click',function(){savePred(m.id);});
-    el.appendChild(sb);
+    var actions=document.createElement('div');actions.className='pred-actions';
+    actions.appendChild(x2btn);actions.appendChild(sb);
+    el.appendChild(actions);
   }
 
   if(st!=='open') el.appendChild(allPredsBlock(m,result(m)));
