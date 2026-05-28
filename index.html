@@ -214,18 +214,18 @@ input.field::placeholder{color:var(--muted);}
       <tr><th>Points</th><th>When</th><th>Example</th></tr>
       <tr>
         <td class="pcell">6</td>
-        <td>Exact final score</td>
-        <td>You predict <b>2–1</b> → match ends <b>2–1</b> <span class="ex">(spot on)</span></td>
+        <td>Exact score — both teams' goals correct</td>
+        <td>You predict <b>Brazil 2–1 Spain</b>, and it ends <b>Brazil 2–1 Spain</b></td>
       </tr>
       <tr>
         <td class="pcell">3</td>
-        <td>Correct outcome only (right winner, or a draw)</td>
-        <td>You predict <b>2–0</b> → match ends <b>3–1</b> <span class="ex">(right that the home team wins, wrong score)</span></td>
+        <td>Correct result only — right winner or draw, wrong score</td>
+        <td>You predict <b>Brazil 2–0 Spain</b>, and it ends <b>Brazil 3–1 Spain</b></td>
       </tr>
       <tr>
         <td class="pcell">0</td>
-        <td>Wrong outcome</td>
-        <td>You predict a <b>home win</b> → the away team wins <span class="ex">(nothing)</span></td>
+        <td>Wrong result</td>
+        <td>You predict <b>Brazil 2–1 Spain</b>, and it ends <b>Brazil 0–1 Spain</b></td>
       </tr>
     </table>
   </div>
@@ -236,36 +236,36 @@ input.field::placeholder{color:var(--muted);}
       <tr><th>Points</th><th>When</th><th>Example</th></tr>
       <tr>
         <td class="pcell">7</td>
-        <td>Exact draw score <b>+</b> correct penalties winner</td>
-        <td>Predict <b>1–1, Brazil</b> on penalties → ends <b>1–1</b>, Brazil win penalties <span class="ex">(6 + 1)</span></td>
+        <td>Exact draw score and correct penalties winner</td>
+        <td>You predict <b>Brazil 1–1 Spain, Brazil win penalties</b>, and that is exactly what happens</td>
       </tr>
       <tr>
         <td class="pcell">6</td>
-        <td>Exact draw score, but <b>wrong</b> penalties winner</td>
-        <td>Predict <b>1–1</b>, wrong team on penalties → ends <b>1–1</b> <span class="ex">(score only)</span></td>
+        <td>Exact draw score, wrong penalties winner</td>
+        <td>You predict <b>Brazil 1–1 Spain, Brazil win penalties</b>, but it ends <b>1–1</b> and Spain win penalties</td>
       </tr>
       <tr>
         <td class="pcell">4</td>
-        <td>Wrong score, but correct draw <b>+</b> penalties winner</td>
-        <td>Predict <b>2–2, Brazil</b> → ends <b>1–1</b>, Brazil win penalties <span class="ex">(3 + 1)</span></td>
+        <td>Correct draw result and penalties winner, wrong score</td>
+        <td>You predict <b>Brazil 2–2 Spain, Brazil win penalties</b>, and it ends <b>Brazil 1–1 Spain</b> with Brazil winning penalties</td>
       </tr>
       <tr>
         <td class="pcell">3</td>
-        <td>Correct draw outcome only, but <b>wrong</b> penalties winner</td>
-        <td>Predict <b>2–2</b>, wrong team on penalties → ends <b>1–1</b> <span class="ex">(outcome only)</span></td>
+        <td>Correct draw result, wrong penalties winner</td>
+        <td>You predict <b>Brazil 2–2 Spain, Brazil win penalties</b>, but it ends <b>1–1</b> and Spain win penalties</td>
       </tr>
       <tr>
         <td class="pcell">0</td>
-        <td>Wrong (e.g. you predicted a win)</td>
-        <td>Predict <b>2–1</b> → match ends as a draw and goes to penalties</td>
+        <td>Wrong result — you predicted a winner</td>
+        <td>You predict <b>Brazil to win</b>, but the match ends a draw and goes to penalties</td>
       </tr>
     </table>
   </div>
 
   <div class="rules">
     <b>📌 Other notes</b><br>
-    • ✏️ You can change your prediction freely, but it <b>stops at the match's real kickoff</b> — no edits after the match starts.<br>
-    • 🏅 <b>Ties in the standings</b> are settled by who has more <b>exact-score predictions</b>.
+    • You can change your prediction freely, but it <b>stops at the match's real kickoff</b> — no edits after the match starts.<br>
+    • <b>Ties in the standings</b> are settled by who has more <b>exact-score predictions</b>.
   </div>
 </div>
 
