@@ -57,8 +57,12 @@ input.field::placeholder{color:var(--muted);}
 .tab.active{color:#fff;background:rgba(225,29,72,.28);}
 
 .topbar{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;}
-.me-chip{font-size:.85rem;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:7px 14px;display:flex;align-items:center;gap:6px;}
+.me-chip{font-size:.85rem;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:7px 14px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:border-color .15s,color .15s;}
+.me-chip:hover{border-color:var(--accent1);}
 .me-chip b{color:#fff;}
+.me-out{width:15px;height:15px;color:var(--muted);margin-inline-start:2px;flex-shrink:0;}
+.me-out-label{font-size:.72rem;color:var(--muted);font-weight:600;}
+.me-chip:hover .me-out,.me-chip:hover .me-out-label{color:var(--accent1);}
 .icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:1.1rem;cursor:pointer;flex-shrink:0;}
 .icon-btn:hover{color:var(--text);border-color:var(--accent1);}
 .admin-on{border-color:var(--accent1)!important;color:var(--text)!important;}
@@ -196,7 +200,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- MATCHES -->
 <div class="screen" id="sMatches">
   <div class="topbar">
-    <div class="me-chip">👤 <b id="meName">--</b></div>
+    <div class="me-chip">👤 <b id="meName">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">Sign out</span></div>
     <button class="icon-btn" id="btnSettings">⚙️</button>
   </div>
   <div class="section-title">⚽ Matches</div>
@@ -208,7 +212,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- LEADERBOARD -->
 <div class="screen" id="sLeader">
   <div class="topbar">
-    <div class="me-chip">👤 <b id="meName2">--</b></div>
+    <div class="me-chip">👤 <b id="meName2">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">Sign out</span></div>
     <button class="icon-btn" id="btnSettings2">⚙️</button>
   </div>
   <div class="section-title">🏅 Leaderboard</div>
@@ -218,7 +222,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- RULES -->
 <div class="screen" id="sRules">
   <div class="topbar">
-    <div class="me-chip">👤 <b id="meName3">--</b></div>
+    <div class="me-chip">👤 <b id="meName3">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">Sign out</span></div>
     <button class="icon-btn" id="btnSettings3">⚙️</button>
   </div>
   <div class="section-title">📖 Rules & How it works</div>
