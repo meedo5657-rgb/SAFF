@@ -28,10 +28,10 @@ html{scroll-behavior:smooth;}
 body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:18px 14px 90px;}
 .screen{display:none;width:100%;max-width:480px;flex-direction:column;align-items:center;gap:14px;}
 .screen.active{display:flex;}
-.cobrand{display:flex;align-items:center;justify-content:center;gap:12px;}
+.cobrand{display:flex;align-items:center;justify-content:center;gap:16px;}
 .cb-caa{height:56px;width:auto;}
 .cb-wc{height:80px;width:auto;}
-.cb-x{color:var(--muted);font-size:1.15rem;font-weight:700;}
+.cb-div{width:2px;height:52px;background:rgba(255,255,255,.28);border-radius:2px;}
 .tagline{font-size:.85rem;color:var(--muted);text-align:center;}
 .subtitle{font-size:1.5rem;font-weight:800;color:#fff;text-align:center;margin-top:16px;line-height:1.2;}
 .box{width:100%;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 18px;display:flex;flex-direction:column;gap:12px;}
@@ -170,7 +170,7 @@ input.field::placeholder{color:var(--muted);}
   <div style="margin:20px 0 8px">
     <div class="cobrand">
       <img class="cb-caa" src="logo-dark.png" alt="CAA Portas">
-      <span class="cb-x">×</span>
+      <span class="cb-div"></span>
       <img class="cb-wc" src="image.png" alt="FIFA World Cup 2026">
     </div>
     <div class="subtitle">World Cup 2026 Predictions</div>
