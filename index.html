@@ -881,7 +881,8 @@ function renderLeader(){
     MATCHES.forEach(function(m){
       var r=result(m);if(!r)return;
       var pred=predsData[m.id]&&predsData[m.id][k];if(!pred)return;
-      var pts=pointsFor(pred,r);total+=pts;if(pts===5)exact++;
+      var pts=pointsFor(pred,r);total+=pts;
+      if(Number(pred.h)===Number(r.h)&&Number(pred.a)===Number(r.a))exact++;
     });
     var u=usersData[k];
     return {key:k,name:(u&&u.name)?u.name:k,total:total,exact:exact};
