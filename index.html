@@ -636,18 +636,18 @@ function matchCard(m){
     : '<span class="status-badge open">OPEN</span>';
 
   var head=document.createElement('div');head.className='match-head';
-  head.innerHTML='<span class="grp-badge">'+esc(stageLabel)+'</span><span>'+esc(roundLabel)+'</span>'+stBadge;
+  head.innerHTML='<span class="grp-badge">'+esc(stageLabel)+'</span>'+stBadge;
   el.appendChild(head);
+
+  var meta=document.createElement('div');meta.className='match-meta';
+  meta.textContent=roundLabel+'  •  🕐 '+localKick(m)+' (your time)';
+  el.appendChild(meta);
 
   var teams=document.createElement('div');teams.className='teams';
   teams.innerHTML='<div class="team">'+flagHTML(t.home,t.hf)+'<div class="tname">'+esc(t.home)+'</div></div>'+
     '<div class="vs">vs</div>'+
     '<div class="team">'+flagHTML(t.away,t.af)+'<div class="tname">'+esc(t.away)+'</div></div>';
   el.appendChild(teams);
-
-  var meta=document.createElement('div');meta.className='match-meta';
-  meta.textContent='🕐 '+localKick(m)+' (your time)  •  📍 '+m.venue;
-  el.appendChild(meta);
 
   var ko=m.stage!=='group';
   if(st==='finished'){
