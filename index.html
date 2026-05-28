@@ -73,8 +73,8 @@ input.field::placeholder{color:var(--muted);}
 .chip.active{background:var(--accent1);border-color:var(--accent1);color:#fff;}
 
 .match{width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;}
-.match.locked{border-color:rgba(225,29,72,.22);}
-.match.finished{border-color:rgba(52,211,153,.55);border-left:4px solid #34d399;background:rgba(52,211,153,.06);}
+.match.live{border-color:rgba(52,211,153,.6);background:rgba(52,211,153,.06);}
+.match.finished{border-color:rgba(225,29,72,.6);background:rgba(225,29,72,.06);}
 .match-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:.72rem;color:var(--muted);gap:8px;}
 .hc-l{justify-self:start;}
 .hc-c{justify-self:center;text-align:center;color:var(--muted);}
@@ -82,8 +82,8 @@ input.field::placeholder{color:var(--muted);}
 .grp-badge{background:rgba(225,29,72,.28);color:#fff;border-radius:8px;padding:2px 9px;font-weight:700;white-space:nowrap;}
 .status-badge{font-weight:800;white-space:nowrap;font-size:.62rem;letter-spacing:.5px;padding:3px 9px;border-radius:8px;}
 .status-badge.open{background:rgba(255,255,255,.10);color:#fff;}
-.status-badge.locked{background:rgba(225,29,72,.28);color:#fff;}
-.status-badge.finished{background:#34d399;color:#06281c;}
+.status-badge.live{background:#34d399;color:#06281c;}
+.status-badge.finished{background:var(--accent1);color:#fff;}
 .match-meta{width:100%;font-size:.7rem;color:var(--muted);text-align:center;}
 .teams{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .team{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;}
@@ -648,13 +648,13 @@ function matchCard(m){
   if(draft[m.id]===undefined) draft[m.id]=myPred?{h:Number(myPred.h),a:Number(myPred.a),pw:myPred.pw||null}:{h:0,a:0,pw:null};
 
   var el=document.createElement('div');
-  el.className='match'+(st==='locked'?' locked':'')+(st==='finished'?' finished':'');
+  el.className='match'+(st==='locked'?' live':'')+(st==='finished'?' finished':'');
 
   var stageLabel = m.stage==='group' ? ('Group '+m.group) :
     ({R32:'Round of 32',R16:'Round of 16',QF:'Quarter-final',SF:'Semi-final','3RD':'3rd place',FINAL:'Final'}[m.stage]||m.stage);
   var roundLabel = m.stage==='group' ? ('Round '+(GROUP_MD[m.id]||'')) : ('Match #'+m.n);
   var stBadge = st==='finished'?'<span class="status-badge finished">FINISHED</span>'
-    : st==='locked'?'<span class="status-badge locked">🔒 LOCKED</span>'
+    : st==='locked'?'<span class="status-badge live">● LIVE</span>'
     : '<span class="status-badge open">OPEN</span>';
 
   var head=document.createElement('div');head.className='match-head';
@@ -691,7 +691,7 @@ function matchCard(m){
       var no=document.createElement('div');no.className='locked-note';no.textContent='You did not predict this match';el.appendChild(no);
     }
   }else if(st==='locked'){
-    var ln=document.createElement('div');ln.className='locked-note';ln.textContent='🔒 Kicked off — predictions closed, awaiting official result';el.appendChild(ln);
+    var ln=document.createElement('div');ln.className='locked-note';ln.textContent='● Live — predictions closed, awaiting the official result';el.appendChild(ln);
     if(myPred){var yp2=document.createElement('div');yp2.className='your-pred';yp2.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • pens: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'');el.appendChild(yp2);}
     else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='You did not predict this match';el.appendChild(no2);}
   }else{
