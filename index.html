@@ -228,8 +228,7 @@ input.field::placeholder{color:var(--muted);}
   </div>
 
   <div class="rules">
-    <b>🥅 Knockout matches that go to penalties</b><br>
-    Predict a <b>draw</b>, then you may pick the <b>penalties</b> winner. A <b>win</b> prediction earns nothing from the penalties.
+    <b>🥅 Knockout matches that go to penalties</b>
     <table class="ptable">
       <tr><th>Points</th><th>When</th><th>Example</th></tr>
       <tr>
@@ -239,8 +238,8 @@ input.field::placeholder{color:var(--muted);}
       </tr>
       <tr>
         <td class="pcell">6</td>
-        <td>Exact draw score, but penalties winner <b>not picked</b> or wrong</td>
-        <td>Predict <b>1–1</b> (no winner chosen) → ends <b>1–1</b> <span class="ex">(score only)</span></td>
+        <td>Exact draw score, but <b>wrong</b> penalties winner</td>
+        <td>Predict <b>1–1</b>, wrong team on penalties → ends <b>1–1</b> <span class="ex">(score only)</span></td>
       </tr>
       <tr>
         <td class="pcell">4</td>
@@ -249,8 +248,8 @@ input.field::placeholder{color:var(--muted);}
       </tr>
       <tr>
         <td class="pcell">3</td>
-        <td>Correct draw outcome only, penalties winner <b>not picked</b> or wrong</td>
-        <td>Predict <b>2–2</b> (no winner chosen) → ends <b>1–1</b> <span class="ex">(outcome only)</span></td>
+        <td>Correct draw outcome only, but <b>wrong</b> penalties winner</td>
+        <td>Predict <b>2–2</b>, wrong team on penalties → ends <b>1–1</b> <span class="ex">(outcome only)</span></td>
       </tr>
       <tr>
         <td class="pcell">0</td>
@@ -733,7 +732,10 @@ function savePred(id){
   if(statusOf(m)!=='open'){toast('Predictions are closed for this match');renderMatches();return;}
   var d=draft[id];
   var data={h:d.h,a:d.a};
-  if(m.stage!=='group'&&Number(d.h)===Number(d.a)&&d.pw) data.pw=d.pw; // shootout pick on a draw
+  if(m.stage!=='group'&&Number(d.h)===Number(d.a)){ // knockout draw: penalties winner is required
+    if(!d.pw){toast('Pick the penalties winner');return;}
+    data.pw=d.pw;
+  }
   ROOT.child('predictions/'+id+'/'+myKey).set(data).then(function(){toast('Prediction saved ✅');});
 }
 
@@ -756,7 +758,10 @@ function adminZone(m){
   save.textContent=r?'Update result 💾':'Set result 💾';
   save.addEventListener('click',function(){
     var data={h:rd.h,a:rd.a};
-    if(ko&&Number(rd.h)===Number(rd.a)&&rd.pw) data.pw=rd.pw;
+    if(ko&&Number(rd.h)===Number(rd.a)){ // knockout draw -> penalties winner required
+      if(!rd.pw){toast('Set the penalties winner');return;}
+      data.pw=rd.pw;
+    }
     ROOT.child('results/'+m.id).set(data).then(function(){toast('Result saved ✅');});
   });
   z.appendChild(save);
