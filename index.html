@@ -68,7 +68,9 @@ input.field::placeholder{color:var(--muted);}
 .match{width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;}
 .match.locked{border-color:rgba(225,29,72,.22);}
 .match.finished{border-color:rgba(251,113,133,.25);}
-.match-head{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--muted);gap:6px;}
+.match-head{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--muted);gap:8px;flex-wrap:wrap;}
+.hl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.hmeta{color:var(--muted);}
 .grp-badge{background:rgba(225,29,72,.28);color:#fff;border-radius:8px;padding:2px 9px;font-weight:700;white-space:nowrap;}
 .status-badge{font-weight:800;white-space:nowrap;}
 .status-badge.open{color:#fff;}
@@ -85,7 +87,8 @@ input.field::placeholder{color:var(--muted);}
 .stp{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:#fff;font-size:1.1rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .stp:active{transform:scale(.9);}
 .sval{min-width:30px;text-align:center;font-size:1.4rem;font-weight:800;}
-.pred-row{display:flex;align-items:center;justify-content:center;gap:18px;}
+.pred-row{display:flex;align-items:center;gap:8px;}
+.pred-row>.score-in{flex:1;justify-content:center;}
 .result-row{display:flex;align-items:center;justify-content:center;gap:14px;background:var(--surface);border-radius:12px;padding:10px;}
 .result-big{font-size:1.6rem;font-weight:800;color:#fff;}
 .result-lbl{font-size:.72rem;color:var(--muted);}
@@ -636,12 +639,8 @@ function matchCard(m){
     : '<span class="status-badge open">OPEN</span>';
 
   var head=document.createElement('div');head.className='match-head';
-  head.innerHTML='<span class="grp-badge">'+esc(stageLabel)+'</span>'+stBadge;
+  head.innerHTML='<span class="hl"><span class="grp-badge">'+esc(stageLabel)+'</span><span class="hmeta">'+esc(roundLabel)+' • '+esc(localKick(m))+'</span></span>'+stBadge;
   el.appendChild(head);
-
-  var meta=document.createElement('div');meta.className='match-meta';
-  meta.textContent=roundLabel+'  •  🕐 '+localKick(m)+' (your time)';
-  el.appendChild(meta);
 
   var teams=document.createElement('div');teams.className='teams';
   teams.innerHTML='<div class="team">'+flagHTML(t.home,t.hf)+'<div class="tname">'+esc(t.home)+'</div></div>'+
@@ -664,7 +663,7 @@ function matchCard(m){
       var yp=document.createElement('div');yp.className='your-pred';
       yp.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • pens: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'');el.appendChild(yp);
       var cls=pts>=6?'pts-hi':(pts>=3?'pts-mid':'pts-0');
-      var icon=pts===0?'❌ ':((pts>=6?'🎯 ':'✅ ')+((pts===7||pts===4)?'🥅 ':''));
+      var icon=pts===0?'':((pts>=6?'🎯 ':'')+((pts===7||pts===4)?'🥅 ':''));
       var pb=document.createElement('div');pb.className='pts-badge '+cls;
       pb.textContent=icon+'+'+pts+' pts';el.appendChild(pb);
     }else{
@@ -683,7 +682,7 @@ function matchCard(m){
     el.appendChild(pr);
     if(ko){ pen=penRow(draft[m.id],t.home,t.away); el.appendChild(pen.el); }
     var sb=document.createElement('button');sb.className='btn btn-green save-pred';
-    sb.textContent=myPred?'Update prediction ✏️':'Save prediction ✅';
+    sb.textContent=myPred?'Update prediction':'Save prediction';
     sb.addEventListener('click',function(){savePred(m.id);});
     el.appendChild(sb);
   }
