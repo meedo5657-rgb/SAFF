@@ -91,8 +91,8 @@ var U='__selftest_user', M='__selftest';
     setTimeout(function(){ if(!got){log('fail','Real-time listener fires on update','no event in 4s'); res();}},4000);
   });
 
-  // CLEANUP (predictions/results/teams are deletable; the user node is protected by design)
-  await ROOT.child('predictions/'+M).remove().catch(function(){});
+  // CLEANUP (delete the individual prediction/result/teams nodes we created)
+  await ROOT.child('predictions/'+M+'/'+U).remove().catch(function(){});
   await ROOT.child('results/'+M).remove().catch(function(){});
   await ROOT.child('teams/'+M).remove().catch(function(){});
   log('info','Cleanup done. Note: the test user <code>'+U+'</code> can\'t be deleted by clients (that\'s the rule working). Delete it once from Firebase Console → Realtime Database if you want.');
@@ -103,10 +103,14 @@ var U='__selftest_user', M='__selftest';
  }catch(e){ log('fail','Test run crashed', (e&&e.message)||(''+e)); }
 })();
 
-// two-device ping
-var pingRef=ROOT.child('__selftest/ping');
+// two-device ping — use the 'teams' node since the security rules allow writes there
+var pingRef=ROOT.child('teams/__pingtest');
 pingRef.on('value',function(s){var v=s.val(); document.getElementById('pingval').textContent=(v&&v.n!=null)?v.n:'—';});
-document.getElementById('pingbtn').addEventListener('click',function(){ pingRef.set({n:Math.floor(Math.random()*1000), t:Date.now()}); });
+document.getElementById('pingbtn').addEventListener('click',function(){
+  // sign in first if needed, then write
+  var go=function(){pingRef.set({n:Math.floor(Math.random()*1000), t:Date.now()}).catch(function(e){alert('Ping write failed: '+(e&&e.code||e));});};
+  if(firebase.auth().currentUser) go(); else firebase.auth().signInAnonymously().then(go);
+});
 </script>
 </body>
 </html>
