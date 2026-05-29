@@ -758,7 +758,7 @@ function allPredsBlock(m,r){
   var box=document.createElement('div');box.className='allpreds-wrap';
   var obj=predsData[m.id]||{}, keys=Object.keys(obj), t=teamsOf(m);
   var btn=document.createElement('button');btn.className='see-preds';
-  btn.textContent='👥 All predictions ('+keys.length+')';
+  btn.textContent='All predictions ('+keys.length+')';
   var list=document.createElement('div');list.className='allpreds';
   if(!keys.length){var e=document.createElement('div');e.className='ap-empty';e.textContent='No one predicted this match';list.appendChild(e);}
   var entries=keys.map(function(k){
@@ -832,7 +832,7 @@ function savePred(id){
 // ===== ADMIN =====
 function adminZone(m){
   var z=document.createElement('div');z.className='admin-zone';
-  var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='🔐 Official result';z.appendChild(lbl);
+  var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='Official result';z.appendChild(lbl);
   var r=result(m);
   var ko=m.stage!=='group';
   var t=teamsOf(m);
@@ -845,7 +845,7 @@ function adminZone(m){
   z.appendChild(row);
   if(ko){ pen=penRow(rd,t.home,t.away); z.appendChild(pen.el); }
   var save=document.createElement('button');save.className='btn btn-gold';save.style.padding='10px';
-  save.textContent=r?'Update result 💾':'Set result 💾';
+  save.textContent=r?'Update result':'Set result';
   save.addEventListener('click',function(){
     var data={h:rd.h,a:rd.a};
     if(ko&&Number(rd.h)===Number(rd.a)){ // knockout draw -> penalties winner required
@@ -856,10 +856,10 @@ function adminZone(m){
   });
   z.appendChild(save);
   var acts=document.createElement('div');acts.className='admin-actions';
-  var bt=document.createElement('button');bt.className='a-edit';bt.textContent='👥 Set teams';
+  var bt=document.createElement('button');bt.className='a-edit';bt.textContent='Set teams';
   bt.addEventListener('click',function(){openTeamModal(m);});
   if(r){
-    var bx=document.createElement('button');bx.className='a-del';bx.textContent='🗑 Clear result';
+    var bx=document.createElement('button');bx.className='a-del';bx.textContent='Clear result';
     bx.addEventListener('click',function(){ROOT.child('results/'+m.id).remove().then(function(){toast('Result cleared');});});
     acts.appendChild(bt);acts.appendChild(bx);
   }else{

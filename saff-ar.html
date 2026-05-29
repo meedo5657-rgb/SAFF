@@ -219,7 +219,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- MATCHES -->
 <div class="screen" id="sMatches">
   <div class="topbar">
-    <div class="me-chip">👤 <b id="meName">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">اخرج</span></div>
+    <div class="me-chip">👤 <b id="meName">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">تسجيل الخروج</span></div>
     <button class="icon-btn" id="btnSettings">⚙️</button>
   </div>
   <div class="section-title">⚽ المباريات</div>
@@ -230,7 +230,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- LEADERBOARD -->
 <div class="screen" id="sLeader">
   <div class="topbar">
-    <div class="me-chip">👤 <b id="meName2">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">اخرج</span></div>
+    <div class="me-chip">👤 <b id="meName2">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">تسجيل الخروج</span></div>
     <button class="icon-btn" id="btnSettings2">⚙️</button>
   </div>
   <div class="section-title">🏅 الترتيب</div>
@@ -240,7 +240,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- RULES -->
 <div class="screen" id="sRules">
   <div class="topbar">
-    <div class="me-chip">👤 <b id="meName3">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">اخرج</span></div>
+    <div class="me-chip">👤 <b id="meName3">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">تسجيل الخروج</span></div>
     <button class="icon-btn" id="btnSettings3">⚙️</button>
   </div>
   <div class="section-title">📖 القوانين وطريقة اللعب</div>
@@ -762,7 +762,7 @@ function allPredsBlock(m,r){
   var box=document.createElement('div');box.className='allpreds-wrap';
   var obj=predsData[m.id]||{}, keys=Object.keys(obj), t=teamsOf(m);
   var btn=document.createElement('button');btn.className='see-preds';
-  btn.textContent='👥 اعرض توقعات الآخرين ('+keys.length+')';
+  btn.textContent='اعرض توقعات الآخرين ('+keys.length+')';
   var list=document.createElement('div');list.className='allpreds';
   if(!keys.length){var e=document.createElement('div');e.className='ap-empty';e.textContent='مافيه أحد توقع نتيجة هذه المباراة';list.appendChild(e);}
   var entries=keys.map(function(k){
@@ -836,7 +836,7 @@ function savePred(id){
 // ===== ADMIN =====
 function adminZone(m){
   var z=document.createElement('div');z.className='admin-zone';
-  var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='🔐 النتيجة الرسمية';z.appendChild(lbl);
+  var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='النتيجة الرسمية';z.appendChild(lbl);
   var r=result(m);
   var ko=m.stage!=='group';
   var t=teamsOf(m);
@@ -849,7 +849,7 @@ function adminZone(m){
   z.appendChild(row);
   if(ko){ pen=penRow(rd,t.home,t.away); z.appendChild(pen.el); }
   var save=document.createElement('button');save.className='btn btn-gold';save.style.padding='10px';
-  save.textContent=r?'حدّث النتيجة 💾':'احفظ النتيجة 💾';
+  save.textContent=r?'حدّث النتيجة':'احفظ النتيجة';
   save.addEventListener('click',function(){
     var data={h:rd.h,a:rd.a};
     if(ko&&Number(rd.h)===Number(rd.a)){ // knockout draw -> penalties winner required
@@ -860,10 +860,10 @@ function adminZone(m){
   });
   z.appendChild(save);
   var acts=document.createElement('div');acts.className='admin-actions';
-  var bt=document.createElement('button');bt.className='a-edit';bt.textContent='👥 عيّن الفرق';
+  var bt=document.createElement('button');bt.className='a-edit';bt.textContent='عيّن الفرق';
   bt.addEventListener('click',function(){openTeamModal(m);});
   if(r){
-    var bx=document.createElement('button');bx.className='a-del';bx.textContent='🗑 امسح النتيجة';
+    var bx=document.createElement('button');bx.className='a-del';bx.textContent='امسح النتيجة';
     bx.addEventListener('click',function(){ROOT.child('results/'+m.id).remove().then(function(){toast('تم مسح النتيجة');});});
     acts.appendChild(bt);acts.appendChild(bx);
   }else{
