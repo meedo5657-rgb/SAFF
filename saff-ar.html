@@ -224,7 +224,6 @@ input.field::placeholder{color:var(--muted);}
   </div>
   <div class="section-title">⚽ المباريات</div>
   <div class="chips" id="chips"></div>
-  <div class="hint" id="matchHint">اختر توقّعك واضغط حفظ. تتقفل التوقعات عند انطلاق المباراة.</div>
   <div id="matchList" style="width:100%;display:flex;flex-direction:column;gap:12px;"></div>
 </div>
 
@@ -246,64 +245,64 @@ input.field::placeholder{color:var(--muted);}
   </div>
   <div class="section-title">📖 القوانين وطريقة اللعب</div>
   <div class="rules">
-    <b>📊 طريقة احتساب النقاط</b>
+    <b>📊 كيف تنحسب النقاط</b>
     <table class="ptable">
       <tr><th>النقاط</th><th>متى</th><th>مثال</th></tr>
       <tr>
         <td class="pcell">5</td>
-        <td>النتيجة مطابقة — أهداف الفريقين صحيحة</td>
-        <td>تتوقّع <b>البرازيل 2–1 إسبانيا</b>، وتنتهي <b>البرازيل 2–1 إسبانيا</b></td>
+        <td>ضبطت النتيجة بالضبط — أهداف الفريقين صح</td>
+        <td>توقّعت <b>البرازيل 2–1 إسبانيا</b>، وطلعت <b>البرازيل 2–1 إسبانيا</b></td>
       </tr>
       <tr>
         <td class="pcell">3</td>
-        <td>المخرج صحيح فقط — الفائز أو التعادل صح، والنتيجة غلط</td>
-        <td>تتوقّع <b>البرازيل 2–0 إسبانيا</b>، وتنتهي <b>البرازيل 3–1 إسبانيا</b></td>
+        <td>ضبطت الفايز أو التعادل بس النتيجة غلط</td>
+        <td>توقّعت <b>البرازيل 2–0 إسبانيا</b>، وطلعت <b>البرازيل 3–1 إسبانيا</b></td>
       </tr>
       <tr>
         <td class="pcell">0</td>
-        <td>مخرج خاطئ</td>
-        <td>تتوقّع <b>البرازيل 2–1 إسبانيا</b>، وتنتهي <b>البرازيل 0–1 إسبانيا</b></td>
+        <td>توقّع غلط</td>
+        <td>توقّعت <b>البرازيل 2–1 إسبانيا</b>، وطلعت <b>البرازيل 0–1 إسبانيا</b></td>
       </tr>
     </table>
   </div>
 
   <div class="rules">
-    <b>🥅 مباريات خروج المغلوب التي تذهب لركلات الترجيح</b>
+    <b>🥅 مباريات خروج المغلوب اللي تروح ركلات ترجيح</b>
     <table class="ptable">
       <tr><th>النقاط</th><th>متى</th><th>مثال</th></tr>
       <tr>
         <td class="pcell">6</td>
-        <td>نتيجة التعادل مطابقة + الفائز بالركلات صحيح</td>
-        <td>تتوقّع <b>البرازيل 1–1 إسبانيا، والبرازيل تفوز بالركلات</b>، وهذا ما يحدث</td>
+        <td>ضبطت نتيجة التعادل + الفايز بالركلات</td>
+        <td>توقّعت <b>البرازيل 1–1 إسبانيا، والبرازيل تكسب بالركلات</b>، وهذا اللي صار</td>
       </tr>
       <tr>
         <td class="pcell">5</td>
-        <td>نتيجة التعادل مطابقة، والفائز بالركلات خطأ</td>
-        <td>تتوقّع <b>البرازيل 1–1 إسبانيا، والبرازيل بالركلات</b>، لكن تنتهي <b>1–1</b> وتفوز إسبانيا بالركلات</td>
+        <td>ضبطت نتيجة التعادل بس الفايز بالركلات غلط</td>
+        <td>توقّعت <b>البرازيل 1–1 إسبانيا، والبرازيل بالركلات</b>، بس طلعت <b>1–1</b> وكسبت إسبانيا بالركلات</td>
       </tr>
       <tr>
         <td class="pcell">4</td>
-        <td>المخرج (تعادل) والفائز بالركلات صحيحان، والنتيجة غلط</td>
-        <td>تتوقّع <b>البرازيل 2–2 إسبانيا، والبرازيل بالركلات</b>، وتنتهي <b>البرازيل 1–1 إسبانيا</b> وتفوز البرازيل بالركلات</td>
+        <td>ضبطت التعادل والفايز بالركلات بس النتيجة غلط</td>
+        <td>توقّعت <b>البرازيل 2–2 إسبانيا، والبرازيل بالركلات</b>، وطلعت <b>البرازيل 1–1 إسبانيا</b> وكسبت البرازيل بالركلات</td>
       </tr>
       <tr>
         <td class="pcell">3</td>
-        <td>المخرج (تعادل) صحيح، والفائز بالركلات خطأ</td>
-        <td>تتوقّع <b>البرازيل 2–2 إسبانيا، والبرازيل بالركلات</b>، لكن تنتهي <b>1–1</b> وتفوز إسبانيا بالركلات</td>
+        <td>ضبطت التعادل بس الفايز بالركلات غلط</td>
+        <td>توقّعت <b>البرازيل 2–2 إسبانيا، والبرازيل بالركلات</b>، بس طلعت <b>1–1</b> وكسبت إسبانيا بالركلات</td>
       </tr>
       <tr>
         <td class="pcell">0</td>
-        <td>مخرج خاطئ — توقّعت فوز فريق</td>
-        <td>تتوقّع <b>فوز البرازيل</b>، لكن تنتهي بالتعادل وتذهب لركلات الترجيح</td>
+        <td>توقّع غلط — توقّعت فوز فريق</td>
+        <td>توقّعت <b>فوز البرازيل</b>، بس تعادلوا وراحت ركلات ترجيح</td>
       </tr>
     </table>
   </div>
 
   <div class="rules">
-    <b>📌 ملاحظات أخرى</b><br>
-    • <b>بطاقات ×2:</b> لديك <b>5</b> لكامل البطولة. فعّل واحدة على مباراة قبل انطلاقها <b>لتضاعف نقاطك</b> فيها<br>
-    • تقدر تغيّر توقّعك بحرية، لكنه <b>يتوقف عند انطلاق المباراة فعلياً</b> — لا تعديل بعد البداية<br>
-    • <b>التعادل في الترتيب</b> يُحسم بعدد <b>التوقعات المطابقة تماماً</b>
+    <b>📌 أشياء تنحفظ</b><br>
+    • <b>بطاقات ×2:</b> معك <b>5</b> للبطولة كلها. شغّل وحدة على مباراة قبل ما تبدأ <b>وبتتضاعف نقاطك</b> فيها<br>
+    • تقدر تغيّر توقّعك زي ما تبي، بس <b>يتقفل أول ما تبدأ المباراة</b> — ما فيه تعديل بعد كذا<br>
+    • <b>لو تعادلتوا بالترتيب</b>، اللي ضبط نتايج أكثر <b>بالضبط</b> يتقدّم
   </div>
 </div>
 
@@ -618,7 +617,7 @@ function listen(){
 // ===== FILTER CHIPS ===== (Upcoming first, then groups A-L, then knockout rounds)
 var FILTERS=[{k:'upcoming',label:'⏰ القادمة'}];
 ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(function(g){FILTERS.push({k:'g:'+g,label:'المجموعة '+g});});
-[['R32','دور الـ32'],['R16','ثمن النهائي'],['QF','ربع النهائي'],['SF','نصف النهائي'],['3RD','المركز الثالث'],['FINAL','Final']]
+[['R32','دور الـ32'],['R16','ثمن النهائي'],['QF','ربع النهائي'],['SF','نصف النهائي'],['3RD','المركز الثالث'],['FINAL','النهائي']]
   .forEach(function(r){FILTERS.push({k:'r:'+r[0],label:r[1]});});
 
 function buildChips(){
@@ -688,7 +687,7 @@ function matchCard(m){
   var roundLabel = m.stage==='group' ? ('الجولة '+(GROUP_MD[m.id]||'')) : ('مباراة '+m.n);
   var stBadge = st==='finished'?'<span class="status-badge finished">انتهت</span>'
     : st==='locked'?'<span class="status-badge live">● مباشر</span>'
-    : '<span class="status-badge open">مفتوحة</span>';
+    : '<span class="status-badge open">متاحة</span>';
 
   var head=document.createElement('div');head.className='match-head';
   head.innerHTML='<span class="hc-l"><span class="grp-badge">'+esc(stageLabel)+'</span></span>'
@@ -749,7 +748,7 @@ function matchCard(m){
     sb.textContent=myPred?'تحديث التوقّع':'احفظ التوقّع';
     sb.addEventListener('click',function(){savePred(m.id);});
     var actions=document.createElement('div');actions.className='pred-actions';
-    actions.appendChild(x2btn);actions.appendChild(sb);
+    actions.appendChild(sb);actions.appendChild(x2btn);
     el.appendChild(actions);
   }
 
