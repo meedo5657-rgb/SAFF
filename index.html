@@ -744,7 +744,7 @@ function matchCard(m){
     else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='You did not predict this match';el.appendChild(no2);}
   }else if(st==='soon'){
     var sn=document.createElement('div');sn.className='locked-note';
-    sn.innerHTML='🔒 Predictions open 24h before kickoff'+(openKick(m)?('<br><span style="opacity:.85">opens '+esc(openKick(m))+'</span>'):'');
+    sn.innerHTML='🔒 Predictions open 24h before kickoff'+(openKick(m)?('<br><span style="opacity:.85">Opens '+esc(openKick(m))+'</span>'):'');
     el.appendChild(sn);
   }else{
     var pen=null;
