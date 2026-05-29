@@ -720,12 +720,12 @@ function matchCard(m){
       var pb=document.createElement('div');pb.className='pts-badge '+cls;
       pb.textContent=icon+'+'+pts+' نقطة';el.appendChild(pb);
     }else{
-      var no=document.createElement('div');no.className='locked-note';no.textContent='لم تتوقع نتيجة هذه المباراة';el.appendChild(no);
+      var no=document.createElement('div');no.className='locked-note';no.textContent='ماتوقعت نتيجة هذه المباراة';el.appendChild(no);
     }
   }else if(st==='locked'){
     var ln=document.createElement('div');ln.className='locked-note';ln.textContent='● مباشر — أُغلقت التوقعات، بانتظار النتيجة الرسمية';el.appendChild(ln);
     if(myPred){var yp2=document.createElement('div');yp2.className='your-pred';yp2.innerHTML='توقّعك: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • بلنتيات: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'')+(myPred.x2?' <span class="x2-badge">⚡2x</span>':'');el.appendChild(yp2);}
-    else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='لم تتوقع نتيجة هذه المباراة';el.appendChild(no2);}
+    else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='ماتوقعت نتيجة هذه المباراة';el.appendChild(no2);}
   }else{
     var pen=null;
     var pr=document.createElement('div');pr.className='pred-row';
@@ -762,9 +762,9 @@ function allPredsBlock(m,r){
   var box=document.createElement('div');box.className='allpreds-wrap';
   var obj=predsData[m.id]||{}, keys=Object.keys(obj), t=teamsOf(m);
   var btn=document.createElement('button');btn.className='see-preds';
-  btn.textContent='👥 اعرض التوقعات ('+keys.length+')';
+  btn.textContent='👥 اعرض توقعات الآخرين ('+keys.length+')';
   var list=document.createElement('div');list.className='allpreds';
-  if(!keys.length){var e=document.createElement('div');e.className='ap-empty';e.textContent='لا أحد توقّع هذه المباراة';list.appendChild(e);}
+  if(!keys.length){var e=document.createElement('div');e.className='ap-empty';e.textContent='مافيه أحد توقع نتيجة هذه المباراة';list.appendChild(e);}
   var entries=keys.map(function(k){
     var nm=(usersData[k]&&usersData[k].name)?usersData[k].name:k;
     return {key:k,name:nm,p:obj[k],pt:r?scoreOf(obj[k],r):null};
