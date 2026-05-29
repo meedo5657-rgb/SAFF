@@ -13,17 +13,17 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
 :root{
-  --bg:#0d1c13; --surface:#15281c; --card:#122218;
-  --accent1:#1a8a4d; --accent2:#4cd08a; --accent3:#136b3a;
-  --gold:#1a8a4d; --text:#eafff2; --muted:#8fb3a0;
+  --bg:#0a1810; --surface:#102a1c; --card:#0d2417;
+  --accent1:#0a5c33; --accent2:#2ea96a; --accent3:#07371f;
+  --gold:#0a5c33; --text:#eafff2; --muted:#8fb3a0;
   --line:rgba(255,255,255,.08);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{scroll-behavior:smooth;}
-*{scrollbar-width:thin;scrollbar-color:rgba(26,138,77,.55) transparent;}
+*{scrollbar-width:thin;scrollbar-color:rgba(10,92,51,.55) transparent;}
 ::-webkit-scrollbar{width:8px;height:8px;}
-::-webkit-scrollbar-thumb{background:rgba(26,138,77,.45);border-radius:10px;}
-::-webkit-scrollbar-thumb:hover{background:rgba(26,138,77,.75);}
+::-webkit-scrollbar-thumb{background:rgba(10,92,51,.45);border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(10,92,51,.75);}
 ::-webkit-scrollbar-track{background:transparent;}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:18px 14px 90px;}
 .screen{display:none;width:100%;max-width:480px;flex-direction:column;align-items:center;gap:14px;}
@@ -41,20 +41,20 @@ input.field:focus{border-color:var(--accent2);}
 input.field::placeholder{color:var(--muted);}
 .btn{width:100%;padding:14px;border-radius:13px;border:none;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .2s,transform .1s;}
 .btn:active:not(:disabled){transform:scale(.97);opacity:.9;}
-.btn:disabled{background:#163a26!important;color:var(--muted)!important;cursor:default;}
-.btn-green{background:linear-gradient(135deg,#4cd08a,#136b3a);color:#ffffff;}
-.btn-gold{background:linear-gradient(135deg,#1a8a4d,#0e5530);color:#ffffff;}
-.btn-grad{background:linear-gradient(135deg,#4cd08a,#1a8a4d);color:#ffffff;}
+.btn:disabled{background:#16402a!important;color:var(--muted)!important;cursor:default;}
+.btn-green{background:linear-gradient(135deg,#2ea96a,#07371f);color:#ffffff;}
+.btn-gold{background:linear-gradient(135deg,#0a5c33,#052a18);color:#ffffff;}
+.btn-grad{background:linear-gradient(135deg,#2ea96a,#0a5c33);color:#ffffff;}
 .err{font-size:.82rem;color:#fca5a5;text-align:center;min-height:18px;}
 
-.setup-banner{width:100%;background:rgba(26,138,77,.08);border:1px solid rgba(26,138,77,.3);border-radius:14px;padding:14px;font-size:.82rem;color:#c9f5dc;line-height:1.7;display:none;}
+.setup-banner{width:100%;background:rgba(10,92,51,.08);border:1px solid rgba(10,92,51,.3);border-radius:14px;padding:14px;font-size:.82rem;color:#cdeedd;line-height:1.7;display:none;}
 .setup-banner.show{display:block;}
 .setup-banner code{background:rgba(0,0,0,.3);padding:1px 6px;border-radius:6px;font-size:.78rem;}
 
-.tabbar{position:fixed;bottom:0;left:0;right:0;background:#0f2016;border-top:1px solid var(--line);display:flex;justify-content:center;gap:4px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:50;}
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:#0a1c12;border-top:1px solid var(--line);display:flex;justify-content:center;gap:4px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:50;}
 .tab{flex:1;max-width:150px;background:none;border:none;color:var(--muted);font-family:'Tajawal',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;padding:8px 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:3px;}
 .tab .ico{font-size:1.2rem;}
-.tab.active{color:#fff;background:rgba(26,138,77,.28);}
+.tab.active{color:#fff;background:rgba(10,92,51,.28);}
 
 .topbar{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .me-chip{font-size:.85rem;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:7px 14px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:border-color .15s,color .15s;}
@@ -70,22 +70,22 @@ input.field::placeholder{color:var(--muted);}
 .section-title{width:100%;font-size:1rem;font-weight:800;color:var(--text);}
 .hint{width:100%;font-size:.76rem;color:var(--muted);line-height:1.7;}
 
-.chips{width:100%;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:rgba(26,138,77,.5) transparent;}
+.chips{width:100%;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:rgba(10,92,51,.5) transparent;}
 .chips::-webkit-scrollbar{height:4px;}
-.chips::-webkit-scrollbar-thumb{background:rgba(26,138,77,.5);border-radius:10px;}
-.chips::-webkit-scrollbar-thumb:hover{background:rgba(26,138,77,.8);}
+.chips::-webkit-scrollbar-thumb{background:rgba(10,92,51,.5);border-radius:10px;}
+.chips::-webkit-scrollbar-thumb:hover{background:rgba(10,92,51,.8);}
 .chips::-webkit-scrollbar-track{background:transparent;}
 .chip{flex:0 0 auto;scroll-snap-align:center;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-family:'Tajawal',sans-serif;font-size:.8rem;font-weight:700;padding:7px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s;}
 .chip.active{background:var(--accent1);border-color:var(--accent1);color:#fff;}
 
 .match{width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;}
-.match.live{border-color:rgba(26,138,77,.6);background:rgba(26,138,77,.07);}
+.match.live{border-color:rgba(10,92,51,.6);background:rgba(10,92,51,.07);}
 .match.finished{opacity:.6;}
 .match-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:.72rem;color:var(--muted);gap:8px;}
 .hc-l{justify-self:start;}
 .hc-c{justify-self:center;text-align:center;color:var(--muted);}
 .hc-r{justify-self:end;}
-.grp-badge{background:rgba(26,138,77,.28);color:#fff;border-radius:8px;padding:2px 9px;font-weight:700;white-space:nowrap;}
+.grp-badge{background:rgba(10,92,51,.28);color:#fff;border-radius:8px;padding:2px 9px;font-weight:700;white-space:nowrap;}
 .status-badge{font-weight:800;white-space:nowrap;font-size:.62rem;letter-spacing:.5px;padding:3px 9px;border-radius:8px;}
 .status-badge.open{background:rgba(255,255,255,.10);color:#fff;}
 .status-badge.live{background:var(--accent1);color:#fff;}
@@ -110,7 +110,7 @@ input.field::placeholder{color:var(--muted);}
 .your-pred b{color:var(--text);}
 .pts-badge{font-size:.82rem;font-weight:800;border-radius:10px;padding:4px 12px;text-align:center;width:fit-content;margin:0 auto;}
 .pts-hi{background:var(--accent1);color:#fff;}
-.pts-mid{background:rgba(26,138,77,.45);color:#fff;}
+.pts-mid{background:rgba(10,92,51,.45);color:#fff;}
 .pts-0{background:rgba(255,255,255,.06);color:var(--muted);}
 .save-pred{padding:10px;font-size:.9rem;}
 .pred-actions{display:flex;gap:8px;width:100%;}
@@ -148,20 +148,20 @@ input.field::placeholder{color:var(--muted);}
 .a-del{color:#fca5a5;}
 
 .lb-row{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
-.lb-row.me{border-color:rgba(76,208,138,.5);background:rgba(76,208,138,.05);}
+.lb-row.me{border-color:rgba(46,169,106,.5);background:rgba(46,169,106,.05);}
 .lb-rank{font-size:1.1rem;font-weight:800;width:34px;text-align:center;color:var(--muted);}
 .lb-row.top1 .lb-rank{color:var(--gold);}
 .lb-row.top2 .lb-rank,.lb-row.top3 .lb-rank{color:var(--accent2);}
 .lb-name{flex:1;font-size:.95rem;font-weight:700;}
 .lb-sub{font-size:.72rem;color:var(--muted);font-weight:400;}
 .lb-pts{font-size:1.3rem;font-weight:800;color:#fff;}
-.lb-del{margin-inline-start:8px;background:rgba(26,138,77,.15);border:1px solid rgba(26,138,77,.4);color:#fff;border-radius:9px;padding:6px 9px;font-size:.85rem;cursor:pointer;flex-shrink:0;}
+.lb-del{margin-inline-start:8px;background:rgba(10,92,51,.15);border:1px solid rgba(10,92,51,.4);color:#fff;border-radius:9px;padding:6px 9px;font-size:.85rem;cursor:pointer;flex-shrink:0;}
 .lb-pts span{font-size:.68rem;color:var(--muted);font-weight:400;}
 .empty{color:var(--muted);font-size:.88rem;text-align:center;padding:30px 10px;line-height:1.8;}
 
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(5px);z-index:100;align-items:flex-end;justify-content:center;}
 .overlay.show{display:flex;}
-.modal{background:#122218;border:1px solid var(--line);border-radius:22px 22px 0 0;padding:22px 18px calc(34px + env(safe-area-inset-bottom));width:100%;max-width:480px;animation:slideUp .3s ease;max-height:90vh;overflow-y:auto;}
+.modal{background:#0d2417;border:1px solid var(--line);border-radius:22px 22px 0 0;padding:22px 18px calc(34px + env(safe-area-inset-bottom));width:100%;max-width:480px;animation:slideUp .3s ease;max-height:90vh;overflow-y:auto;}
 @keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
 .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
 .modal-title{font-size:1rem;font-weight:700;}
@@ -171,7 +171,7 @@ input.field::placeholder{color:var(--muted);}
 .modal .row2>div{flex:1;}
 .modal-msg{font-size:.78rem;color:#fff;text-align:center;margin-top:12px;min-height:18px;}
 
-.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:#15281c;border:1px solid rgba(76,208,138,.3);border-radius:12px;padding:11px 20px;font-size:.88rem;font-weight:600;opacity:0;transition:opacity .3s;z-index:200;white-space:nowrap;pointer-events:none;}
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:#102a1c;border:1px solid rgba(46,169,106,.3);border-radius:12px;padding:11px 20px;font-size:.88rem;font-weight:600;opacity:0;transition:opacity .3s;z-index:200;white-space:nowrap;pointer-events:none;}
 .toast.show{opacity:1;}
 
 .rules{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:.82rem;line-height:1.9;color:var(--muted);}
@@ -182,12 +182,12 @@ input.field::placeholder{color:var(--muted);}
 .ptable th:nth-child(1),.ptable td:nth-child(1){width:21%;}
 .ptable th:nth-child(2),.ptable td:nth-child(2){width:39.5%;}
 .ptable th:nth-child(3),.ptable td:nth-child(3){width:39.5%;}
-.ptable th{color:#fff;font-weight:700;background:rgba(26,138,77,.30);text-align:center;vertical-align:middle;}
+.ptable th{color:#fff;font-weight:700;background:rgba(10,92,51,.30);text-align:center;vertical-align:middle;}
 .ptable .pcell{font-weight:800;color:#fff;text-align:center;vertical-align:middle;white-space:nowrap;}
 .ptable td .ex{color:var(--muted);}
-.cobrand{background:#fff;padding:14px 22px;border-radius:18px;width:fit-content;margin:0 auto;}
-.cb-saff{height:118px;width:auto;display:block;}
-.subtitle{font-size:1.6rem;font-weight:800;color:#fff;text-align:center;margin-top:16px;}
+.cobrand{background:#fff;padding:12px 18px;border-radius:18px;width:fit-content;margin:0 auto;}
+.cb-saff{height:120px;width:auto;display:block;}
+.subtitle{font-size:1.55rem;font-weight:800;color:#fff;text-align:center;margin-top:16px;}
 </style>
 </head>
 <body>
@@ -201,7 +201,7 @@ input.field::placeholder{color:var(--muted);}
     <div class="subtitle">توقّعات كأس العالم 2026</div>
   </div>
   <div class="setup-banner" id="setupBanner">
-    ⚙️ <b>الإعداد مطلوب:</b> ضع إعدادات Firebase في الكود (ابحث عن <code>firebaseConfig</code>) حتى تُحفظ التوقعات وتُشارك بين اللاعبين.
+    ⚙️ <b>الإعداد مطلوب:</b> ضع إعدادات Firebase في الكود (ابحث عن <code>firebaseConfig</code>) حتى تُحفظ التوقعات.
   </div>
   <div class="box">
     <input class="field" id="nameInput" placeholder="اسم المستخدم" maxlength="20" autocomplete="off">
@@ -242,64 +242,64 @@ input.field::placeholder{color:var(--muted);}
   </div>
   <div class="section-title">📖 القوانين وطريقة اللعب</div>
   <div class="rules">
-    <b>📊 How points work</b>
+    <b>📊 طريقة احتساب النقاط</b>
     <table class="ptable">
-      <tr><th>Points</th><th>When</th><th>Example</th></tr>
+      <tr><th>النقاط</th><th>متى</th><th>مثال</th></tr>
       <tr>
         <td class="pcell">5</td>
-        <td>Exact score — both teams' goals correct</td>
-        <td>You predict <b>Brazil 2–1 Spain</b>, and it ends <b>Brazil 2–1 Spain</b></td>
+        <td>النتيجة مطابقة — أهداف الفريقين صحيحة</td>
+        <td>تتوقّع <b>البرازيل 2–1 إسبانيا</b>، وتنتهي <b>البرازيل 2–1 إسبانيا</b></td>
       </tr>
       <tr>
         <td class="pcell">3</td>
-        <td>Correct result only — right winner or draw, wrong score</td>
-        <td>You predict <b>Brazil 2–0 Spain</b>, and it ends <b>Brazil 3–1 Spain</b></td>
+        <td>المخرج صحيح فقط — الفائز أو التعادل صح، والنتيجة غلط</td>
+        <td>تتوقّع <b>البرازيل 2–0 إسبانيا</b>، وتنتهي <b>البرازيل 3–1 إسبانيا</b></td>
       </tr>
       <tr>
         <td class="pcell">0</td>
-        <td>Wrong result</td>
-        <td>You predict <b>Brazil 2–1 Spain</b>, and it ends <b>Brazil 0–1 Spain</b></td>
+        <td>مخرج خاطئ</td>
+        <td>تتوقّع <b>البرازيل 2–1 إسبانيا</b>، وتنتهي <b>البرازيل 0–1 إسبانيا</b></td>
       </tr>
     </table>
   </div>
 
   <div class="rules">
-    <b>🥅 Knockout matches that go to penalties</b>
+    <b>🥅 مباريات خروج المغلوب التي تذهب لركلات الترجيح</b>
     <table class="ptable">
-      <tr><th>Points</th><th>When</th><th>Example</th></tr>
+      <tr><th>النقاط</th><th>متى</th><th>مثال</th></tr>
       <tr>
         <td class="pcell">6</td>
-        <td>Exact draw score and correct penalties winner</td>
-        <td>You predict <b>Brazil 1–1 Spain, Brazil win penalties</b>, and that is exactly what happens</td>
+        <td>نتيجة التعادل مطابقة + الفائز بالركلات صحيح</td>
+        <td>تتوقّع <b>البرازيل 1–1 إسبانيا، والبرازيل تفوز بالركلات</b>، وهذا ما يحدث</td>
       </tr>
       <tr>
         <td class="pcell">5</td>
-        <td>Exact draw score, wrong penalties winner</td>
-        <td>You predict <b>Brazil 1–1 Spain, Brazil win penalties</b>, but it ends <b>1–1</b> and Spain win penalties</td>
+        <td>نتيجة التعادل مطابقة، والفائز بالركلات خطأ</td>
+        <td>تتوقّع <b>البرازيل 1–1 إسبانيا، والبرازيل بالركلات</b>، لكن تنتهي <b>1–1</b> وتفوز إسبانيا بالركلات</td>
       </tr>
       <tr>
         <td class="pcell">4</td>
-        <td>Correct draw result and penalties winner, wrong score</td>
-        <td>You predict <b>Brazil 2–2 Spain, Brazil win penalties</b>, and it ends <b>Brazil 1–1 Spain</b> with Brazil winning penalties</td>
+        <td>المخرج (تعادل) والفائز بالركلات صحيحان، والنتيجة غلط</td>
+        <td>تتوقّع <b>البرازيل 2–2 إسبانيا، والبرازيل بالركلات</b>، وتنتهي <b>البرازيل 1–1 إسبانيا</b> وتفوز البرازيل بالركلات</td>
       </tr>
       <tr>
         <td class="pcell">3</td>
-        <td>Correct draw result, wrong penalties winner</td>
-        <td>You predict <b>Brazil 2–2 Spain, Brazil win penalties</b>, but it ends <b>1–1</b> and Spain win penalties</td>
+        <td>المخرج (تعادل) صحيح، والفائز بالركلات خطأ</td>
+        <td>تتوقّع <b>البرازيل 2–2 إسبانيا، والبرازيل بالركلات</b>، لكن تنتهي <b>1–1</b> وتفوز إسبانيا بالركلات</td>
       </tr>
       <tr>
         <td class="pcell">0</td>
-        <td>Wrong result — you predicted a winner</td>
-        <td>You predict <b>Brazil to win</b>, but the match ends a draw and goes to penalties</td>
+        <td>مخرج خاطئ — توقّعت فوز فريق</td>
+        <td>تتوقّع <b>فوز البرازيل</b>، لكن تنتهي بالتعادل وتذهب لركلات الترجيح</td>
       </tr>
     </table>
   </div>
 
   <div class="rules">
-    <b>📌 Other notes</b><br>
-    • <b>2x cards:</b> you get <b>5</b> for the whole tournament. Activate one on a match before kickoff to <b>double your points</b> there<br>
-    • You can change your prediction freely, but it <b>stops at the match's real kickoff</b> — no edits after the match starts<br>
-    • <b>Ties in the standings</b> are settled by who has more <b>exact-score predictions</b>
+    <b>📌 ملاحظات أخرى</b><br>
+    • <b>بطاقات ×2:</b> لديك <b>5</b> لكامل البطولة. فعّل واحدة على مباراة قبل انطلاقها <b>لتضاعف نقاطك</b> فيها<br>
+    • تقدر تغيّر توقّعك بحرية، لكنه <b>يتوقف عند انطلاق المباراة فعلياً</b> — لا تعديل بعد البداية<br>
+    • <b>التعادل في الترتيب</b> يُحسم بعدد <b>التوقعات المطابقة تماماً</b>
   </div>
 </div>
 
@@ -423,13 +423,13 @@ function loadOpenfootball(){
 // ⚠️ Replace these with your own Firebase project config from:
 // Firebase Console > Project settings > Your apps > Web app config
 var firebaseConfig = {
-  apiKey:"AIzaSyDW2eFnZbAJkwbcuYCwme2fs8SK6oTZnHI",
-  authDomain:"world-cup-predictions-6c61b.firebaseapp.com",
-  databaseURL:"https://world-cup-predictions-6c61b-default-rtdb.firebaseio.com",
-  projectId:"world-cup-predictions-6c61b",
-  storageBucket:"world-cup-predictions-6c61b.firebasestorage.app",
-  messagingSenderId:"927763370478",
-  appId:"1:927763370478:web:711b8383f4d8ef4887feff"
+  apiKey:"AIzaSyBlRu52dh7N58H9j1HebKwI1OSttWyX5ZA",
+  authDomain:"wc-2026-predictions---saff.firebaseapp.com",
+  databaseURL:"https://wc-2026-predictions---saff-default-rtdb.firebaseio.com",
+  projectId:"wc-2026-predictions---saff",
+  storageBucket:"wc-2026-predictions---saff.firebasestorage.app",
+  messagingSenderId:"505320213469",
+  appId:"1:505320213469:web:3f008271525eeb5ef54434"
 };
 
 // Admin code for entering results and assigning knockout teams (change it whenever you like)
@@ -511,17 +511,17 @@ function attemptLogin(name,pin,fromAuto){
     if(u){ // existing name -> verify PIN
       if(u.ph && u.ph!==hashPin(pin)){ fail('الرقم السري خاطئ لهذا الاسم.',fromAuto); return; }
       var upd={name:myName}; if(!u.ph) upd.ph=hashPin(pin); // adopt PIN if legacy record had none
-      ROOT.child('users/'+myKey).update(upd).then(function(){ok(name,pin);}).catch(function(e){fail('WRITE '+writeErr(e),fromAuto);});
+      ROOT.child('users/'+myKey).update(upd).then(function(){ok(name,pin);}).catch(function(e){fail('كتابة: '+writeErr(e),fromAuto);});
     } else { // new name -> create with PIN
       if(!/^[0-9]{4,6}$/.test(pin)){ fail('اختر رقماً سرياً من 4–6 أرقام لحماية اسمك.',fromAuto); return; }
-      ROOT.child('users/'+myKey).set({name:myName,ph:hashPin(pin)}).then(function(){ok(name,pin);}).catch(function(e){fail('WRITE '+writeErr(e),fromAuto);});
+      ROOT.child('users/'+myKey).set({name:myName,ph:hashPin(pin)}).then(function(){ok(name,pin);}).catch(function(e){fail('كتابة: '+writeErr(e),fromAuto);});
     }
-  }).catch(function(e){fail('READ '+writeErr(e),fromAuto);});
+  }).catch(function(e){fail('قراءة: '+writeErr(e),fromAuto);});
 }
 function writeErr(e){
   var m=(e&&(e.code||e.message))?(''+(e.code||e.message)):'';
   if(/permission|denied/i.test(m)) return 'مرفوض من القواعد ['+m+']';
-  return 'خطأ'+(m?(' ['+m+']'):'. تحقّق من اتصالك.');
+  return 'خطأ'+(m?(' ['+m+']'):' — تحقّق من اتصالك.');
 }
 function ok(name,pin){
   try{localStorage.setItem('saff_name',name);localStorage.setItem('saff_pin',pin);}catch(e){}
@@ -560,11 +560,11 @@ if(configReady){
   auth.signInAnonymously().catch(function(e){
     console.error(e);
     if(e&&e.code==='auth/operation-not-allowed'){
-      authError='الدخول المجهول معطّل. من Firebase: Authentication → Sign-in method → فعّل Anonymous ثم حدّث.';
+      authError='الدخول المجهول معطّل. من Firebase: Authentication ← Sign-in method ← فعّل Anonymous ثم حدّث.';
     }else if(e&&(e.code==='auth/unauthorized-domain'||e.code==='auth/argument-error')){
       authError='This page\'s address is not authorized in Firebase. Open the hosted link (https), not the local file, or add the domain under Authentication → Settings → Authorized domains.';
     }else{
-      authError='فشل الدخول ('+((e&&e.code)||'unknown')+'). افتح رابط https واطمئن لاتصالك.';
+      authError='فشل الدخول ('+((e&&e.code)||'unknown')+'). افتح رابط https وتحقّق من اتصالك.';
     }
     document.getElementById('loginErr').textContent=authError;
   });
@@ -600,7 +600,7 @@ function logout(){
   show('sLogin');
 }
 document.querySelectorAll('.me-chip').forEach(function(c){
-  c.style.cursor='pointer'; c.title='Sign out';
+  c.style.cursor='pointer'; c.title='خروج';
   c.addEventListener('click',logout);
 });
 
@@ -737,7 +737,7 @@ function matchCard(m){
     x2cls();
     x2btn.title='ضاعف نقاطك في هذه المباراة';
     x2btn.addEventListener('click',function(){
-      if(!draft[m.id].x2){ if(boostsUsed(myKey,m.id)>=MAX_BOOST){toast("استخدمت كل بطاقاتك ×2 ("+MAX_BOOST+")");return;} draft[m.id].x2=true; }
+      if(!draft[m.id].x2){ if(boostsUsed(myKey,m.id)>=MAX_BOOST){toast("استخدمت كل بطاقات ×2 ("+MAX_BOOST+")");return;} draft[m.id].x2=true; }
       else draft[m.id].x2=false;
       x2cls();
     });
@@ -770,7 +770,7 @@ function allPredsBlock(m,r){
   else entries.sort(function(a,b){return (''+a.name).localeCompare(''+b.name);});
   entries.forEach(function(en){
     var row=document.createElement('div');row.className='ap-row'+(en.key===myKey?' me':'');
-    var nm=document.createElement('span');nm.className='ap-name';nm.textContent=en.name+(en.key===myKey?'(أنت)':'');
+    var nm=document.createElement('span');nm.className='ap-name';nm.textContent=en.name+(en.key===myKey?' (أنت)':'');
     var rt=document.createElement('span');rt.className='ap-right';
     var pk=document.createElement('span');pk.className='ap-pick';
     pk.textContent=en.p.h+' - '+en.p.a+(en.p.x2?' ⚡':'')+(en.p.pw?(' · '+(en.p.pw==='h'?t.home:t.away)+' ركلات'):'');
