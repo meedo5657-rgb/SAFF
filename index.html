@@ -89,6 +89,7 @@ input.field::placeholder{color:var(--muted);}
 .status-badge{font-weight:800;white-space:nowrap;font-size:.62rem;letter-spacing:.5px;padding:3px 9px;border-radius:8px;}
 .status-badge.open{background:rgba(255,255,255,.10);color:#fff;}
 .status-badge.live{background:var(--accent1);color:#fff;}
+.status-badge.soon{background:rgba(255,255,255,.10);color:var(--muted);}
 .status-badge.finished{background:rgba(255,255,255,.10);color:var(--muted);}
 .match-meta{width:100%;font-size:.7rem;color:var(--muted);text-align:center;}
 .teams{display:flex;align-items:center;justify-content:space-between;gap:8px;}
@@ -212,7 +213,7 @@ input.field::placeholder{color:var(--muted);}
   <div class="rules">
     <b>How it works</b><br>
     📊 Exact score = <b>5 pts</b> · right winner/draw = <b>3 pts</b><br>
-    ⏰ Picks lock when the match kicks off<br>
+    ⏰ Predictions open 24h before kickoff and lock when it starts<br>
     📖 Full details in the <b>Rules</b> tab
   </div>
 </div>
@@ -225,7 +226,7 @@ input.field::placeholder{color:var(--muted);}
   </div>
   <div class="section-title">⚽ Matches</div>
   <div class="chips" id="chips"></div>
-  <div class="hint" id="matchHint">Set your prediction and tap save. Predictions lock at kickoff.</div>
+  <div class="hint" id="matchHint">Set your prediction and tap save. Predictions open 24h before kickoff and lock when it starts.</div>
   <div id="matchList" style="width:100%;display:flex;flex-direction:column;gap:12px;"></div>
 </div>
 
@@ -303,7 +304,7 @@ input.field::placeholder{color:var(--muted);}
   <div class="rules">
     <b>📌 Other notes</b><br>
     • <b>2x cards:</b> you get <b>5</b> for the whole tournament. Activate one on a match before kickoff to <b>double your points</b> there<br>
-    • You can change your prediction freely, but it <b>stops at the match's real kickoff</b> — no edits after the match starts<br>
+    • Predictions <b>open 24h before kickoff</b>; you can change them freely until the match starts — no edits after that<br>
     • <b>Ties in the standings</b> are settled by who has more <b>exact-score predictions</b>
   </div>
 </div>
@@ -369,6 +370,7 @@ function localKick(m){
   if(isNaN(t)) return m.date+(m.time?(' • '+m.time):'');
   return new Date(t).toLocaleString([], {weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 }
+function openKick(m){var t=Date.parse(m.utc);if(isNaN(t))return '';return new Date(t-24*60*60*1000).toLocaleString([], {weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
 
 // ===== LIVE DATA (openfootball: free, public, no key) =====
 // Auto-fills knockout teams once qualified and official final scores as they
@@ -485,10 +487,13 @@ function teamsOf(m){
 function kickoffMs(m){var t=Date.parse(m.utc); return isNaN(t)?Infinity:t;}
 // effective result: admin override wins, otherwise the auto API result
 function result(m){return resultsData[m.id]||apiResults[m.id]||null;}
+var OPEN_WINDOW = 24*60*60*1000; // predictions open only 24h before kickoff
 function statusOf(m){
   if(result(m))return 'finished';
-  if(Date.now()>=kickoffMs(m))return 'locked';
-  return 'open';
+  var now=Date.now(), k=kickoffMs(m);
+  if(now>=k)return 'locked';
+  if(now>=k-OPEN_WINDOW)return 'open';
+  return 'soon';
 }
 function pointsFor(pred,r){
   if(!pred||!r)return null;
@@ -691,6 +696,7 @@ function matchCard(m){
   var roundLabel = m.stage==='group' ? ('Round '+(GROUP_MD[m.id]||'')) : ('Match #'+m.n);
   var stBadge = st==='finished'?'<span class="status-badge finished">FINISHED</span>'
     : st==='locked'?'<span class="status-badge live">● LIVE</span>'
+    : st==='soon'?'<span class="status-badge soon">SOON</span>'
     : '<span class="status-badge open">OPEN</span>';
 
   var head=document.createElement('div');head.className='match-head';
@@ -730,6 +736,10 @@ function matchCard(m){
     var ln=document.createElement('div');ln.className='locked-note';ln.textContent='● Live — predictions closed, awaiting the official result';el.appendChild(ln);
     if(myPred){var yp2=document.createElement('div');yp2.className='your-pred';yp2.innerHTML='Your pick: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • pens: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'')+(myPred.x2?' <span class="x2-badge">⚡2x</span>':'');el.appendChild(yp2);}
     else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='You did not predict this match';el.appendChild(no2);}
+  }else if(st==='soon'){
+    var sn=document.createElement('div');sn.className='locked-note';
+    sn.innerHTML='🔒 Predictions open 24h before kickoff'+(openKick(m)?('<br><span style="opacity:.85">opens '+esc(openKick(m))+'</span>'):'');
+    el.appendChild(sn);
   }else{
     var pen=null;
     var pr=document.createElement('div');pr.className='pred-row';
@@ -756,7 +766,7 @@ function matchCard(m){
     el.appendChild(actions);
   }
 
-  if(st!=='open') el.appendChild(allPredsBlock(m,result(m)));
+  if(st==='locked'||st==='finished') el.appendChild(allPredsBlock(m,result(m)));
   if(isAdmin) el.appendChild(adminZone(m));
   return el;
 }
