@@ -145,6 +145,9 @@ input.field::placeholder{color:var(--muted);}
 .admin-zone .lbl{font-size:.72rem;color:var(--muted);font-weight:700;}
 .admin-actions{display:flex;gap:8px;}
 .admin-actions button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-family:'Tajawal',sans-serif;font-size:.8rem;cursor:pointer;color:var(--text);}
+.admin-bar{width:100%;margin-bottom:6px;}
+.btn-clear-all{width:100%;padding:12px;border-radius:10px;border:1px solid #e11d48;background:rgba(225,29,72,.12);color:#fca5a5;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;}
+.btn-clear-all:disabled{opacity:.45;cursor:default;border-color:var(--line);color:var(--muted);background:var(--surface);}
 .a-edit{color:#fff;}
 .a-del{color:#fca5a5;}
 
@@ -678,9 +681,12 @@ function renderMatches(){
   var list=document.getElementById('matchList');
   if(!list)return;
   list.innerHTML='';
+  if(isAdmin) list.appendChild(adminBar());
   var ms=filteredMatches();
   if(!ms.length){
-    list.innerHTML='<div class="empty">'+(currentFilter==='upcoming'?'لا مباريات قادمة — خلصت! اختر مجموعة أو دوراً. 🏟️':'لا مباريات هنا.')+'</div>';
+    var e=document.createElement('div');e.className='empty';
+    e.textContent=(currentFilter==='upcoming'?'لا مباريات قادمة — خلصت! اختر مجموعة أو دوراً. 🏟️':'لا مباريات هنا.');
+    list.appendChild(e);
     return;
   }
   ms.forEach(function(m){list.appendChild(matchCard(m));});
@@ -852,6 +858,20 @@ function savePred(id){
 }
 
 // ===== ADMIN =====
+function adminBar(){
+  var bar=document.createElement('div');bar.className='admin-bar';
+  var n=Object.keys(resultsData||{}).length;
+  var b=document.createElement('button');b.className='btn-clear-all';
+  b.textContent='🗑 امسح كل النتائج ('+n+')';
+  b.disabled=(n===0);
+  b.addEventListener('click',function(){
+    if(n===0){toast('مافيه نتائج تمسحها');return;}
+    if(!confirm('متأكد تبي تمسح كل ('+n+') النتائج اللي دخّلتها للمباريات؟ ما يمكن التراجع.'))return;
+    ROOT.child('results').remove().then(function(){toast('انمسحت كل النتائج 🗑');}).catch(function(e){toast('فشل المسح: '+((e&&e.code)||e));});
+  });
+  bar.appendChild(b);
+  return bar;
+}
 function adminZone(m){
   var z=document.createElement('div');z.className='admin-zone';
   var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='النتيجة الرسمية';z.appendChild(lbl);
