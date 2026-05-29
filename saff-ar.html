@@ -210,7 +210,7 @@ input.field::placeholder{color:var(--muted);}
   <div class="box">
     <input class="field" id="nameInput" placeholder="اسم المستخدم" maxlength="20" autocomplete="off">
     <input class="field" id="pinInput" type="tel" inputmode="numeric" maxlength="6" placeholder="الرقم السري (4–6 أرقام)" autocomplete="off" style="text-align:right;direction:rtl;">
-    <button class="btn btn-grad" id="btnLogin">دخول</button>
+    <button class="btn btn-grad" id="btnLogin">ادخل</button>
     <div class="hint" style="text-align:center">أول مرة؟ اختر أي اسم مستخدم ورقم سري. استخدم نفس الاسم والرقم للدخول من أي جهاز.</div>
   </div>
   <div class="err" id="loginErr"></div>
@@ -219,7 +219,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- MATCHES -->
 <div class="screen" id="sMatches">
   <div class="topbar">
-    <div class="me-chip">👤 <b id="meName">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">خروج</span></div>
+    <div class="me-chip">👤 <b id="meName">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">اخرج</span></div>
     <button class="icon-btn" id="btnSettings">⚙️</button>
   </div>
   <div class="section-title">⚽ المباريات</div>
@@ -230,7 +230,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- LEADERBOARD -->
 <div class="screen" id="sLeader">
   <div class="topbar">
-    <div class="me-chip">👤 <b id="meName2">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">خروج</span></div>
+    <div class="me-chip">👤 <b id="meName2">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">اخرج</span></div>
     <button class="icon-btn" id="btnSettings2">⚙️</button>
   </div>
   <div class="section-title">🏅 الترتيب</div>
@@ -240,7 +240,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- RULES -->
 <div class="screen" id="sRules">
   <div class="topbar">
-    <div class="me-chip">👤 <b id="meName3">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">خروج</span></div>
+    <div class="me-chip">👤 <b id="meName3">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">اخرج</span></div>
     <button class="icon-btn" id="btnSettings3">⚙️</button>
   </div>
   <div class="section-title">📖 القوانين وطريقة اللعب</div>
@@ -329,8 +329,8 @@ input.field::placeholder{color:var(--muted);}
       <div><label>الفريق الثاني</label><input class="field" id="tAway" placeholder="اسم الفريق"></div>
       <div><label>العلم 🏳️</label><input class="field" id="tAF" placeholder="🏳️" maxlength="8"></div>
     </div>
-    <button class="btn btn-grad" id="btnSaveTeams" style="margin-top:16px">حفظ الفرق ✅</button>
-    <button class="btn btn-ghost" id="btnResetTeams" style="margin-top:10px;background:var(--surface);color:var(--muted);border:1px solid var(--line)">إرجاع الافتراضي</button>
+    <button class="btn btn-grad" id="btnSaveTeams" style="margin-top:16px">احفظ الفرق ✅</button>
+    <button class="btn btn-ghost" id="btnResetTeams" style="margin-top:10px;background:var(--surface);color:var(--muted);border:1px solid var(--line)">ارجع للافتراضي</button>
     <div class="modal-msg" id="teamModalMsg"></div>
   </div>
 </div>
@@ -720,12 +720,12 @@ function matchCard(m){
       var pb=document.createElement('div');pb.className='pts-badge '+cls;
       pb.textContent=icon+'+'+pts+' نقطة';el.appendChild(pb);
     }else{
-      var no=document.createElement('div');no.className='locked-note';no.textContent='لم تتوقّع هذه المباراة';el.appendChild(no);
+      var no=document.createElement('div');no.className='locked-note';no.textContent='لم تتوقع نتيجة هذه المباراة';el.appendChild(no);
     }
   }else if(st==='locked'){
     var ln=document.createElement('div');ln.className='locked-note';ln.textContent='● مباشر — أُغلقت التوقعات، بانتظار النتيجة الرسمية';el.appendChild(ln);
     if(myPred){var yp2=document.createElement('div');yp2.className='your-pred';yp2.innerHTML='توقّعك: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • بلنتيات: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'')+(myPred.x2?' <span class="x2-badge">⚡2x</span>':'');el.appendChild(yp2);}
-    else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='لم تتوقّع هذه المباراة';el.appendChild(no2);}
+    else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='لم تتوقع نتيجة هذه المباراة';el.appendChild(no2);}
   }else{
     var pen=null;
     var pr=document.createElement('div');pr.className='pred-row';
@@ -745,7 +745,7 @@ function matchCard(m){
       x2cls();
     });
     var sb=document.createElement('button');sb.className='btn btn-green save-pred';
-    sb.textContent=myPred?'تحديث التوقّع':'احفظ التوقّع';
+    sb.textContent=myPred?'حدّث التوقّع':'احفظ التوقّع';
     sb.addEventListener('click',function(){savePred(m.id);});
     var actions=document.createElement('div');actions.className='pred-actions';
     actions.appendChild(x2btn);actions.appendChild(sb);
@@ -762,7 +762,7 @@ function allPredsBlock(m,r){
   var box=document.createElement('div');box.className='allpreds-wrap';
   var obj=predsData[m.id]||{}, keys=Object.keys(obj), t=teamsOf(m);
   var btn=document.createElement('button');btn.className='see-preds';
-  btn.textContent='👥 كل التوقعات ('+keys.length+')';
+  btn.textContent='👥 اعرض التوقعات ('+keys.length+')';
   var list=document.createElement('div');list.className='allpreds';
   if(!keys.length){var e=document.createElement('div');e.className='ap-empty';e.textContent='لا أحد توقّع هذه المباراة';list.appendChild(e);}
   var entries=keys.map(function(k){
@@ -849,7 +849,7 @@ function adminZone(m){
   z.appendChild(row);
   if(ko){ pen=penRow(rd,t.home,t.away); z.appendChild(pen.el); }
   var save=document.createElement('button');save.className='btn btn-gold';save.style.padding='10px';
-  save.textContent=r?'تحديث النتيجة 💾':'حفظ النتيجة 💾';
+  save.textContent=r?'حدّث النتيجة 💾':'احفظ النتيجة 💾';
   save.addEventListener('click',function(){
     var data={h:rd.h,a:rd.a};
     if(ko&&Number(rd.h)===Number(rd.a)){ // knockout draw -> penalties winner required
@@ -860,10 +860,10 @@ function adminZone(m){
   });
   z.appendChild(save);
   var acts=document.createElement('div');acts.className='admin-actions';
-  var bt=document.createElement('button');bt.className='a-edit';bt.textContent='👥 تعيين الفرق';
+  var bt=document.createElement('button');bt.className='a-edit';bt.textContent='👥 عيّن الفرق';
   bt.addEventListener('click',function(){openTeamModal(m);});
   if(r){
-    var bx=document.createElement('button');bx.className='a-del';bx.textContent='🗑 مسح النتيجة';
+    var bx=document.createElement('button');bx.className='a-del';bx.textContent='🗑 امسح النتيجة';
     bx.addEventListener('click',function(){ROOT.child('results/'+m.id).remove().then(function(){toast('تم مسح النتيجة');});});
     acts.appendChild(bt);acts.appendChild(bx);
   }else{
