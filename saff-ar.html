@@ -216,7 +216,7 @@ input.field::placeholder{color:var(--muted);}
   <div class="err" id="loginErr"></div>
   <div class="rules">
     <b>طريقة اللعب</b><br>
-    📊 توقعت النتيجة صح = <b>5 نقاط</b> · توقعت المنتخب الفايز/التعادل صح = <b>3 نقاط</b><br>
+    📊 توقعت النتيجة صح = <b>5 نقاط</b> · توقعت المنتخب الفائز/التعادل صح = <b>3 نقاط</b><br>
     ⏰ التوقع يقفل أول ما تبدأ المباراة<br>
     📖 التفاصيل كاملة في صفحة القوانين داخل اللعبة
   </div>
@@ -261,7 +261,7 @@ input.field::placeholder{color:var(--muted);}
       </tr>
       <tr>
         <td class="pcell">3</td>
-        <td>توقعت الفايز صح، أو أنها تعادل، بس النتيجة غلط</td>
+        <td>توقعت الفائز صح، أو أنها تعادل، بس النتيجة غلط</td>
         <td>توقعت <b>البرازيل 2–0 إسبانيا</b>، وانتهت <b>البرازيل 3–1 إسبانيا</b></td>
       </tr>
       <tr>
@@ -278,22 +278,22 @@ input.field::placeholder{color:var(--muted);}
       <tr><th>النقاط</th><th>الحالة</th><th>مثال</th></tr>
       <tr>
         <td class="pcell">6</td>
-        <td>توقعت نتيجة التعادل صح + الفايز بالبلنتيات صح</td>
+        <td>توقعت نتيجة التعادل صح + الفائز بالبلنتيات صح</td>
         <td>توقعت <b>البرازيل 1–1 إسبانيا، والبرازيل تفوز بالبلنتيات</b>، وانتهت كذا</td>
       </tr>
       <tr>
         <td class="pcell">5</td>
-        <td>توقعت نتيجة التعادل صح بس الفايز بالبلنتيات غلط</td>
+        <td>توقعت نتيجة التعادل صح بس الفائز بالبلنتيات غلط</td>
         <td>توقعت <b>البرازيل 1–1 إسبانيا، والبرازيل تفوز بالبلنتيات</b>، وانتهت <b>1–1</b> وفازت إسبانيا بالبلنتيات</td>
       </tr>
       <tr>
         <td class="pcell">4</td>
-        <td>توقعت تعادل والنتيجة غلط، بس الفايز بالبلنتيات صح</td>
+        <td>توقعت تعادل والنتيجة غلط، بس الفائز بالبلنتيات صح</td>
         <td>توقعت <b>البرازيل 2–2 إسبانيا، والبرازيل تفوز بالبلنتيات</b>، وانتهت <b>البرازيل 1–1 إسبانيا</b> وفازت البرازيل بالبلنتيات</td>
       </tr>
       <tr>
         <td class="pcell">3</td>
-        <td>توقعت تعادل والنتيجة غلط، والفايز بالبلنتيات غلط</td>
+        <td>توقعت تعادل والنتيجة غلط، والفائز بالبلنتيات غلط</td>
         <td>توقعت <b>البرازيل 2–2 إسبانيا، والبرازيل تفوز بالبلنتيات</b>، وانتهت <b>1–1</b> وفازت إسبانيا بالبلنتيات</td>
       </tr>
       <tr>
@@ -817,7 +817,7 @@ function penRow(obj,homeName,awayName){
     if(!draw)obj.pw=null;
     bh.classList.toggle('sel',obj.pw==='h');
     ba.classList.toggle('sel',obj.pw==='a');
-    lbl.textContent=draw?'🥅 لو راحت بلنتيات، مين يفوز؟':'🥅 اختر تعادل لتحديد الفايز بالبلنتيات';
+    lbl.textContent=draw?'🥅 لو راحت بلنتيات، مين يفوز؟':'🥅 اختر تعادل لتحديد الفائز بالبلنتيات';
   }
   bh.addEventListener('click',function(){if(bh.disabled)return;obj.pw='h';refresh();});
   ba.addEventListener('click',function(){if(ba.disabled)return;obj.pw='a';refresh();});
@@ -832,7 +832,7 @@ function savePred(id){
   var d=draft[id];
   var data={h:d.h,a:d.a};
   if(m.stage!=='group'&&Number(d.h)===Number(d.a)){ // knockout draw: penalties winner is required
-    if(!d.pw){toast('اختر الفايز بالبلنتيات');return;}
+    if(!d.pw){toast('اختر الفائز بالبلنتيات');return;}
     data.pw=d.pw;
   }
   if(d.x2) data.x2=true; // 2x boost card
@@ -859,7 +859,7 @@ function adminZone(m){
   save.addEventListener('click',function(){
     var data={h:rd.h,a:rd.a};
     if(ko&&Number(rd.h)===Number(rd.a)){ // knockout draw -> penalties winner required
-      if(!rd.pw){toast('حدّد الفايز بالبلنتيات');return;}
+      if(!rd.pw){toast('حدّد الفائز بالبلنتيات');return;}
       data.pw=rd.pw;
     }
     ROOT.child('results/'+m.id).set(data).then(function(){toast('تم حفظ النتيجة ✅');});
