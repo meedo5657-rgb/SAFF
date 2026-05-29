@@ -443,6 +443,8 @@ var firebaseConfig = {
 
 // Admin code for entering results and assigning knockout teams (change it whenever you like)
 var ADMIN_CODE = "2026";
+// الإعدادات (⚙️) وأدوات الإدارة تظهر فقط لهذا الحساب
+var ADMIN_NAME = "Mnajjar3";
 
 var configReady = firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('YOUR_')!==0;
 var db=null, ROOT=null, auth=null, myUid=null;
@@ -888,10 +890,15 @@ function adminStepper(rd,k,onChange){
   wrap.appendChild(minus);wrap.appendChild(val);wrap.appendChild(plus);
   return wrap;
 }
+function isAdminUser(){return !!myName && myName.trim().toLowerCase()===ADMIN_NAME.toLowerCase();}
 function applyAdminUI(){
-  document.getElementById('btnSettings').classList.toggle('admin-on',isAdmin);
-  document.getElementById('btnSettings2').classList.toggle('admin-on',isAdmin);
-  document.getElementById('btnSettings3').classList.toggle('admin-on',isAdmin);
+  var au=isAdminUser();
+  if(!au && isAdmin){isAdmin=false;try{localStorage.removeItem('saff_admin');}catch(e){}}
+  ['btnSettings','btnSettings2','btnSettings3'].forEach(function(id){
+    var b=document.getElementById(id);
+    b.style.display=au?'':'none';
+    b.classList.toggle('admin-on',isAdmin);
+  });
 }
 function openSettings(){
   if(isAdmin){
