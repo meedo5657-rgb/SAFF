@@ -1106,12 +1106,8 @@ function genDailySummary(){
   } else {
     c.fillStyle='#fff';c.fillText(ttl,W/2,titleY);
   }
-  // hairline red rule from rail across to about midway under title — designed spine cue
-  var ulY=titleY+22;
-  var ulG=c.createLinearGradient(RAIL,ulY,W/2,ulY);
-  ulG.addColorStop(0,TH.accent);
-  ulG.addColorStop(1,'rgba(225,29,72,0)');
-  c.fillStyle=ulG;c.fillRect(RAIL,ulY,W/2-RAIL,2);
+  // small accent dot under title — designed punctuation, not a slab
+  c.fillStyle=TH.accent;c.beginPath();c.arc(W/2,titleY+22,4,0,Math.PI*2);c.fill();
   var y=HEAD;
   // tiny tracked label utility (used by both eyebrow + winners-band header)
   function trackedLabel(text,x,baseY,col,size,track){
@@ -1129,19 +1125,19 @@ function genDailySummary(){
   function eyebrow(text,opts){
     opts=opts||{};
     var col=opts.color||TH.accent;
-    var size=opts.size||12;
-    var track=opts.track||2.0;
+    var size=opts.size||13;
+    var track=opts.track||2.2;
     var baseY=y;
     var lx = PAD;
-    // small accent dot tucked just left of the label, on the rail
+    // small accent dot tucked on the rail
     c.fillStyle=col;
-    c.beginPath();c.arc(RAIL, baseY-5, 3.2, 0, Math.PI*2);c.fill();
+    c.beginPath();c.arc(RAIL, baseY-5, 3.8, 0, Math.PI*2);c.fill();
     // short accent stub from rail to label
-    c.fillStyle=col;c.globalAlpha=0.55;
-    c.fillRect(RAIL+5, baseY-6, lx-(RAIL+5)-6, 1);
+    c.fillStyle=col;c.globalAlpha=0.6;
+    c.fillRect(RAIL+5, baseY-6, lx-(RAIL+5)-8, 1);
     c.globalAlpha=1;
     // tracked label
-    trackedLabel(text.toUpperCase(),lx,baseY,'#dfe7ff',size,track);
+    trackedLabel(text.toUpperCase(),lx,baseY,'#e8eeff',size,track);
     y += EYE;
   }
   function emptyRow(text){
@@ -1151,23 +1147,6 @@ function genDailySummary(){
     c.textAlign='center';c.textBaseline='middle';
     c.fillText(text,W/2,y+30);
     y+=60;
-  }
-  function sect(icon,hdr,items,render,empty,hero){
-    sectHeader(icon,hdr);
-    if(items.length){
-      if(hero){
-        render(items[0],0,y);
-        y+=HERO;
-      } else {
-        items.forEach(function(it,i){
-          render(it,i,y);
-          y+=ITEM;
-        });
-      }
-    } else {
-      emptyRow(empty);
-    }
-    y+=GAP;
   }
   function rRes(m,_,yy){
     card(CARD_X,yy,CARD_W,ITEM-8);
@@ -1268,14 +1247,14 @@ function genDailySummary(){
     var nameX = sx + statBlockW + gap;
     c.font='800 38px '+TH.font;c.fillStyle='#fff';c.textBaseline='alphabetic';
     c.fillText(u.name, nameX, rowY-4);
-    // subtitle hairline + label under name
+    // subtitle: tiny accent hairline + soft eyebrow under name (winners eyebrow already says "today")
     var subY = rowY+8;
-    c.fillStyle='rgba(255,255,255,.32)';
-    c.fillRect(nameX, subY, Math.min(nameW,200), 1);
-    c.font='700 13px '+TH.font;c.fillStyle='#cdd6f4';
+    c.fillStyle=TH.accent;
+    c.fillRect(nameX, subY, 36, 2);
+    c.font='700 13px '+TH.font;c.fillStyle='#aebbe0';
     (function(){
-      var s='BEST PREDICTOR  ·  TODAY', gap=1.4, cx=nameX;
-      for(var i=0;i<s.length;i++){ var ch=s[i]; c.fillText(ch,cx,subY+18); cx += c.measureText(ch).width + gap; }
+      var s='BEST PREDICTOR', gap=1.4, cx=nameX+46;
+      for(var i=0;i<s.length;i++){ var ch=s[i]; c.fillText(ch,cx,subY+13); cx += c.measureText(ch).width + gap; }
     })();
     c.textAlign='center';
   }
@@ -1316,12 +1295,15 @@ function genDailySummary(){
   bandGrd.addColorStop(0.55,'rgba(225,29,72,.05)');
   bandGrd.addColorStop(1,'rgba(225,29,72,.00)');
   fillRR(PAD-16,bandY,W-2*(PAD-16),winnersBandH,28,bandGrd);
-  // hairline top border on the band — accent color
-  c.fillStyle='rgba(225,29,72,.45)';c.fillRect(PAD-16,bandY,W-2*(PAD-16),1);
+  // hairline top + bottom borders on the band — soft accent so the band reads as a held panel
+  var bandHairlineG=c.createLinearGradient(PAD-16,bandY,W-(PAD-16),bandY);
+  bandHairlineG.addColorStop(0,'rgba(225,29,72,0)');
+  bandHairlineG.addColorStop(0.5,'rgba(225,29,72,.55)');
+  bandHairlineG.addColorStop(1,'rgba(225,29,72,0)');
+  c.fillStyle=bandHairlineG;c.fillRect(PAD-16,bandY,W-2*(PAD-16),1);
+  c.fillStyle=bandHairlineG;c.fillRect(PAD-16,bandY+winnersBandH-1,W-2*(PAD-16),1);
   // single eyebrow for the whole winners band
   y = bandY + BAND_PAD_TOP;
-  // small accent dot on rail at band top
-  c.fillStyle=TH.accent;c.beginPath();c.arc(RAIL,bandY+18,4.5,0,Math.PI*2);c.fill();
   eyebrow('Winners  ·  Today');
   // hero
   if(topT.length){ rHero(topT[0],0,y); y+=HERO; }
@@ -1337,8 +1319,6 @@ function genDailySummary(){
   y = bandY + winnersBandH + 28;
 
   // 2) RESULTS — quiet eyebrow, then cards
-  // rail dot at section start
-  c.fillStyle=TH.accent;c.beginPath();c.arc(RAIL,y-6,3.5,0,Math.PI*2);c.fill();
   eyebrow('Results  ·  Today');
   if(todayR.length){
     todayR.forEach(function(m,i){ rRes(m,i,y); y+=ITEM; });
@@ -1346,7 +1326,6 @@ function genDailySummary(){
   y += GAP;
 
   // 3) TOMORROW — quiet eyebrow, then slim calendar-style rows (no card chrome)
-  c.fillStyle=TH.accent;c.beginPath();c.arc(RAIL,y-6,3.5,0,Math.PI*2);c.fill();
   eyebrow('Tomorrow  ·  Fixtures',{color:'rgba(225,29,72,.75)'});
   if(tomorrowM.length){
     tomorrowM.forEach(function(m,i){ rTom(m,i,y); y+=TOMITEM; });

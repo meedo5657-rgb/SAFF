@@ -1096,26 +1096,26 @@ function genDailySummary(){
   c.fillStyle=TH.gold;c.fillRect(W/2-30,68,60,2);
   c.font='500 22px '+TH.font;c.fillStyle=TH.muted;
   c.fillText(new Date(now).toLocaleDateString(TH.locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),W/2,100);
-  // big title — heavier and in white, with a slim gold underbar
+  // big title — heavier and in white, with a tiny gold dot as designed punctuation
   c.font='900 72px '+TH.font;c.fillStyle='#fff';
   c.fillText(TH.t.title,W/2,180);
-  fillRR(W/2-64,198,128,5,2.5,TH.gold);
+  c.fillStyle=TH.gold;c.beginPath();c.arc(W/2,202,4,0,Math.PI*2);c.fill();
   var y=HEAD;
   // quiet eyebrow: tiny gold dot on rail + small Arabic label, no hairline, no triangle
   function eyebrow(text,opts){
     opts=opts||{};
     var col=opts.color||TH.gold;
-    var size=opts.size||18;
+    var size=opts.size||19;
     var baseY=y;
-    var lx = W-PAD; // RTL: label starts from the right
+    var lx = W-PAD;
     // gold dot on the rail
     c.fillStyle=col;
-    c.beginPath();c.arc(RAIL, baseY-6, 3.5, 0, Math.PI*2);c.fill();
+    c.beginPath();c.arc(RAIL, baseY-7, 4, 0, Math.PI*2);c.fill();
     // short stub from rail to label
-    c.fillStyle=col;c.globalAlpha=0.55;
-    c.fillRect(lx+6, baseY-7, RAIL-(lx+6)-6, 1);
+    c.fillStyle=col;c.globalAlpha=0.6;
+    c.fillRect(lx+6, baseY-8, RAIL-(lx+6)-8, 1);
     c.globalAlpha=1;
-    // small Arabic label in gold (Arabic doesn't track-out nicely)
+    // small Arabic label in gold
     c.font='700 '+size+'px '+TH.font;c.fillStyle='#e9d8a3';
     c.textAlign='right';c.textBaseline='alphabetic';
     c.fillText(text,lx,baseY);
@@ -1128,23 +1128,6 @@ function genDailySummary(){
     c.textAlign='center';c.textBaseline='middle';
     c.fillText(text,W/2,y+30);
     y+=60;
-  }
-  function sect(icon,hdr,items,render,empty,hero){
-    sectHeader(icon,hdr);
-    if(items.length){
-      if(hero){
-        render(items[0],0,y);
-        y+=HERO;
-      } else {
-        items.forEach(function(it,i){
-          render(it,i,y);
-          y+=ITEM;
-        });
-      }
-    } else {
-      emptyRow(empty);
-    }
-    y+=GAP;
   }
   function rRes(m,_,yy){
     card(CARD_X,yy,CARD_W,ITEM-8);
@@ -1221,28 +1204,66 @@ function genDailySummary(){
     c.fillText(ptsText,W/2,py+ph/2+1);
   }
   function rTom(m,_,yy){
-    card(CARD_X,yy,CARD_W,ITEM-8);
+    // slim calendar row — no card chrome, faint hairline, muted teams, gold kickoff time
     var t=teamsOf(m);
-    var cy=yy+(ITEM-8)/2;
-    c.font='600 25px '+TH.font;c.fillStyle='#fff';c.textBaseline='middle';
-    var hx = TH.rtl ? W-PAD-22 : PAD+22;
-    c.textAlign=TH.rtl?'right':'left';
+    var rowH=TOMITEM-6;
+    var cy=yy+rowH/2;
+    var lg = c.createLinearGradient(W-PAD,yy+rowH,PAD,yy+rowH);
+    lg.addColorStop(0,'rgba(212,175,55,.18)');
+    lg.addColorStop(1,'rgba(212,175,55,0)');
+    c.fillStyle=lg;c.fillRect(PAD,yy+rowH,W-2*PAD,1);
+    c.font='600 22px '+TH.font;c.fillStyle='#dff0e6';c.textBaseline='middle';
+    var hx = W-PAD;
+    c.textAlign='right';
     var label=(t.hf||'')+' '+t.home+'   '+TH.t.vs+'   '+t.away+' '+(t.af||'');
     c.fillText(label,hx,cy);
-    c.font='600 18px '+TH.font;
+    // gold kickoff time at trailing edge (left in RTL), no pill chrome
+    c.font='800 18px '+TH.font;
     var kText=localKick(m);
-    var kw=c.measureText(kText).width+22;
-    var kh=32;
-    var kx = TH.rtl ? PAD+22 : W-PAD-22-kw;
-    fillRR(kx,cy-kh/2,kw,kh,kh/2,'rgba(255,255,255,.08)');
-    strokeRR(kx,cy-kh/2,kw,kh,kh/2,'rgba(255,255,255,.16)',1);
-    c.fillStyle=TH.muted;c.textAlign='center';c.textBaseline='middle';
-    c.fillText(kText,kx+kw/2,cy+1);
+    c.fillStyle=TH.gold;c.textAlign='left';c.textBaseline='middle';
+    c.fillText(kText,PAD,cy);
   }
-  sect(TH.t.topIcon,TH.t.topHdr,topT,rHero,TH.t.noPts,true);
-  sect(TH.t.lbIcon,TH.t.lbHdr,totals,rUsr,TH.t.noLb,false);
-  sect(TH.t.resIcon,TH.t.resultsHdr,todayR,rRes,TH.t.noResults,false);
-  sect(TH.t.tomIcon,TH.t.tomorrowHdr,tomorrowM,rTom,TH.t.noTomorrow,false);
+
+  // ===== composed flow =====
+  // 1) WINNERS band — hero + Top-5 share one tinted gold-edged panel with a single eyebrow
+  var bandY = y;
+  var bandGrd = c.createLinearGradient(0,bandY,0,bandY+winnersBandH);
+  bandGrd.addColorStop(0,'rgba(212,175,55,.10)');
+  bandGrd.addColorStop(0.55,'rgba(212,175,55,.05)');
+  bandGrd.addColorStop(1,'rgba(212,175,55,.00)');
+  fillRR(PAD-16,bandY,W-2*(PAD-16),winnersBandH,28,bandGrd);
+  // soft gold hairlines top + bottom of the band — frames it as a held panel
+  var bandHairlineG=c.createLinearGradient(PAD-16,bandY,W-(PAD-16),bandY);
+  bandHairlineG.addColorStop(0,'rgba(212,175,55,0)');
+  bandHairlineG.addColorStop(0.5,'rgba(212,175,55,.60)');
+  bandHairlineG.addColorStop(1,'rgba(212,175,55,0)');
+  c.fillStyle=bandHairlineG;c.fillRect(PAD-16,bandY,W-2*(PAD-16),1);
+  c.fillStyle=bandHairlineG;c.fillRect(PAD-16,bandY+winnersBandH-1,W-2*(PAD-16),1);
+  y = bandY + BAND_PAD_TOP;
+  eyebrow('الفائزون اليوم');
+  // hero
+  if(topT.length){ rHero(topT[0],0,y); y+=HERO; }
+  else { emptyRow(TH.t.noPts); y-=4; }
+  y += BAND_INNER_GAP;
+  if(totals.length){
+    totals.forEach(function(u,i){ rUsr(u,i,y); y+=ITEM; });
+  } else {
+    emptyRow(TH.t.noLb);
+  }
+  y = bandY + winnersBandH + 28;
+
+  // 2) RESULTS — quiet eyebrow + cards
+  eyebrow('نتائج اليوم');
+  if(todayR.length){
+    todayR.forEach(function(m,i){ rRes(m,i,y); y+=ITEM; });
+  } else { emptyRow(TH.t.noResults); }
+  y += GAP;
+
+  // 3) TOMORROW — quiet eyebrow + slim calendar rows
+  eyebrow('مباريات بكرة',{color:'rgba(212,175,55,.75)'});
+  if(tomorrowM.length){
+    tomorrowM.forEach(function(m,i){ rTom(m,i,y); y+=TOMITEM; });
+  } else { emptyRow(TH.t.noTomorrow); }
   var fname='wc2026-summary-'+new Date(now).toISOString().slice(0,10)+'.png';
   cv.toBlob(function(blob){
     var file = (typeof File!=='undefined') ? new File([blob],fname,{type:'image/png'}) : null;
