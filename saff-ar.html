@@ -919,7 +919,7 @@ function adminBar(){
 }
 function genDailySummary(){
   var TH = {bg1:'#0a1810',bg2:'#16321f',accent:'#34d399',font:'"Tajawal",sans-serif',rtl:true,locale:'ar',
-    t:{title:'ملخّص اليوم',resultsHdr:'⚽ نتائج اليوم',topHdr:'🏆 أفضل متوقّع اليوم',lbHdr:'🏅 أعلى 5 لاعبين',tomorrowHdr:'📅 مباريات بكرة',pts:'نقطة',vs:'×',noResults:'ما فيه نتائج اليوم.',noPts:'ما فيه نقاط اليوم.',noLb:'ما فيه لاعبين بعد.',noTomorrow:'ما فيه مباريات بكرة.',toastDone:'ملخص اليوم جاهز 📸'}};
+    t:{brand:'دوري توقّعات كأس العالم 2026',title:'ملخّص اليوم',resultsHdr:'⚽ نتائج اليوم',topHdr:'🏆 أفضل متوقّع اليوم',lbHdr:'🏅 أعلى 5 لاعبين',tomorrowHdr:'📅 مباريات بكرة',pts:'نقطة',vs:'×',noResults:'ما فيه نتائج اليوم.',noPts:'ما فيه نقاط اليوم.',noLb:'ما فيه لاعبين بعد.',noTomorrow:'ما فيه مباريات بكرة.',toastDone:'ملخص اليوم جاهز 📸'}};
   var W=1080, PAD=50, ITEM=70, GAP=30, SH=60;
   var now=Date.now();
   function dayStart(off){var d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return d.getTime();}
@@ -941,17 +941,16 @@ function genDailySummary(){
     return {name:(usersData[k]&&usersData[k].name)||k,pts:t};
   }).sort(function(a,b){return b.pts-a.pts;}).slice(0,5);
   function secH(n){return SH+(n?n*ITEM:50)+GAP;}
-  var H=250+secH(todayR.length)+secH(topT.length)+secH(totals.length)+secH(tomorrowM.length)+100;
+  var H=250+secH(todayR.length)+secH(topT.length)+secH(totals.length)+secH(tomorrowM.length)+60;
   H=Math.max(1300,H);
   var cv=document.createElement('canvas');cv.width=W;cv.height=H;
   var c=cv.getContext('2d');
   var g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,TH.bg1);g.addColorStop(1,TH.bg2);
   c.fillStyle=g;c.fillRect(0,0,W,H);
   c.fillStyle=TH.accent;c.fillRect(0,0,W,8);
-  c.textAlign='center';c.direction='ltr';
+  c.textAlign='center';c.direction=TH.rtl?'rtl':'ltr';
   c.font='800 28px '+TH.font;c.fillStyle=TH.accent;
-  c.fillText('WORLD CUP 2026 PREDICTIONS LEAGUE',W/2,60);
-  c.direction=TH.rtl?'rtl':'ltr';
+  c.fillText(TH.t.brand,W/2,60);
   c.font='500 26px '+TH.font;c.fillStyle='#a8b6d8';
   c.fillText(new Date(now).toLocaleDateString(TH.locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),W/2,105);
   c.font='800 64px '+TH.font;c.fillStyle='#fff';
@@ -974,7 +973,7 @@ function genDailySummary(){
   function rRes(m,_,yy){
     var t=teamsOf(m),r=result(m);
     c.textAlign=TH.rtl?'right':'left';c.font='600 28px '+TH.font;c.fillStyle='#fff';
-    c.fillText(t.home+'  '+r.h+' - '+r.a+'  '+t.away,TH.rtl?W-PAD-5:PAD+15,yy+5);
+    c.fillText((t.hf||'')+' '+t.home+'  '+r.h+' - '+r.a+'  '+(t.af||'')+' '+t.away,TH.rtl?W-PAD-5:PAD+15,yy+5);
   }
   function rUsr(u,i,yy){
     var lx=TH.rtl?W-PAD-5:PAD+15, rx=TH.rtl?PAD+15:W-PAD-5;
@@ -987,7 +986,7 @@ function genDailySummary(){
     var t=teamsOf(m);
     var lx=TH.rtl?W-PAD-5:PAD+15, rx=TH.rtl?PAD+15:W-PAD-5;
     c.textAlign=TH.rtl?'right':'left';c.font='600 26px '+TH.font;c.fillStyle='#fff';
-    c.fillText(t.home+'  '+TH.t.vs+'  '+t.away,lx,yy+5);
+    c.fillText((t.hf||'')+' '+t.home+'  '+TH.t.vs+'  '+(t.af||'')+' '+t.away,lx,yy+5);
     c.textAlign=TH.rtl?'left':'right';c.font='400 22px '+TH.font;c.fillStyle='#a8b6d8';
     c.fillText(localKick(m),rx,yy+5);
   }
@@ -995,9 +994,6 @@ function genDailySummary(){
   sect(TH.t.topHdr,topT,rUsr,TH.t.noPts);
   sect(TH.t.lbHdr,totals,rUsr,TH.t.noLb);
   sect(TH.t.tomorrowHdr,tomorrowM,rTom,TH.t.noTomorrow);
-  c.textAlign='center';c.direction='ltr';
-  c.font='500 22px '+TH.font;c.fillStyle='#9fb0d6';
-  c.fillText('saff2026.github.io/SAFF/saff-ar.html',W/2,H-30);
   var fname='wc2026-summary-'+new Date(now).toISOString().slice(0,10)+'.png';
   cv.toBlob(function(blob){
     var file = (typeof File!=='undefined') ? new File([blob],fname,{type:'image/png'}) : null;
