@@ -1101,26 +1101,8 @@ function genDailySummary(){
   c.fillText(TH.t.title,W/2,180);
   c.fillStyle=TH.gold;c.beginPath();c.arc(W/2,202,4,0,Math.PI*2);c.fill();
   var y=HEAD;
-  // quiet eyebrow: tiny gold dot on rail + small Arabic label, no hairline, no triangle
-  function eyebrow(text,opts){
-    opts=opts||{};
-    var col=opts.color||TH.gold;
-    var size=opts.size||19;
-    var baseY=y;
-    var lx = W-PAD;
-    // gold dot on the rail
-    c.fillStyle=col;
-    c.beginPath();c.arc(RAIL, baseY-7, 4, 0, Math.PI*2);c.fill();
-    // short stub from rail to label
-    c.fillStyle=col;c.globalAlpha=0.6;
-    c.fillRect(lx+6, baseY-8, RAIL-(lx+6)-8, 1);
-    c.globalAlpha=1;
-    // small Arabic label in gold
-    c.font='700 '+size+'px '+TH.font;c.fillStyle='#e9d8a3';
-    c.textAlign='right';c.textBaseline='alphabetic';
-    c.fillText(text,lx,baseY);
-    y += EYE;
-  }
+  // section labels removed by request — keep the breathing room only
+  function eyebrow(text,opts){ y += EYE; }
   function emptyRow(text){
     fillRR(CARD_X,y,CARD_W,56,16,'rgba(255,255,255,.04)');
     strokeRR(CARD_X,y,CARD_W,56,16,'rgba(255,255,255,.08)',1);

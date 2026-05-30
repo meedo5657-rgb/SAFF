@@ -1120,26 +1120,8 @@ function genDailySummary(){
     }
     return cx-x;
   }
-  // quiet eyebrow: tiny accent dot + tracked-out micro label, no hairline, no triangle
-  // rail provides the structural cue; the label just orients
-  function eyebrow(text,opts){
-    opts=opts||{};
-    var col=opts.color||TH.accent;
-    var size=opts.size||13;
-    var track=opts.track||2.2;
-    var baseY=y;
-    var lx = PAD;
-    // small accent dot tucked on the rail
-    c.fillStyle=col;
-    c.beginPath();c.arc(RAIL, baseY-5, 3.8, 0, Math.PI*2);c.fill();
-    // short accent stub from rail to label
-    c.fillStyle=col;c.globalAlpha=0.6;
-    c.fillRect(RAIL+5, baseY-6, lx-(RAIL+5)-8, 1);
-    c.globalAlpha=1;
-    // tracked label
-    trackedLabel(text.toUpperCase(),lx,baseY,'#e8eeff',size,track);
-    y += EYE;
-  }
+  // section labels removed by request — keep the breathing room only
+  function eyebrow(text,opts){ y += EYE; }
   function emptyRow(text){
     fillRR(CARD_X,y,CARD_W,56,16,'rgba(255,255,255,.04)');
     strokeRR(CARD_X,y,CARD_W,56,16,'rgba(255,255,255,.08)',1);
