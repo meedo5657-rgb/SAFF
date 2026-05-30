@@ -919,7 +919,7 @@ function adminBar(){
 }
 function genDailySummary(){
   var TH = {bg1:'#0a1810',bg2:'#16321f',accent:'#34d399',font:'"Tajawal",sans-serif',rtl:true,locale:'ar',
-    t:{title:'ملخّص اليوم',resultsHdr:'⚽ نتائج اليوم',topHdr:'🏆 أفضل المتوقّعين اليوم',lbHdr:'🏅 أعلى 5 لاعبين',tomorrowHdr:'📅 مباريات بكرة',pts:'نقطة',vs:'×',noResults:'ما فيه نتائج اليوم.',noPts:'ما فيه نقاط اليوم.',noLb:'ما فيه لاعبين بعد.',noTomorrow:'ما فيه مباريات بكرة.',toastDone:'ملخص اليوم جاهز 📸'}};
+    t:{title:'ملخّص اليوم',resultsHdr:'⚽ نتائج اليوم',topHdr:'🏆 أفضل متوقّع اليوم',lbHdr:'🏅 أعلى 5 لاعبين',tomorrowHdr:'📅 مباريات بكرة',pts:'نقطة',vs:'×',noResults:'ما فيه نتائج اليوم.',noPts:'ما فيه نقاط اليوم.',noLb:'ما فيه لاعبين بعد.',noTomorrow:'ما فيه مباريات بكرة.',toastDone:'ملخص اليوم جاهز 📸'}};
   var W=1080, PAD=50, ITEM=70, GAP=30, SH=60;
   var now=Date.now();
   function dayStart(off){var d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return d.getTime();}
@@ -935,7 +935,7 @@ function genDailySummary(){
       if(p){if(!up[k])up[k]={name:(usersData[k]&&usersData[k].name)||k,pts:0};up[k].pts+=p;}
     });
   });
-  var topT=Object.keys(up).map(function(k){return up[k];}).sort(function(a,b){return b.pts-a.pts;}).slice(0,5);
+  var topT=Object.keys(up).map(function(k){return up[k];}).sort(function(a,b){return b.pts-a.pts;}).slice(0,1);
   var totals=Object.keys(usersData||{}).map(function(k){
     var t=0;MATCHES.forEach(function(m){var r=result(m);var p=predsData[m.id]&&predsData[m.id][k];if(p&&r)t+=scoreOf(p,r);});
     return {name:(usersData[k]&&usersData[k].name)||k,pts:t};
