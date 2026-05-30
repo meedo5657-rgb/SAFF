@@ -54,6 +54,8 @@ input.field::placeholder{color:var(--muted);}
 .btn-gold{background:linear-gradient(135deg,#0a5c33,#052a18);color:#ffffff;}
 .btn-grad{background:linear-gradient(135deg,#2ea96a,#0a5c33);color:#ffffff;}
 .err{font-size:.82rem;color:#fca5a5;text-align:center;min-height:18px;}
+.install-btn{width:100%;display:none;background:rgba(255,255,255,.10);color:var(--text);border:1px solid var(--line);border-radius:13px;padding:12px;margin:10px 0;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;}
+.install-btn:hover{background:rgba(255,255,255,.16);}
 
 .setup-banner{width:100%;background:rgba(10,92,51,.08);border:1px solid rgba(10,92,51,.3);border-radius:14px;padding:14px;font-size:.82rem;color:#cdeedd;line-height:1.7;display:none;}
 .setup-banner.show{display:block;}
@@ -226,6 +228,7 @@ input.field::placeholder{color:var(--muted);}
     <div class="hint" style="text-align:center">أول مرة؟ اختر أي اسم مستخدم ورقم سري. استخدم نفس الاسم والرقم للدخول من أي جهاز.</div>
   </div>
   <div class="err" id="loginErr"></div>
+  <button class="install-btn" id="btnInstall">📲 ثبّت التطبيق على جوالك</button>
   <div class="rules">
     <b>طريقة اللعب</b><br>
     📊 توقعت النتيجة صح = <b>5 نقاط</b> · توقعت المنتخب الفائز/التعادل صح = <b>3 نقاط</b><br>
@@ -329,6 +332,20 @@ input.field::placeholder{color:var(--muted);}
   <button class="tab active" data-tab="sMatches"><span class="ico">⚽</span>المباريات</button>
   <button class="tab" data-tab="sLeader"><span class="ico">🏅</span>الترتيب</button>
   <button class="tab" data-tab="sRules"><span class="ico">📖</span>القوانين</button>
+</div>
+
+<!-- IOS INSTALL HELP -->
+<div class="overlay" id="iosInstall">
+  <div class="modal">
+    <div style="text-align:center;font-size:1.05rem;font-weight:800;margin-bottom:6px">📲 أضف للشاشة الرئيسية</div>
+    <div class="hint" style="text-align:center;margin-bottom:12px">ثبّت التطبيق بـ3 خطوات:</div>
+    <ol style="padding-inline-start:22px;line-height:1.9;font-size:.95rem;color:var(--text);margin:0 0 16px">
+      <li>اضغط زر <b>المشاركة</b> أسفل Safari (المربع مع السهم الطالع).</li>
+      <li>انزل واضغط على <b>«إضافة إلى الشاشة الرئيسية»</b>.</li>
+      <li>اضغط <b>«إضافة»</b> — بتظهر أيقونة التطبيق على شاشتك.</li>
+    </ol>
+    <button class="btn btn-grad ios-close" style="width:100%">تمام</button>
+  </div>
 </div>
 
 <!-- TEAMS MODAL (admin) -->
@@ -1049,6 +1066,26 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(function(e){console.log('SW register failed',e);});
   });
 }
+
+// ===== زر تثبيت التطبيق (موجّه أندرويد + تعليمات آيفون) =====
+(function(){
+  var btn=document.getElementById('btnInstall');
+  var iosModal=document.getElementById('iosInstall');
+  if(!btn||!iosModal) return;
+  var deferred=null;
+  function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}
+  function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;}
+  function show(){ if(!standalone()) btn.style.display='block'; }
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;show();});
+  if(ios()&&!standalone()) show();
+  window.addEventListener('appinstalled',function(){btn.style.display='none';deferred=null;});
+  btn.addEventListener('click',function(){
+    if(deferred){ deferred.prompt(); deferred.userChoice.then(function(){deferred=null;btn.style.display='none';}); }
+    else if(ios()){ iosModal.style.display='flex'; }
+  });
+  iosModal.addEventListener('click',function(e){if(e.target===iosModal)iosModal.style.display='none';});
+  document.querySelectorAll('.ios-close').forEach(function(b){b.addEventListener('click',function(){iosModal.style.display='none';});});
+})();
 </script>
 </body>
 </html>

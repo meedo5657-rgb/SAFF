@@ -54,6 +54,8 @@ input.field::placeholder{color:var(--muted);}
 .btn-gold{background:linear-gradient(135deg,#e11d48,#9c0f33);color:#ffffff;}
 .btn-grad{background:linear-gradient(135deg,#fb7185,#e11d48);color:#ffffff;}
 .err{font-size:.82rem;color:#fca5a5;text-align:center;min-height:18px;}
+.install-btn{width:100%;display:none;background:rgba(255,255,255,.10);color:var(--text);border:1px solid var(--line);border-radius:13px;padding:12px;margin:10px 0;font-family:'Poppins',sans-serif;font-weight:700;font-size:.92rem;cursor:pointer;}
+.install-btn:hover{background:rgba(255,255,255,.16);}
 
 .setup-banner{width:100%;background:rgba(225,29,72,.08);border:1px solid rgba(225,29,72,.3);border-radius:14px;padding:14px;font-size:.82rem;color:#fecdd3;line-height:1.7;display:none;}
 .setup-banner.show{display:block;}
@@ -221,6 +223,7 @@ input.field::placeholder{color:var(--muted);}
     <div class="hint" style="text-align:center">First time? Pick any username and a PIN. Use the same username and PIN to sign in from any device.</div>
   </div>
   <div class="err" id="loginErr"></div>
+  <button class="install-btn" id="btnInstall">📲 Install app on your phone</button>
   <div class="rules">
     <b>How it works</b><br>
     📊 Exact score = <b>5 pts</b> · right winner/draw = <b>3 pts</b><br>
@@ -325,6 +328,20 @@ input.field::placeholder{color:var(--muted);}
   <button class="tab active" data-tab="sMatches"><span class="ico">⚽</span>Matches</button>
   <button class="tab" data-tab="sLeader"><span class="ico">🏅</span>Leaderboard</button>
   <button class="tab" data-tab="sRules"><span class="ico">📖</span>Rules</button>
+</div>
+
+<!-- IOS INSTALL HELP -->
+<div class="overlay" id="iosInstall">
+  <div class="modal">
+    <div style="text-align:center;font-size:1.05rem;font-weight:800;margin-bottom:6px">📲 Add to your Home Screen</div>
+    <div class="hint" style="text-align:center;margin-bottom:12px">Install the app in 3 steps:</div>
+    <ol style="padding-inline-start:22px;line-height:1.8;font-size:.92rem;color:var(--text);margin:0 0 16px">
+      <li>Tap the <b>Share</b> button at the bottom of Safari (the square with an up arrow).</li>
+      <li>Scroll and tap <b>"Add to Home Screen"</b>.</li>
+      <li>Tap <b>"Add"</b> — the app icon will appear on your home screen.</li>
+    </ol>
+    <button class="btn btn-grad ios-close" style="width:100%">Got it</button>
+  </div>
 </div>
 
 <!-- TEAMS MODAL (admin) -->
@@ -1045,6 +1062,26 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(function(e){console.log('SW register failed',e);});
   });
 }
+
+// ===== Install-app button (Android prompt + iOS instructions) =====
+(function(){
+  var btn=document.getElementById('btnInstall');
+  var iosModal=document.getElementById('iosInstall');
+  if(!btn||!iosModal) return;
+  var deferred=null;
+  function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}
+  function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;}
+  function show(){ if(!standalone()) btn.style.display='block'; }
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;show();});
+  if(ios()&&!standalone()) show();
+  window.addEventListener('appinstalled',function(){btn.style.display='none';deferred=null;});
+  btn.addEventListener('click',function(){
+    if(deferred){ deferred.prompt(); deferred.userChoice.then(function(){deferred=null;btn.style.display='none';}); }
+    else if(ios()){ iosModal.style.display='flex'; }
+  });
+  iosModal.addEventListener('click',function(e){if(e.target===iosModal)iosModal.style.display='none';});
+  document.querySelectorAll('.ios-close').forEach(function(b){b.addEventListener('click',function(){iosModal.style.display='none';});});
+})();
 </script>
 </body>
 </html>
