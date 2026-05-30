@@ -1274,9 +1274,9 @@ function genDailySummary(){
     c.fillStyle=TH.muted;c.textAlign='center';c.textBaseline='middle';
     c.fillText(kText,kx+kw/2,cy+1);
   }
-  sect(TH.t.resIcon,TH.t.resultsHdr,todayR,rRes,TH.t.noResults,false);
   sect(TH.t.topIcon,TH.t.topHdr,topT,rHero,TH.t.noPts,true);
   sect(TH.t.lbIcon,TH.t.lbHdr,totals,rUsr,TH.t.noLb,false);
+  sect(TH.t.resIcon,TH.t.resultsHdr,todayR,rRes,TH.t.noResults,false);
   sect(TH.t.tomIcon,TH.t.tomorrowHdr,tomorrowM,rTom,TH.t.noTomorrow,false);
   var fname='wc2026-summary-'+new Date(now).toISOString().slice(0,10)+'.png';
   cv.toBlob(function(blob){
