@@ -337,7 +337,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- IOS INSTALL HELP -->
 <div class="overlay" id="iosInstall">
   <div class="modal">
-    <div style="text-align:center;font-size:1.05rem;font-weight:800;margin-bottom:6px">📲 أضف للشاشة الرئيسية</div>
+    <div style="text-align:center;font-size:1.05rem;font-weight:800;margin-bottom:6px">📲 أضف للشاشة الرئيسية (آيفون)</div>
     <div class="hint" style="text-align:center;margin-bottom:12px">ثبّت التطبيق بـ3 خطوات:</div>
     <ol style="padding-inline-start:22px;line-height:1.9;font-size:.95rem;color:var(--text);margin:0 0 16px">
       <li>اضغط زر <b>المشاركة</b> أسفل Safari (المربع مع السهم الطالع).</li>
@@ -345,6 +345,20 @@ input.field::placeholder{color:var(--muted);}
       <li>اضغط <b>«إضافة»</b> — بتظهر أيقونة التطبيق على شاشتك.</li>
     </ol>
     <button class="btn btn-grad ios-close" style="width:100%">تمام</button>
+  </div>
+</div>
+
+<!-- ANDROID INSTALL HELP -->
+<div class="overlay" id="androidInstall">
+  <div class="modal">
+    <div style="text-align:center;font-size:1.05rem;font-weight:800;margin-bottom:6px">📲 ثبّت على أندرويد</div>
+    <div class="hint" style="text-align:center;margin-bottom:12px">ثبّت التطبيق بـ3 خطوات:</div>
+    <ol style="padding-inline-start:22px;line-height:1.9;font-size:.95rem;color:var(--text);margin:0 0 16px">
+      <li>اضغط على قائمة <b>الثلاث نقاط (⋮)</b> فوق في Chrome.</li>
+      <li>اختر <b>«تثبيت التطبيق»</b> أو <b>«إضافة إلى الشاشة الرئيسية»</b>.</li>
+      <li>اضغط <b>«تثبيت»</b> — راح تظهر أيقونة التطبيق على شاشتك.</li>
+    </ol>
+    <button class="btn btn-grad and-close" style="width:100%">تمام</button>
   </div>
 </div>
 
@@ -1067,24 +1081,28 @@ if('serviceWorker' in navigator){
   });
 }
 
-// ===== زر تثبيت التطبيق (موجّه أندرويد + تعليمات آيفون) =====
+// ===== زر تثبيت التطبيق (طلب النظام أو تعليمات حسب الجهاز) =====
 (function(){
   var btn=document.getElementById('btnInstall');
   var iosModal=document.getElementById('iosInstall');
-  if(!btn||!iosModal) return;
+  var andModal=document.getElementById('androidInstall');
+  if(!btn||!iosModal||!andModal) return;
   var deferred=null;
   function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}
   function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;}
-  function show(){ if(!standalone()) btn.style.display='block'; }
-  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;show();});
-  if(ios()&&!standalone()) show();
+  function android(){return /Android/.test(navigator.userAgent);}
+  function showIfMobile(){ if(!standalone()&&(ios()||android())) btn.style.display='block'; }
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;showIfMobile();});
+  showIfMobile();
   window.addEventListener('appinstalled',function(){btn.style.display='none';deferred=null;});
   btn.addEventListener('click',function(){
     if(deferred){ deferred.prompt(); deferred.userChoice.then(function(){deferred=null;btn.style.display='none';}); }
     else if(ios()){ iosModal.style.display='flex'; }
+    else if(android()){ andModal.style.display='flex'; }
   });
-  iosModal.addEventListener('click',function(e){if(e.target===iosModal)iosModal.style.display='none';});
+  [iosModal,andModal].forEach(function(m){ m.addEventListener('click',function(e){if(e.target===m)m.style.display='none';}); });
   document.querySelectorAll('.ios-close').forEach(function(b){b.addEventListener('click',function(){iosModal.style.display='none';});});
+  document.querySelectorAll('.and-close').forEach(function(b){b.addEventListener('click',function(){andModal.style.display='none';});});
 })();
 </script>
 </body>
