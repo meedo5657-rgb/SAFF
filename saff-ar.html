@@ -158,6 +158,8 @@ input.field::placeholder{color:var(--muted);}
 .admin-bar{width:100%;margin-bottom:6px;}
 .btn-clear-all{width:100%;padding:12px;border-radius:10px;border:1px solid #e11d48;background:rgba(225,29,72,.12);color:#fca5a5;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;}
 .btn-clear-all:disabled{opacity:.45;cursor:default;border-color:var(--line);color:var(--muted);background:var(--surface);}
+.btn-summary{width:100%;padding:12px;border-radius:10px;border:1px solid var(--accent1);background:rgba(10,92,51,.30);color:#fff;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;margin-bottom:8px;}
+.btn-summary:hover{background:rgba(10,92,51,.42);}
 .a-edit{color:#fff;}
 .a-del{color:#fca5a5;}
 
@@ -900,6 +902,9 @@ function savePred(id){
 // ===== ADMIN =====
 function adminBar(){
   var bar=document.createElement('div');bar.className='admin-bar';
+  var sb=document.createElement('button');sb.className='btn-summary';sb.textContent='📸 ملخّص اليوم';
+  sb.addEventListener('click',genDailySummary);
+  bar.appendChild(sb);
   var n=Object.keys(resultsData||{}).length;
   var b=document.createElement('button');b.className='btn-clear-all';
   b.textContent='🗑 امسح كل النتائج ('+n+')';
@@ -911,6 +916,102 @@ function adminBar(){
   });
   bar.appendChild(b);
   return bar;
+}
+function genDailySummary(){
+  var TH = {bg1:'#0a1810',bg2:'#16321f',accent:'#34d399',font:'"Tajawal",sans-serif',rtl:true,locale:'ar',
+    t:{title:'ملخّص اليوم',resultsHdr:'⚽ نتائج اليوم',topHdr:'🏆 أفضل المتوقّعين اليوم',lbHdr:'🏅 أعلى 5 لاعبين',tomorrowHdr:'📅 مباريات بكرة',pts:'نقطة',vs:'×',noResults:'ما فيه نتائج اليوم.',noPts:'ما فيه نقاط اليوم.',noLb:'ما فيه لاعبين بعد.',noTomorrow:'ما فيه مباريات بكرة.',toastDone:'ملخص اليوم جاهز 📸'}};
+  var W=1080, PAD=50, ITEM=70, GAP=30, SH=60;
+  var now=Date.now();
+  function dayStart(off){var d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return d.getTime();}
+  var t0=dayStart(0), t1=dayStart(1), t2=dayStart(2);
+  var todayM=MATCHES.filter(function(m){var k=kickoffMs(m);return k>=t0&&k<t1;});
+  var tomorrowM=MATCHES.filter(function(m){var k=kickoffMs(m);return k>=t1&&k<t2;}).slice(0,8);
+  var todayR=todayM.filter(function(m){return !!result(m);});
+  var up={};
+  todayR.forEach(function(m){
+    var r=result(m), o=predsData[m.id]||{};
+    Object.keys(o).forEach(function(k){
+      var p=scoreOf(o[k],r);
+      if(p){if(!up[k])up[k]={name:(usersData[k]&&usersData[k].name)||k,pts:0};up[k].pts+=p;}
+    });
+  });
+  var topT=Object.keys(up).map(function(k){return up[k];}).sort(function(a,b){return b.pts-a.pts;}).slice(0,5);
+  var totals=Object.keys(usersData||{}).map(function(k){
+    var t=0;MATCHES.forEach(function(m){var r=result(m);var p=predsData[m.id]&&predsData[m.id][k];if(p&&r)t+=scoreOf(p,r);});
+    return {name:(usersData[k]&&usersData[k].name)||k,pts:t};
+  }).sort(function(a,b){return b.pts-a.pts;}).slice(0,5);
+  function secH(n){return SH+(n?n*ITEM:50)+GAP;}
+  var H=250+secH(todayR.length)+secH(topT.length)+secH(totals.length)+secH(tomorrowM.length)+100;
+  H=Math.max(1300,H);
+  var cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  var c=cv.getContext('2d');
+  var g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,TH.bg1);g.addColorStop(1,TH.bg2);
+  c.fillStyle=g;c.fillRect(0,0,W,H);
+  c.fillStyle=TH.accent;c.fillRect(0,0,W,8);
+  c.textAlign='center';c.direction='ltr';
+  c.font='800 28px '+TH.font;c.fillStyle=TH.accent;
+  c.fillText('WORLD CUP 2026 PREDICTIONS LEAGUE',W/2,60);
+  c.direction=TH.rtl?'rtl':'ltr';
+  c.font='500 26px '+TH.font;c.fillStyle='#a8b6d8';
+  c.fillText(new Date(now).toLocaleDateString(TH.locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),W/2,105);
+  c.font='800 64px '+TH.font;c.fillStyle='#fff';
+  c.fillText(TH.t.title,W/2,195);
+  var y=300;
+  function sect(hdr,items,render,empty){
+    c.textAlign=TH.rtl?'right':'left';c.font='800 32px '+TH.font;c.fillStyle=TH.accent;
+    c.fillText(hdr,TH.rtl?W-PAD:PAD,y);y+=46;
+    if(items.length){
+      items.forEach(function(it,i){
+        c.fillStyle='rgba(255,255,255,.08)';c.fillRect(PAD-10,y-32,W-2*(PAD-10),56);
+        render(it,i,y);y+=ITEM;
+      });
+    } else {
+      c.font='500 24px '+TH.font;c.fillStyle='#9fb0d6';
+      c.fillText(empty,TH.rtl?W-PAD:PAD,y+5);y+=40;
+    }
+    y+=GAP;
+  }
+  function rRes(m,_,yy){
+    var t=teamsOf(m),r=result(m);
+    c.textAlign=TH.rtl?'right':'left';c.font='600 28px '+TH.font;c.fillStyle='#fff';
+    c.fillText(t.home+'  '+r.h+' - '+r.a+'  '+t.away,TH.rtl?W-PAD-5:PAD+15,yy+5);
+  }
+  function rUsr(u,i,yy){
+    var lx=TH.rtl?W-PAD-5:PAD+15, rx=TH.rtl?PAD+15:W-PAD-5;
+    c.textAlign=TH.rtl?'right':'left';c.font='600 28px '+TH.font;c.fillStyle='#fff';
+    c.fillText((i+1)+'. '+u.name,lx,yy+5);
+    c.textAlign=TH.rtl?'left':'right';c.font='800 28px '+TH.font;c.fillStyle=TH.accent;
+    c.fillText(u.pts+' '+TH.t.pts,rx,yy+5);
+  }
+  function rTom(m,_,yy){
+    var t=teamsOf(m);
+    var lx=TH.rtl?W-PAD-5:PAD+15, rx=TH.rtl?PAD+15:W-PAD-5;
+    c.textAlign=TH.rtl?'right':'left';c.font='600 26px '+TH.font;c.fillStyle='#fff';
+    c.fillText(t.home+'  '+TH.t.vs+'  '+t.away,lx,yy+5);
+    c.textAlign=TH.rtl?'left':'right';c.font='400 22px '+TH.font;c.fillStyle='#a8b6d8';
+    c.fillText(localKick(m),rx,yy+5);
+  }
+  sect(TH.t.resultsHdr,todayR,rRes,TH.t.noResults);
+  sect(TH.t.topHdr,topT,rUsr,TH.t.noPts);
+  sect(TH.t.lbHdr,totals,rUsr,TH.t.noLb);
+  sect(TH.t.tomorrowHdr,tomorrowM,rTom,TH.t.noTomorrow);
+  c.textAlign='center';c.direction='ltr';
+  c.font='500 22px '+TH.font;c.fillStyle='#9fb0d6';
+  c.fillText('saff2026.github.io/SAFF/saff-ar.html',W/2,H-30);
+  var fname='wc2026-summary-'+new Date(now).toISOString().slice(0,10)+'.png';
+  cv.toBlob(function(blob){
+    var file = (typeof File!=='undefined') ? new File([blob],fname,{type:'image/png'}) : null;
+    if(file && navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:TH.t.title}).then(function(){toast(TH.t.toastDone);}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();});
+    } else { dl(); }
+    function dl(){
+      var u=URL.createObjectURL(blob);
+      var a=document.createElement('a');a.href=u;a.download=fname;
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(u);},1500);
+      toast(TH.t.toastDone);
+    }
+  },'image/png');
 }
 function adminZone(m){
   var z=document.createElement('div');z.className='admin-zone';
