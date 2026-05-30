@@ -921,7 +921,9 @@ function genDailySummary(){
   var TH = {bg1:'#06140d',bg2:'#0e2719',gold:'#d4af37',goldSoft:'rgba(212,175,55,.18)',goldGlow:'rgba(212,175,55,.32)',accent:'#34d399',accentSoft:'rgba(52,211,153,.16)',accentGlow:'rgba(52,211,153,.22)',leaf:'rgba(60,140,90,1)',muted:'#9bc1ad',font:'"Tajawal",sans-serif',rtl:true,locale:'ar',
     t:{brand:'دوري توقّعات كأس العالم 2026',title:'ملخّص اليوم',resultsHdr:'نتائج اليوم',topHdr:'أفضل متوقّع اليوم',lbHdr:'أعلى 5 لاعبين',tomorrowHdr:'مباريات بكرة',resIcon:'⚽',topIcon:'🏆',lbIcon:'🏅',tomIcon:'📅',pts:'نقطة',vs:'×',noResults:'ما فيه نتائج اليوم.',noPts:'ما فيه نقاط اليوم.',noLb:'ما فيه لاعبين بعد.',noTomorrow:'ما فيه مباريات بكرة.',toastDone:'ملخص اليوم جاهز 📸'}};
   var W=1080, PAD=50, CARD_X=PAD, CARD_W=W-2*PAD;
-  var ITEM=72, GAP=24, SH=46, HERO=180;
+  var RAIL=W-(PAD-20); // vertical accent rail x (RTL → on the right edge)
+  var ITEM=72, GAP=24, SH=46, HERO=200;
+  var TOMITEM=48; // slimmer rhythm for tomorrow list
   var now=Date.now();
   function dayStart(off){var d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return d.getTime();}
   var t0=dayStart(0), t1=dayStart(1), t2=dayStart(2);
@@ -941,9 +943,15 @@ function genDailySummary(){
     var t=0;MATCHES.forEach(function(m){var r=result(m);var p=predsData[m.id]&&predsData[m.id][k];if(p&&r)t+=scoreOf(p,r);});
     return {name:(usersData[k]&&usersData[k].name)||k,pts:t};
   }).sort(function(a,b){return b.pts-a.pts;}).slice(0,5);
-  function secH(n,hero){var bh=hero?HERO:(n?n*ITEM:60);return SH+bh+GAP;}
-  var HEAD=260;
-  var H=HEAD+secH(todayR.length)+secH(topT.length,topT.length>0)+secH(totals.length)+secH(tomorrowM.length)+60;
+  // composition: WINNERS band groups hero+top5 onto one tinted panel with a single eyebrow
+  var EYE=30;
+  var BAND_PAD_TOP=50, BAND_PAD_BOT=34, BAND_INNER_GAP=18;
+  var winnersBodyH = (topT.length>0 ? HERO : 60) + BAND_INNER_GAP + (totals.length ? totals.length*ITEM : 60);
+  var winnersBandH = EYE + winnersBodyH + BAND_PAD_TOP + BAND_PAD_BOT;
+  function resH(n){return EYE+(n?n*ITEM:60)+GAP+8;}
+  function tomH(n){return EYE+(n?n*TOMITEM:60)+GAP+8;}
+  var HEAD=250;
+  var H=HEAD+winnersBandH+28+resH(todayR.length)+tomH(tomorrowM.length)+60;
   H=Math.max(1200,H);
   var cv=document.createElement('canvas');cv.width=W;cv.height=H;
   var c=cv.getContext('2d');
@@ -1056,6 +1064,21 @@ function genDailySummary(){
   leaf( 540, 170, 560, 140,  0.25, 0.14);
   leaf( 540, 280, 500, 110, -0.20, 0.10);
   c.restore();
+  // mid-poster leaf echo — extends brand language down the page
+  c.save();
+  c.beginPath();c.rect(0,HEAD+winnersBandH-60,W,420);c.clip();
+  var midY=HEAD+winnersBandH+80;
+  leaf(  60, midY,      360, 100, -0.45, 0.22);
+  leaf(1000, midY+90,   330, 100,  0.55, 0.18);
+  leaf( 540, midY+170,  520, 110,  0.18, 0.10);
+  c.restore();
+  // lower-right leaf cluster behind tomorrow section
+  c.save();
+  c.beginPath();c.rect(0,H-380,W,380);c.clip();
+  leaf(1020, H-180, 360, 110,  0.55, 0.20);
+  leaf( 920, H-90,  300, 90,   0.40, 0.14);
+  leaf(  80, H-220, 320, 90,  -0.45, 0.16);
+  c.restore();
   // subtle bloom at top
   var bloom=c.createRadialGradient(W/2,-60,30,W/2,-60,W*0.65);
   bloom.addColorStop(0,TH.goldSoft);bloom.addColorStop(1,'rgba(0,0,0,0)');
@@ -1063,6 +1086,8 @@ function genDailySummary(){
   // thin gold top strip (premium hairline) over an accent base
   c.fillStyle=TH.accent;c.fillRect(0,0,W,5);
   c.fillStyle=TH.gold;c.fillRect(0,5,W,1);
+  // vertical gold rail down the RIGHT edge (RTL spine)
+  c.fillStyle='rgba(212,175,55,.32)';c.fillRect(RAIL, HEAD+10, 1, H-HEAD-70);
   c.direction=TH.rtl?'rtl':'ltr';
   // ----- header -----
   c.textAlign='center';c.textBaseline='alphabetic';
@@ -1073,37 +1098,28 @@ function genDailySummary(){
   c.fillText(new Date(now).toLocaleDateString(TH.locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),W/2,100);
   // big title — heavier and in white, with a slim gold underbar
   c.font='900 72px '+TH.font;c.fillStyle='#fff';
-  c.fillText(TH.t.title,W/2,188);
-  fillRR(W/2-64,206,128,5,2.5,TH.gold);
+  c.fillText(TH.t.title,W/2,180);
+  fillRR(W/2-64,198,128,5,2.5,TH.gold);
   var y=HEAD;
-  function sectHeader(icon,text){
-    // small triangle marker (◀ pointing into start of RTL line) + section title + hairline
-    c.textBaseline='alphabetic';
-    var lx = TH.rtl ? W-PAD : PAD;
-    c.fillStyle=TH.accent;
-    var triY = y-11;
-    c.beginPath();
-    if(TH.rtl){
-      // RTL: arrow points left (◀) — into the start of the line
-      c.moveTo(lx, triY-6); c.lineTo(lx, triY+6); c.lineTo(lx-10, triY);
-    } else {
-      c.moveTo(lx, triY-6); c.lineTo(lx, triY+6); c.lineTo(lx+10, triY);
-    }
-    c.closePath();c.fill();
-    // understated bold label — Arabic doesn't do small caps so keep clean weight
-    c.font='800 24px '+TH.font;c.fillStyle='#fff';
-    c.textAlign=TH.rtl?'right':'left';
-    var labelX = TH.rtl ? lx-18 : lx+18;
-    c.fillText(text,labelX,y);
-    // hairline below
-    var hy=y+12;
-    var lg = TH.rtl
-      ? c.createLinearGradient(W-PAD,hy,PAD,hy)
-      : c.createLinearGradient(PAD,hy,W-PAD,hy);
-    lg.addColorStop(0,'rgba(255,255,255,.28)');
-    lg.addColorStop(1,'rgba(255,255,255,0)');
-    c.fillStyle=lg;c.fillRect(PAD,hy,W-2*PAD,1);
-    y+=44;
+  // quiet eyebrow: tiny gold dot on rail + small Arabic label, no hairline, no triangle
+  function eyebrow(text,opts){
+    opts=opts||{};
+    var col=opts.color||TH.gold;
+    var size=opts.size||18;
+    var baseY=y;
+    var lx = W-PAD; // RTL: label starts from the right
+    // gold dot on the rail
+    c.fillStyle=col;
+    c.beginPath();c.arc(RAIL, baseY-6, 3.5, 0, Math.PI*2);c.fill();
+    // short stub from rail to label
+    c.fillStyle=col;c.globalAlpha=0.55;
+    c.fillRect(lx+6, baseY-7, RAIL-(lx+6)-6, 1);
+    c.globalAlpha=1;
+    // small Arabic label in gold (Arabic doesn't track-out nicely)
+    c.font='700 '+size+'px '+TH.font;c.fillStyle='#e9d8a3';
+    c.textAlign='right';c.textBaseline='alphabetic';
+    c.fillText(text,lx,baseY);
+    y += EYE;
   }
   function emptyRow(text){
     fillRR(CARD_X,y,CARD_W,56,16,'rgba(255,255,255,.04)');
