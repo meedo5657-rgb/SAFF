@@ -1,0 +1,17 @@
+{
+  "name": "World Cup 2026 Predictions League",
+  "short_name": "WC2026 League",
+  "description": "Predict every match of the 2026 FIFA World Cup and top the leaderboard.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c1430",
+  "theme_color": "#0c1430",
+  "icons": [
+    {"src": "icon-en-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-en-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

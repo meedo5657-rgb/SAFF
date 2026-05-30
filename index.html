@@ -7,6 +7,14 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>World Cup 2026 Predictions League</title>
+<link rel="manifest" href="manifest-en.json">
+<meta name="theme-color" content="#0c1430">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WC2026 League">
+<link rel="apple-touch-icon" href="icon-en-192.png">
+<link rel="icon" type="image/png" href="icon-en-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -1030,6 +1038,13 @@ function deletePlayer(key,name){
 
 // ===== TABS =====
 document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){show(t.dataset.tab);});});
+
+// ===== PWA: register service worker for installability + offline cache =====
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(e){console.log('SW register failed',e);});
+  });
+}
 </script>
 </body>
 </html>
