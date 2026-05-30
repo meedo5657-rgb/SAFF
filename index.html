@@ -915,9 +915,11 @@ function adminBar(){
 }
 function genDailySummary(){
   var TH = {bg1:'#0a1538',bg2:'#16265a',accent:'#e11d48',accentSoft:'rgba(225,29,72,.18)',accentGlow:'rgba(225,29,72,.32)',muted:'#a8b6d8',eyebrow:'#7da3d8',font:'"Poppins",sans-serif',rtl:false,locale:'en',
-    t:{brand:'CAA portas',brand2:'WORLD CUP 2026',brand3:'PREDICTIONS LEAGUE',eyebrow:'48 TEAMS  ·  104 MATCHES  ·  ONE TABLE',title:"Today's Summary",titleAccentWord:'Summary',resultsHdr:"TODAY'S RESULTS",topHdr:'BEST PREDICTOR TODAY',lbHdr:'TOP 5 LEADERBOARD',tomorrowHdr:"TOMORROW'S MATCHES",resIcon:'▶',topIcon:'▶',lbIcon:'▶',tomIcon:'▶',pts:'pts',vs:'vs',exact:'EXACT SCORE',noResults:'No matches scored today.',noPts:'No points earned today.',noLb:'No players yet.',noTomorrow:'No matches tomorrow.',toastDone:'Daily summary ready 📸'}};
+    t:{brand:'CAA portas',brand2:'WORLD CUP 2026',brand3:'PREDICTIONS LEAGUE',title:"Today's Summary",titleAccentWord:'Summary',resultsHdr:"TODAY'S RESULTS",topHdr:'BEST PREDICTOR TODAY',lbHdr:'TOP 5 LEADERBOARD',tomorrowHdr:"TOMORROW'S MATCHES",resIcon:'▶',topIcon:'▶',lbIcon:'▶',tomIcon:'▶',pts:'pts',vs:'vs',exact:'EXACT SCORE',noResults:'No matches scored today.',noPts:'No points earned today.',noLb:'No players yet.',noTomorrow:'No matches tomorrow.',toastDone:'Daily summary ready 📸'}};
   var W=1080, PAD=50, CARD_X=PAD, CARD_W=W-2*PAD;
-  var ITEM=72, GAP=24, SH=46, HERO=200;
+  var RAIL=PAD-20; // vertical accent rail x
+  var ITEM=72, GAP=24, SH=46, HERO=210;
+  var TOMITEM=48; // slimmer rhythm for tomorrow list
   var now=Date.now();
   function dayStart(off){var d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return d.getTime();}
   var t0=dayStart(0), t1=dayStart(1), t2=dayStart(2);
@@ -937,9 +939,16 @@ function genDailySummary(){
     var t=0;MATCHES.forEach(function(m){var r=result(m);var p=predsData[m.id]&&predsData[m.id][k];if(p&&r)t+=scoreOf(p,r);});
     return {name:(usersData[k]&&usersData[k].name)||k,pts:t};
   }).sort(function(a,b){return b.pts-a.pts;}).slice(0,5);
-  function secH(n,hero){var bh=hero?HERO:(n?n*ITEM:60);return SH+bh+GAP;}
-  var HEAD=300;
-  var H=HEAD+secH(todayR.length)+secH(topT.length,topT.length>0)+secH(totals.length)+secH(tomorrowM.length)+60;
+  // composition: WINNERS band groups hero+top5 onto one tinted panel with a single eyebrow
+  // followed by RESULTS and TOMORROW (slim list rhythm)
+  var EYE=30; // small eyebrow line (label + a little gap)
+  var BAND_PAD_TOP=50, BAND_PAD_BOT=34, BAND_INNER_GAP=18;
+  var winnersBodyH = (topT.length>0 ? HERO : 60) + BAND_INNER_GAP + (totals.length ? totals.length*ITEM : 60);
+  var winnersBandH = EYE + winnersBodyH + BAND_PAD_TOP + BAND_PAD_BOT;
+  function resH(n){return EYE+(n?n*ITEM:60)+GAP+8;}
+  function tomH(n){return EYE+(n?n*TOMITEM:60)+GAP+8;}
+  var HEAD=270;
+  var H=HEAD+winnersBandH+28+resH(todayR.length)+tomH(tomorrowM.length)+60;
   H=Math.max(1200,H);
   var cv=document.createElement('canvas');cv.width=W;cv.height=H;
   var c=cv.getContext('2d');
@@ -1011,9 +1020,9 @@ function genDailySummary(){
   // ----- background -----
   var g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,TH.bg1);g.addColorStop(0.5,'#10204e');g.addColorStop(1,TH.bg2);
   c.fillStyle=g;c.fillRect(0,0,W,H);
-  // sonar / radar arcs anchored off the top-right corner, clipped to header band
+  // sonar / radar arcs — main cluster off top-right corner of the header
   c.save();
-  c.beginPath();c.rect(0,0,W,HEAD);c.clip();
+  c.beginPath();c.rect(0,0,W,HEAD+40);c.clip();
   c.strokeStyle=TH.accent;
   var arcCx=W+60, arcCy=-80;
   for(var ar=140;ar<=1100;ar+=60){
@@ -1025,8 +1034,39 @@ function genDailySummary(){
   }
   c.globalAlpha=1;
   c.restore();
+  // echo sonar arcs at bottom-left corner — ties top and bottom of poster together
+  c.save();
+  c.beginPath();c.rect(0,H-260,W,260);c.clip();
+  c.strokeStyle=TH.accent;
+  var arc2Cx=-80, arc2Cy=H+60;
+  for(var ar2=120;ar2<=900;ar2+=55){
+    var a2=0.13-(ar2/14000);
+    if(a2<0.05) a2=0.05;
+    c.globalAlpha=a2;
+    c.lineWidth = ar2<350 ? 1.8 : 1.2;
+    c.beginPath();c.arc(arc2Cx,arc2Cy,ar2,Math.PI*1.5,Math.PI*2.08);c.stroke();
+  }
+  c.globalAlpha=1;
+  c.restore();
+  // mid-poster sonar echo — extends brand language down the page instead of decorating only the header
+  c.save();
+  c.beginPath();c.rect(0,HEAD+winnersBandH-40,W,360);c.clip();
+  c.strokeStyle=TH.accent;
+  var arcMx=W+40, arcMy=HEAD+winnersBandH+140;
+  for(var arm=160;arm<=900;arm+=55){
+    var am=0.09-(arm/16000);
+    if(am<0.035) am=0.035;
+    c.globalAlpha=am;
+    c.lineWidth = arm<400 ? 1.4 : 1.0;
+    c.beginPath();c.arc(arcMx,arcMy,arm,Math.PI*0.55,Math.PI*1.10);c.stroke();
+  }
+  c.globalAlpha=1;
+  c.restore();
   // top accent strip
   c.fillStyle=TH.accent;c.fillRect(0,0,W,5);
+  // vertical accent rail down the LEFT edge (designed spine) — drawn after sections so dots can overlay
+  // (rail itself is a thin red line behind everything; dots come later)
+  c.fillStyle='rgba(225,29,72,.30)';c.fillRect(RAIL, HEAD+10, 1, H-HEAD-70);
   c.direction=TH.rtl?'rtl':'ltr';
   // ----- header lockup: CAA portas | WORLD CUP 2026 / PREDICTIONS LEAGUE -----
   c.textBaseline='alphabetic';
@@ -1047,23 +1087,11 @@ function genDailySummary(){
   // date at top-right
   c.font='500 17px '+TH.font;c.fillStyle=TH.muted;c.textAlign='right';
   c.fillText(new Date(now).toLocaleDateString(TH.locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),W-PAD-6,56);
-  // eyebrow row above title — tracked-out small caps
-  c.textAlign='center';
-  c.font='700 14px '+TH.font;c.fillStyle=TH.eyebrow;
-  // simulate tracked-out by drawing letter-spaced
-  (function(){
-    var s=TH.t.eyebrow, gap=2.4;
-    var totalW=0; for(var i=0;i<s.length;i++) totalW += c.measureText(s[i]).width + gap;
-    totalW -= gap;
-    var xx = W/2 - totalW/2;
-    for(var i=0;i<s.length;i++){
-      c.fillText(s[i], xx+c.measureText(s[i]).width/2, 142);
-      xx += c.measureText(s[i]).width + gap;
-    }
-  })();
   // big title — heavier, tighter, with one word in red accent
+  // sit it a touch higher (header band is now slightly shorter — HEAD=290) and
+  // give it a hairline-thin red underline that runs into the rail to tie title -> spine
   c.font='900 78px '+TH.font;c.textAlign='center';c.textBaseline='alphabetic';
-  var ttl=TH.t.title, acw=TH.t.titleAccentWord;
+  var ttl=TH.t.title, acw=TH.t.titleAccentWord, titleY=205;
   var idx=ttl.indexOf(acw);
   if(idx>=0){
     var pre=ttl.slice(0,idx), post=ttl.slice(idx+acw.length);
@@ -1071,51 +1099,50 @@ function genDailySummary(){
     var totalT=preW+acW+postW;
     var startX=W/2-totalT/2;
     c.textAlign='left';
-    c.fillStyle='#fff';c.fillText(pre,startX,215);
-    c.fillStyle=TH.accent;c.fillText(acw,startX+preW,215);
-    c.fillStyle='#fff';c.fillText(post,startX+preW+acW,215);
+    c.fillStyle='#fff';c.fillText(pre,startX,titleY);
+    c.fillStyle=TH.accent;c.fillText(acw,startX+preW,titleY);
+    c.fillStyle='#fff';c.fillText(post,startX+preW+acW,titleY);
     c.textAlign='center';
   } else {
-    c.fillStyle='#fff';c.fillText(ttl,W/2,215);
+    c.fillStyle='#fff';c.fillText(ttl,W/2,titleY);
   }
-  // short red underline block
-  fillRR(W/2-44,232,88,5,2.5,TH.accent);
+  // hairline red rule from rail across to about midway under title — designed spine cue
+  var ulY=titleY+22;
+  var ulG=c.createLinearGradient(RAIL,ulY,W/2,ulY);
+  ulG.addColorStop(0,TH.accent);
+  ulG.addColorStop(1,'rgba(225,29,72,0)');
+  c.fillStyle=ulG;c.fillRect(RAIL,ulY,W/2-RAIL,2);
   var y=HEAD;
-  function sectHeader(icon,text){
-    // small triangle marker + tracked-out small caps label, hairline below
-    c.textBaseline='alphabetic';
-    var lx = TH.rtl ? W-PAD : PAD;
-    // triangle marker (pointing into text)
-    c.fillStyle=TH.accent;
-    var triY = y-11;
-    c.beginPath();
-    if(TH.rtl){
-      c.moveTo(lx, triY-6); c.lineTo(lx, triY+6); c.lineTo(lx-10, triY);
-    } else {
-      c.moveTo(lx, triY-6); c.lineTo(lx, triY+6); c.lineTo(lx+10, triY);
+  // tiny tracked label utility (used by both eyebrow + winners-band header)
+  function trackedLabel(text,x,baseY,col,size,track){
+    c.font='800 '+size+'px '+TH.font;c.fillStyle=col;
+    c.textBaseline='alphabetic';c.textAlign='left';
+    var cx=x;
+    for(var i=0;i<text.length;i++){
+      var ch=text[i]; c.fillText(ch,cx,baseY);
+      cx += c.measureText(ch).width + track;
     }
-    c.closePath();c.fill();
-    // tracked-out small caps title
-    c.font='800 22px '+TH.font;c.fillStyle='#fff';
-    c.textAlign=TH.rtl?'right':'left';
-    var labelX = TH.rtl ? lx-20 : lx+20;
-    (function(){
-      var s=text, gap=1.6, cx=labelX;
-      if(TH.rtl){
-        for(var i=0;i<s.length;i++){ var ch=s[i]; var w=c.measureText(ch).width; cx -= w; c.fillText(ch,cx,y); cx -= gap; }
-      } else {
-        for(var i=0;i<s.length;i++){ var ch=s[i]; c.fillText(ch,cx,y); cx += c.measureText(ch).width + gap; }
-      }
-    })();
-    // hairline below
-    var hy=y+12;
-    var lg = TH.rtl
-      ? c.createLinearGradient(W-PAD,hy,PAD,hy)
-      : c.createLinearGradient(PAD,hy,W-PAD,hy);
-    lg.addColorStop(0,'rgba(255,255,255,.28)');
-    lg.addColorStop(1,'rgba(255,255,255,0)');
-    c.fillStyle=lg;c.fillRect(PAD,hy,W-2*PAD,1);
-    y+=44;
+    return cx-x;
+  }
+  // quiet eyebrow: tiny accent dot + tracked-out micro label, no hairline, no triangle
+  // rail provides the structural cue; the label just orients
+  function eyebrow(text,opts){
+    opts=opts||{};
+    var col=opts.color||TH.accent;
+    var size=opts.size||12;
+    var track=opts.track||2.0;
+    var baseY=y;
+    var lx = PAD;
+    // small accent dot tucked just left of the label, on the rail
+    c.fillStyle=col;
+    c.beginPath();c.arc(RAIL, baseY-5, 3.2, 0, Math.PI*2);c.fill();
+    // short accent stub from rail to label
+    c.fillStyle=col;c.globalAlpha=0.55;
+    c.fillRect(RAIL+5, baseY-6, lx-(RAIL+5)-6, 1);
+    c.globalAlpha=1;
+    // tracked label
+    trackedLabel(text.toUpperCase(),lx,baseY,'#dfe7ff',size,track);
+    y += EYE;
   }
   function emptyRow(text){
     fillRR(CARD_X,y,CARD_W,56,16,'rgba(255,255,255,.04)');
