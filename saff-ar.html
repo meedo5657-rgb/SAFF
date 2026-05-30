@@ -523,6 +523,8 @@ function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.c
 function sanitize(s){return s.replace(/[.#$\[\]\/]/g,'_').trim();}
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
 function sign(n){return n>0?1:(n<0?-1:0);}
+// تمييز عربي صحيح للنقاط: 1/2/11+ -> نقطة ; 3..10 -> نقاط
+function ptsWord(n){return (n>=3 && n<=10) ? 'نقاط' : 'نقطة';}
 
 // effective teams: admin override > auto API team > static fixture label
 function teamsOf(m){
@@ -780,7 +782,7 @@ function matchCard(m){
       var cls=pts>=5?'pts-hi':(pts>=3?'pts-mid':'pts-0');
       var icon=(myPred.x2?'⚡ ':'')+(base===0?'':((base>=5?'🎯 ':'')+((base===6||base===4)?'🥅 ':'')));
       var pb=document.createElement('div');pb.className='pts-badge '+cls;
-      pb.textContent=icon+'+'+pts+' نقطة';el.appendChild(pb);
+      pb.textContent=icon+'+'+pts+' '+ptsWord(pts);el.appendChild(pb);
     }else{
       var no=document.createElement('div');no.className='locked-note';no.textContent='ماتوقعت نتيجة هذه المباراة';el.appendChild(no);
     }
@@ -1147,7 +1149,7 @@ function genDailySummary(){
     c.fillText(u.name,nx,cy);
     // points pill at the TRAILING edge (left in RTL, right in LTR)
     c.font='800 24px '+TH.font;
-    var ptsText=u.pts+' '+TH.t.pts;
+    var ptsText=u.pts+' '+ptsWord(u.pts);
     var pw=c.measureText(ptsText).width+24;
     var ph=36;
     var px = TH.rtl ? PAD+18 : W-PAD-18-pw;
@@ -1175,7 +1177,7 @@ function genDailySummary(){
     c.fillText(u.name,W/2,yy+125);
     // points pill below name — solid gold rectangle with dark text (premium plaque feel)
     c.font='800 22px '+TH.font;
-    var ptsText=u.pts+' '+TH.t.pts;
+    var ptsText=u.pts+' '+ptsWord(u.pts);
     var pw=c.measureText(ptsText).width+34;
     var ph=38;
     var py=yy+142;
@@ -1390,7 +1392,7 @@ function renderLeader(){
     el.innerHTML='<div class="lb-rank">'+medal+'</div>'+
       '<div class="lb-name">'+esc(r.name)+(r.key===myKey?' <span class="lb-sub">(أنت)</span>':'')+
       '<div class="lb-sub">'+r.exact+' نتيجة مطابقة</div></div>'+
-      '<div class="lb-pts">'+r.total+' <span>نقطة</span></div>';
+      '<div class="lb-pts">'+r.total+' <span>'+ptsWord(r.total)+'</span></div>';
     if(isAdmin){
       var del=document.createElement('button');del.className='lb-del';del.textContent='🗑';del.title='حذف اللاعب';
       del.addEventListener('click',function(){deletePlayer(r.key,r.name);});
