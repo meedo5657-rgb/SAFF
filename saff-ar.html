@@ -918,7 +918,7 @@ function adminBar(){
   return bar;
 }
 function genDailySummary(){
-  var TH = {bg1:'#0a1810',bg2:'#16321f',accent:'#34d399',accentSoft:'rgba(52,211,153,.16)',accentGlow:'rgba(52,211,153,.28)',muted:'#9bc1ad',font:'"Tajawal",sans-serif',rtl:true,locale:'ar',
+  var TH = {bg1:'#06140d',bg2:'#0e2719',gold:'#d4af37',goldSoft:'rgba(212,175,55,.18)',goldGlow:'rgba(212,175,55,.32)',accent:'#34d399',accentSoft:'rgba(52,211,153,.16)',accentGlow:'rgba(52,211,153,.22)',leaf:'rgba(60,140,90,1)',muted:'#9bc1ad',font:'"Tajawal",sans-serif',rtl:true,locale:'ar',
     t:{brand:'دوري توقّعات كأس العالم 2026',title:'ملخّص اليوم',resultsHdr:'نتائج اليوم',topHdr:'أفضل متوقّع اليوم',lbHdr:'أعلى 5 لاعبين',tomorrowHdr:'مباريات بكرة',resIcon:'⚽',topIcon:'🏆',lbIcon:'🏅',tomIcon:'📅',pts:'نقطة',vs:'×',noResults:'ما فيه نتائج اليوم.',noPts:'ما فيه نقاط اليوم.',noLb:'ما فيه لاعبين بعد.',noTomorrow:'ما فيه مباريات بكرة.',toastDone:'ملخص اليوم جاهز 📸'}};
   var W=1080, PAD=50, CARD_X=PAD, CARD_W=W-2*PAD;
   var ITEM=72, GAP=24, SH=46, HERO=180;
@@ -959,20 +959,39 @@ function genDailySummary(){
   function fillRR(x,y,w,h,r,fill){rr(x,y,w,h,r);c.fillStyle=fill;c.fill();}
   function strokeRR(x,y,w,h,r,col,lw){rr(x,y,w,h,r);c.strokeStyle=col;c.lineWidth=lw||1;c.stroke();}
   function card(x,y,w,h){
-    fillRR(x,y,w,h,18,'rgba(255,255,255,.05)');
-    strokeRR(x,y,w,h,18,'rgba(255,255,255,.09)',1);
+    // dark-green capsule (slightly lighter than background) with thin accent stripe
+    var grd=c.createLinearGradient(x,y,x,y+h);
+    grd.addColorStop(0,'rgba(40,90,60,.32)');
+    grd.addColorStop(1,'rgba(30,70,48,.42)');
+    fillRR(x,y,w,h,16,grd);
+    strokeRR(x,y,w,h,16,'rgba(120,200,160,.14)',1);
     c.save();
-    rr(x,y,w,h,18);c.clip();
-    var sx = TH.rtl ? x+w-5 : x;
-    c.fillStyle=TH.accent;c.fillRect(sx,y,5,h);
+    rr(x,y,w,h,16);c.clip();
+    var sx = TH.rtl ? x+w-4 : x;
+    c.fillStyle=TH.accent;c.fillRect(sx,y,4,h);
     c.restore();
   }
   function heroCard(x,y,w,h){
+    // hero card uses antique GOLD accent against deep green
     var rg=c.createRadialGradient(x+w/2,y+h/2,10,x+w/2,y+h/2,w/1.5);
-    rg.addColorStop(0,TH.accentGlow);rg.addColorStop(1,'rgba(0,0,0,0)');
+    rg.addColorStop(0,TH.goldGlow);rg.addColorStop(1,'rgba(0,0,0,0)');
     c.fillStyle=rg;c.fillRect(x-40,y-40,w+80,h+80);
-    fillRR(x,y,w,h,22,'rgba(255,255,255,.07)');
-    strokeRR(x,y,w,h,22,TH.accent,2);
+    var grd=c.createLinearGradient(x,y,x,y+h);
+    grd.addColorStop(0,'rgba(50,110,75,.35)');
+    grd.addColorStop(1,'rgba(28,68,48,.45)');
+    fillRR(x,y,w,h,22,grd);
+    strokeRR(x,y,w,h,22,TH.gold,2);
+  }
+  function hexagon(cx,cy,r,fill,stroke,lw){
+    c.beginPath();
+    for(var i=0;i<6;i++){
+      var a=Math.PI/3*i-Math.PI/2;
+      var xx=cx+r*Math.cos(a), yy=cy+r*Math.sin(a);
+      if(i===0)c.moveTo(xx,yy);else c.lineTo(xx,yy);
+    }
+    c.closePath();
+    if(fill){c.fillStyle=fill;c.fill();}
+    if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||1.5;c.stroke();}
   }
   function rankBadge(x,y,d,rank){
     var styles={1:{bg:'#facc15',tx:'#1a1206',ring:'#fde68a'},
@@ -1009,48 +1028,82 @@ function genDailySummary(){
     if(stroke){c.strokeStyle=stroke;c.lineWidth=2;c.stroke();}
   }
   // ----- background -----
-  var g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,TH.bg1);g.addColorStop(1,TH.bg2);
+  var g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,TH.bg1);g.addColorStop(0.55,'#0a1f14');g.addColorStop(1,TH.bg2);
   c.fillStyle=g;c.fillRect(0,0,W,H);
-  var bloom=c.createRadialGradient(W/2,-40,30,W/2,-40,W*0.7);
-  bloom.addColorStop(0,TH.accentGlow);bloom.addColorStop(1,'rgba(0,0,0,0)');
-  c.fillStyle=bloom;c.fillRect(0,0,W,360);
+  // soft botanical leaf brushstrokes behind hero/title area
+  // draw multiple overlapping tilted ellipses with very low alpha to look like organic foliage
   c.save();
-  c.globalAlpha=0.10;c.fillStyle='#ffffff';
-  for(var dx=20;dx<W;dx+=28){for(var dy=130;dy<240;dy+=28){c.beginPath();c.arc(dx,dy,1.2,0,Math.PI*2);c.fill();}}
+  c.beginPath();c.rect(0,0,W,HEAD+220);c.clip();
+  function leaf(cx,cy,rx,ry,rot,alpha){
+    c.save();
+    c.translate(cx,cy);c.rotate(rot);
+    var rg=c.createRadialGradient(0,0,4,0,0,rx);
+    rg.addColorStop(0,'rgba(80,160,110,'+alpha+')');
+    rg.addColorStop(1,'rgba(80,160,110,0)');
+    c.fillStyle=rg;
+    c.beginPath();c.ellipse(0,0,rx,ry,0,0,Math.PI*2);c.fill();
+    c.restore();
+  }
+  // upper-left organic leaf cluster
+  leaf( 100,  60, 380, 120, -0.55, 0.30);
+  leaf( 220, 150, 340, 100, -0.40, 0.24);
+  leaf( -40, 200, 300, 100, -0.30, 0.20);
+  // lower-right cluster behind hero band
+  leaf( 980, 100, 360, 110,  0.60, 0.28);
+  leaf( 880, 210, 320,  90,  0.40, 0.20);
+  leaf(1100, 310, 380, 110,  0.55, 0.16);
+  // diagonal middle sweep behind title
+  leaf( 540, 170, 560, 140,  0.25, 0.14);
+  leaf( 540, 280, 500, 110, -0.20, 0.10);
   c.restore();
-  c.fillStyle=TH.accent;c.fillRect(0,0,W,6);
+  // subtle bloom at top
+  var bloom=c.createRadialGradient(W/2,-60,30,W/2,-60,W*0.65);
+  bloom.addColorStop(0,TH.goldSoft);bloom.addColorStop(1,'rgba(0,0,0,0)');
+  c.fillStyle=bloom;c.fillRect(0,0,W,360);
+  // thin gold top strip (premium hairline) over an accent base
+  c.fillStyle=TH.accent;c.fillRect(0,0,W,5);
+  c.fillStyle=TH.gold;c.fillRect(0,5,W,1);
   c.direction=TH.rtl?'rtl':'ltr';
   // ----- header -----
   c.textAlign='center';c.textBaseline='alphabetic';
   c.font='800 26px '+TH.font;c.fillStyle=TH.accent;
   c.fillText(TH.t.brand,W/2,58);
-  c.fillStyle=TH.accent;c.fillRect(W/2-30,68,60,2);
+  c.fillStyle=TH.gold;c.fillRect(W/2-30,68,60,2);
   c.font='500 22px '+TH.font;c.fillStyle=TH.muted;
   c.fillText(new Date(now).toLocaleDateString(TH.locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),W/2,100);
-  c.font='800 64px '+TH.font;c.fillStyle='#fff';
-  c.fillText(TH.t.title,W/2,180);
-  fillRR(W/2-56,202,112,6,3,TH.accent);
+  // big title — heavier and in white, with a slim gold underbar
+  c.font='900 72px '+TH.font;c.fillStyle='#fff';
+  c.fillText(TH.t.title,W/2,188);
+  fillRR(W/2-64,206,128,5,2.5,TH.gold);
   var y=HEAD;
   function sectHeader(icon,text){
+    // small triangle marker (◀ pointing into start of RTL line) + section title + hairline
     c.textBaseline='alphabetic';
     var lx = TH.rtl ? W-PAD : PAD;
+    c.fillStyle=TH.accent;
+    var triY = y-11;
+    c.beginPath();
     if(TH.rtl){
-      fillRR(lx-6,y-22,6,28,3,TH.accent);
+      // RTL: arrow points left (◀) — into the start of the line
+      c.moveTo(lx, triY-6); c.lineTo(lx, triY+6); c.lineTo(lx-10, triY);
     } else {
-      fillRR(lx,y-22,6,28,3,TH.accent);
+      c.moveTo(lx, triY-6); c.lineTo(lx, triY+6); c.lineTo(lx+10, triY);
     }
-    c.font='800 30px '+TH.font;c.fillStyle='#fff';
+    c.closePath();c.fill();
+    // understated bold label — Arabic doesn't do small caps so keep clean weight
+    c.font='800 24px '+TH.font;c.fillStyle='#fff';
     c.textAlign=TH.rtl?'right':'left';
-    var labelX = TH.rtl ? lx-22 : lx+22;
-    c.fillText(icon+'  '+text,labelX,y);
-    var hy=y+16;
+    var labelX = TH.rtl ? lx-18 : lx+18;
+    c.fillText(text,labelX,y);
+    // hairline below
+    var hy=y+12;
     var lg = TH.rtl
       ? c.createLinearGradient(W-PAD,hy,PAD,hy)
       : c.createLinearGradient(PAD,hy,W-PAD,hy);
-    lg.addColorStop(0,'rgba(255,255,255,.22)');
+    lg.addColorStop(0,'rgba(255,255,255,.28)');
     lg.addColorStop(1,'rgba(255,255,255,0)');
     c.fillStyle=lg;c.fillRect(PAD,hy,W-2*PAD,1);
-    y+=46;
+    y+=44;
   }
   function emptyRow(text){
     fillRR(CARD_X,y,CARD_W,56,16,'rgba(255,255,255,.04)');
@@ -1081,12 +1134,14 @@ function genDailySummary(){
     card(CARD_X,yy,CARD_W,ITEM-8);
     var t=teamsOf(m),r=result(m);
     var cy=yy+(ITEM-8)/2;
-    c.font='800 26px '+TH.font;
+    // solid accent green score pill, white score
+    c.font='900 28px '+TH.font;
     var scoreText=r.h+' – '+r.a;
-    var sw=c.measureText(scoreText).width+34;
+    var sw=c.measureText(scoreText).width+30;
+    var sh=42;
     var sx=W/2-sw/2;
-    fillRR(sx,cy-21,sw,42,12,TH.accent);
-    c.fillStyle='#062c1d';c.textAlign='center';c.textBaseline='middle';
+    fillRR(sx,cy-sh/2,sw,sh,6,TH.accent);
+    c.fillStyle='#06180f';c.textAlign='center';c.textBaseline='middle';
     c.fillText(scoreText,W/2,cy+1);
     c.font='600 26px '+TH.font;c.fillStyle='#fff';c.textBaseline='middle';
     var hx = TH.rtl ? W-PAD-22 : PAD+22;
@@ -1101,20 +1156,22 @@ function genDailySummary(){
     var cy=yy+(ITEM-8)/2;
     var rank=i+1;
     var bd=44;
-    var bx = TH.rtl ? W-PAD-22-bd : PAD+22;
-    var tx = TH.rtl ? PAD+22       : W-PAD-22;
+    // rank pinned at the TRAILING edge of the row (left in RTL, right in LTR)
+    var bx = TH.rtl ? PAD+18 : W-PAD-18-bd;
     rankBadge(bx,cy-bd/2,bd,rank);
+    // name sits next to rank, flowing toward the leading edge
     c.font='700 26px '+TH.font;c.fillStyle='#fff';c.textBaseline='middle';
-    c.textAlign=TH.rtl?'right':'left';
-    var nx = TH.rtl ? bx-14 : bx+bd+14;
+    c.textAlign=TH.rtl?'left':'right';
+    var nx = TH.rtl ? bx+bd+14 : bx-14;
     c.fillText(u.name,nx,cy);
+    // points pill at the LEADING edge (right in RTL, left in LTR)
     c.font='800 24px '+TH.font;
     var ptsText=u.pts+' '+TH.t.pts;
     var pw=c.measureText(ptsText).width+24;
     var ph=36;
     var px;
-    if(TH.rtl){ px = PAD+22; }
-    else      { px = W-PAD-22-pw; }
+    if(TH.rtl){ px = W-PAD-18-pw; }
+    else      { px = PAD+18; }
     fillRR(px,cy-ph/2,pw,ph,ph/2,u.pts>0?TH.accentSoft:'rgba(255,255,255,.06)');
     strokeRR(px,cy-ph/2,pw,ph,ph/2,u.pts>0?TH.accent:'rgba(255,255,255,.14)',1);
     c.fillStyle=u.pts>0?TH.accent:TH.muted;
@@ -1124,22 +1181,27 @@ function genDailySummary(){
   function rHero(u,_,yy){
     var ch=HERO-10;
     heroCard(CARD_X,yy,CARD_W,ch);
-    var mcx=W/2, mcy=yy+52, mr=34;
+    var mcx=W/2, mcy=yy+54, mr=34;
+    // hexagon backdrop behind medallion (subtle gold ornament)
+    hexagon(mcx,mcy,mr+18,'rgba(212,175,55,.12)','rgba(212,175,55,.45)',1.5);
+    // gold "winner" medallion
     var halo=c.createRadialGradient(mcx,mcy,2,mcx,mcy,mr*2);
     halo.addColorStop(0,'rgba(250,204,21,.55)');halo.addColorStop(1,'rgba(250,204,21,0)');
     c.fillStyle=halo;c.fillRect(mcx-mr*2,mcy-mr*2,mr*4,mr*4);
     c.beginPath();c.arc(mcx,mcy,mr,0,Math.PI*2);c.fillStyle='#facc15';c.fill();
     c.lineWidth=2.5;c.strokeStyle='#fde68a';c.stroke();
     star(mcx,mcy,17,8,5,'#7a4a02',null);
-    c.font='800 44px '+TH.font;c.fillStyle='#fff';c.textBaseline='alphabetic';c.textAlign='center';
-    c.fillText(u.name,W/2,yy+115);
+    // name in GOLD against deep green — pops with brand authority
+    c.font='900 46px '+TH.font;c.fillStyle=TH.gold;c.textBaseline='alphabetic';c.textAlign='center';
+    c.fillText(u.name,W/2,yy+125);
+    // points pill below name — solid gold rectangle with dark text (premium plaque feel)
     c.font='800 22px '+TH.font;
     var ptsText=u.pts+' '+TH.t.pts;
     var pw=c.measureText(ptsText).width+34;
     var ph=38;
-    var py=yy+128;
-    fillRR(W/2-pw/2,py,pw,ph,ph/2,TH.accent);
-    c.fillStyle='#062c1d';c.textAlign='center';c.textBaseline='middle';
+    var py=yy+142;
+    fillRR(W/2-pw/2,py,pw,ph,ph/2,TH.gold);
+    c.fillStyle='#1a1206';c.textAlign='center';c.textBaseline='middle';
     c.fillText(ptsText,W/2,py+ph/2+1);
   }
   function rTom(m,_,yy){
