@@ -1137,22 +1137,20 @@ function genDailySummary(){
     var cy=yy+(ITEM-8)/2;
     var rank=i+1;
     var bd=44;
-    // rank pinned at the TRAILING edge of the row (left in RTL, right in LTR)
-    var bx = TH.rtl ? PAD+18 : W-PAD-18-bd;
+    // rank pinned at the LEADING edge of the row (right in RTL — where reading starts)
+    var bx = TH.rtl ? W-PAD-18-bd : PAD+18;
     rankBadge(bx,cy-bd/2,bd,rank);
-    // name sits next to rank, flowing toward the leading edge
+    // name sits next to rank, flowing toward the trailing edge
     c.font='700 26px '+TH.font;c.fillStyle='#fff';c.textBaseline='middle';
-    c.textAlign=TH.rtl?'left':'right';
-    var nx = TH.rtl ? bx+bd+14 : bx-14;
+    c.textAlign=TH.rtl?'right':'left';
+    var nx = TH.rtl ? bx-14 : bx+bd+14;
     c.fillText(u.name,nx,cy);
-    // points pill at the LEADING edge (right in RTL, left in LTR)
+    // points pill at the TRAILING edge (left in RTL, right in LTR)
     c.font='800 24px '+TH.font;
     var ptsText=u.pts+' '+TH.t.pts;
     var pw=c.measureText(ptsText).width+24;
     var ph=36;
-    var px;
-    if(TH.rtl){ px = W-PAD-18-pw; }
-    else      { px = PAD+18; }
+    var px = TH.rtl ? PAD+18 : W-PAD-18-pw;
     fillRR(px,cy-ph/2,pw,ph,ph/2,u.pts>0?TH.accentSoft:'rgba(255,255,255,.06)');
     strokeRR(px,cy-ph/2,pw,ph,ph/2,u.pts>0?TH.accent:'rgba(255,255,255,.14)',1);
     c.fillStyle=u.pts>0?TH.accent:TH.muted;
