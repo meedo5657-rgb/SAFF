@@ -89,6 +89,20 @@ input.field::placeholder{color:var(--muted);}
 .chip.active{background:var(--accent1);border-color:var(--accent1);color:#fff;}
 
 .match{width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;}
+.tour-card{width:100%;background:linear-gradient(155deg,rgba(212,175,55,.16),rgba(212,175,55,.04) 55%,rgba(255,255,255,.03));border:1px solid rgba(212,175,55,.55);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.tour-card h3{margin:0;font-size:1.05rem;font-weight:800;color:#fde68a;letter-spacing:.2px;}
+.tour-card .tour-eye{font-size:.78rem;color:#bcd2e6;margin-top:-6px;}
+.tour-row{display:flex;flex-direction:column;gap:6px;}
+.tour-row label{font-size:.82rem;color:var(--muted);font-weight:700;}
+.tour-row select{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-family:'Tajawal',sans-serif;font-size:.95rem;font-weight:600;}
+.tour-row select:focus{outline:none;border-color:#d4af37;}
+.tour-locked{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,.05);border-radius:10px;font-size:.92rem;}
+.tour-locked .lbl{color:var(--muted);font-weight:700;font-size:.8rem;}
+.tour-locked .val{color:#fff;font-weight:700;}
+.tour-locked .val.ok{color:#34d399;}
+.tour-locked .val.no{color:#fca5a5;}
+.tour-save{background:#d4af37;color:#1a1100;border:none;border-radius:11px;padding:12px;font-family:'Tajawal',sans-serif;font-weight:800;cursor:pointer;font-size:.95rem;}
+.tour-save:disabled{opacity:.5;cursor:default;}
 .match.live{border-color:rgba(10,92,51,.6);background:rgba(10,92,51,.07);}
 .match.finished{opacity:.6;}
 .match-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:.72rem;color:var(--muted);gap:8px;}
@@ -493,6 +507,12 @@ var ADMIN_CODE = "2026";
 // الإعدادات (⚙️) وأدوات الإدارة تظهر فقط لهذا الحساب
 var ADMIN_NAME = "Mnajjar3";
 
+// ===== توقعات البطولة الكاملة (البطل + الهدّاف) =====
+// تتقفل التوقعات مع بداية أول مباراة. النقاط تتحسب بعد ما يدخل الأدمن النتيجة الفعلية.
+var TOURNAMENT_CHAMPION_PTS = 30;
+var TOURNAMENT_SCORER_PTS   = 15;
+var TOP_SCORERS = ["Bruno Fernandes","Bukayo Saka","Christian Pulisic","Cody Gakpo","Cole Palmer","Cristiano Ronaldo","Endrick","Erling Haaland","Florian Wirtz","Harry Kane","Jamal Musiala","Jude Bellingham","Julián Álvarez","Kylian Mbappé","Lamine Yamal","Lautaro Martínez","Lionel Messi","Memphis Depay","Mohamed Salah","Phil Foden","Rodrygo","Romelu Lukaku","Salem Al-Dawsari","Son Heung-min","Vinicius Jr"];
+
 var configReady = firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('YOUR_')!==0;
 var db=null, ROOT=null, auth=null, myUid=null;
 if(configReady){
@@ -560,6 +580,14 @@ function pointsFor(pred,r){
 var MAX_BOOST=5;
 function boostsUsed(key,exceptId){var n=0;MATCHES.forEach(function(m){if(m.id===exceptId)return;var p=predsData[m.id]&&predsData[m.id][key];if(p&&p.x2)n++;});return n;}
 function scoreOf(pred,r){var p=pointsFor(pred,r);return p==null?null:p*((pred&&pred.x2)?2:1);}
+
+// ===== مساعدات توقعات البطولة =====
+function tournamentLockMs(){var ms=MATCHES.map(kickoffMs).filter(isFinite);return ms.length?Math.min.apply(null,ms):Infinity;}
+function tournamentLocked(){return Date.now()>=tournamentLockMs();}
+function tournamentTruth(){return (teamsData&&teamsData.__truth__)||null;}
+function tournamentPicksOf(key){var u=usersData[key]||{};return {scorer:u.scorer||null,champion:u.champion||null};}
+function tournamentPointsFor(picks,truth){if(!picks||!truth)return 0;var p=0;if(picks.champion&&truth.champion&&picks.champion===truth.champion)p+=TOURNAMENT_CHAMPION_PTS;if(picks.scorer&&truth.scorer&&picks.scorer===truth.scorer)p+=TOURNAMENT_SCORER_PTS;return p;}
+function allTeamsAlpha(){var ts=[];Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){(SCHEDULE_DATA.groups[g]||[]).forEach(function(t){ts.push(t.name);});});return ts.sort();}
 
 // ===== LOGIN =====
 // Claim a name atomically: first device to use a name owns it; the same
@@ -726,6 +754,7 @@ function renderMatches(){
   if(!list)return;
   list.innerHTML='';
   if(isAdmin) list.appendChild(adminBar());
+  list.appendChild(tournamentCard());
   var ms=filteredMatches();
   if(!ms.length){
     var e=document.createElement('div');e.className='empty';
@@ -734,6 +763,89 @@ function renderMatches(){
     return;
   }
   ms.forEach(function(m){list.appendChild(matchCard(m));});
+}
+
+function tournamentCard(){
+  var card=document.createElement('div');card.className='tour-card';
+  var h=document.createElement('h3');h.textContent='🏆 توقّعات البطولة';card.appendChild(h);
+  var locked=tournamentLocked();
+  var truth=tournamentTruth();
+  var picks=tournamentPicksOf(myKey);
+  var eye=document.createElement('div');eye.className='tour-eye';
+  if(!locked){
+    eye.textContent='التوقّع يتقفل مع بداية أول مباراة. بطل الكأس = '+TOURNAMENT_CHAMPION_PTS+' نقطة · هدّاف البطولة = '+TOURNAMENT_SCORER_PTS+' نقطة.';
+    card.appendChild(eye);
+    var teams=allTeamsAlpha();
+    function sel(id,placeholder,opts,current){
+      var row=document.createElement('div');row.className='tour-row';
+      var s=document.createElement('select');s.id=id;s.style.direction='rtl';
+      var html='<option value="">'+placeholder+'</option>';
+      for(var i=0;i<opts.length;i++){html+='<option'+(current===opts[i]?' selected':'')+'>'+esc(opts[i])+'</option>';}
+      s.innerHTML=html;
+      row.appendChild(s);
+      return {row:row,sel:s};
+    }
+    var lc=document.createElement('label');lc.textContent='🏆 بطل الكأس';
+    var ch=sel('__pickChampion','— اختر البطل —',teams,picks.champion||'');
+    ch.row.insertBefore(lc,ch.sel);
+    var ls=document.createElement('label');ls.textContent='⚽ هدّاف البطولة';
+    var sc=sel('__pickScorer','— اختر الهدّاف —',TOP_SCORERS,picks.scorer||'');
+    sc.row.insertBefore(ls,sc.sel);
+    card.appendChild(ch.row);card.appendChild(sc.row);
+    var btn=document.createElement('button');btn.className='tour-save';
+    btn.textContent=(picks.scorer||picks.champion)?'حدّث التوقّعات':'احفظ التوقّعات';
+    btn.addEventListener('click',function(){
+      var upd={champion:ch.sel.value||null,scorer:sc.sel.value||null};
+      ROOT.child('users/'+myKey).update(upd).then(function(){toast('انحفظت التوقعات 🏆');}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
+    });
+    card.appendChild(btn);
+  }else{
+    eye.textContent=truth?'🔒 التوقّعات مقفّلة. النتيجة الفعلية تحت.':'🔒 التوقّعات مقفّلة — بانتظار نهاية البطولة.';
+    card.appendChild(eye);
+    function lockedRow(label, pickVal, truthVal, pts){
+      var row=document.createElement('div');row.className='tour-locked';
+      var l=document.createElement('span');l.className='lbl';l.textContent=label;
+      var v=document.createElement('span');v.className='val';
+      var disp=pickVal||'—';
+      if(truthVal){
+        var ok=pickVal && pickVal===truthVal;
+        v.className='val '+(ok?'ok':'no');
+        if(ok){ v.textContent=disp+'  ✓  +'+pts+' '+ptsWord(pts); }
+        else if(pickVal){ v.textContent=disp+'  ✗  (الفعلي: '+truthVal+')'; }
+        else{ v.textContent='— (الفعلي: '+truthVal+')'; }
+      }else{
+        v.textContent=disp;
+      }
+      row.appendChild(l);row.appendChild(v);
+      return row;
+    }
+    card.appendChild(lockedRow('🏆 بطل الكأس', picks.champion, truth&&truth.champion, TOURNAMENT_CHAMPION_PTS));
+    card.appendChild(lockedRow('⚽ هدّاف البطولة', picks.scorer, truth&&truth.scorer, TOURNAMENT_SCORER_PTS));
+  }
+  if(isAdmin && locked){
+    var ad=document.createElement('div');ad.style.borderTop='1px dashed rgba(255,255,255,.15)';ad.style.paddingTop='12px';ad.style.marginTop='4px';ad.style.display='flex';ad.style.flexDirection='column';ad.style.gap='10px';
+    var ah=document.createElement('div');ah.style.fontSize='.76rem';ah.style.color='var(--muted)';ah.style.fontWeight='700';ah.style.letterSpacing='.4px';ah.textContent='الأدمن · أدخل النتيجة الفعلية';
+    ad.appendChild(ah);
+    var teams=allTeamsAlpha();
+    function adminSel(id,opts,current){
+      var s=document.createElement('select');s.id=id;s.style.direction='rtl';
+      var html='<option value="">—</option>';
+      for(var i=0;i<opts.length;i++){html+='<option'+(current===opts[i]?' selected':'')+'>'+esc(opts[i])+'</option>';}
+      s.innerHTML=html;
+      return s;
+    }
+    var tch=adminSel('__truthChampion',teams,(truth&&truth.champion)||'');
+    var r1=document.createElement('div');r1.className='tour-row';var lr1=document.createElement('label');lr1.textContent='البطل الفعلي';r1.appendChild(lr1);r1.appendChild(tch);ad.appendChild(r1);
+    var tsc=adminSel('__truthScorer',TOP_SCORERS,(truth&&truth.scorer)||'');
+    var r2=document.createElement('div');r2.className='tour-row';var lr2=document.createElement('label');lr2.textContent='الهدّاف الفعلي';r2.appendChild(lr2);r2.appendChild(tsc);ad.appendChild(r2);
+    var ab=document.createElement('button');ab.className='tour-save';ab.style.background='#34d399';ab.style.color='#04130b';ab.textContent='احفظ النتيجة الفعلية';
+    ab.addEventListener('click',function(){
+      ROOT.child('teams/__truth__').set({champion:tch.value||null,scorer:tsc.value||null}).then(function(){toast('انحفظت النتيجة 🏆');}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
+    });
+    ad.appendChild(ab);
+    card.appendChild(ad);
+  }
+  return card;
 }
 
 function matchCard(m){
@@ -941,8 +1053,10 @@ function genDailySummary(){
     });
   });
   var topT=Object.keys(up).map(function(k){return up[k];}).sort(function(a,b){return b.pts-a.pts;}).slice(0,1);
+  var ttruth=tournamentTruth();
   var totals=Object.keys(usersData||{}).map(function(k){
     var t=0;MATCHES.forEach(function(m){var r=result(m);var p=predsData[m.id]&&predsData[m.id][k];if(p&&r)t+=scoreOf(p,r);});
+    t+=tournamentPointsFor(tournamentPicksOf(k),ttruth);
     return {name:(usersData[k]&&usersData[k].name)||k,pts:t};
   }).sort(function(a,b){return b.pts-a.pts;}).slice(0,5);
   // composition: WINNERS band groups hero+top5 onto one tinted panel with a single eyebrow
@@ -1372,6 +1486,7 @@ function renderLeader(){
   list.innerHTML='';
   var keys=Object.keys(usersData).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
   if(!keys.length){list.innerHTML='<div class="empty">لا يوجد لاعبون بعد 🏟️</div>';return;}
+  var truth=tournamentTruth();
   var rows=keys.map(function(k){
     var total=0,exact=0;
     MATCHES.forEach(function(m){
@@ -1380,6 +1495,7 @@ function renderLeader(){
       total+=scoreOf(pred,r);
       if(Number(pred.h)===Number(r.h)&&Number(pred.a)===Number(r.a))exact++;
     });
+    total+=tournamentPointsFor(tournamentPicksOf(k),truth);
     var u=usersData[k];
     return {key:k,name:(u&&u.name)?u.name:k,total:total,exact:exact};
   });
