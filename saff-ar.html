@@ -103,6 +103,34 @@ input.field::placeholder{color:var(--muted);}
 .tour-locked .val.no{color:#fca5a5;}
 .tour-save{background:#d4af37;color:#1a1100;border:none;border-radius:11px;padding:12px;font-family:'Tajawal',sans-serif;font-weight:800;cursor:pointer;font-size:.95rem;}
 .tour-save:disabled{opacity:.5;cursor:default;}
+.sub-tabs{display:flex;gap:6px;width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:6px;}
+.sub-tab{flex:1;background:none;border:none;color:var(--muted);font-family:'Tajawal',sans-serif;font-weight:700;font-size:.9rem;padding:9px 8px;border-radius:9px;cursor:pointer;}
+.sub-tab.active{background:#22c55e;color:#fff;}
+.gr-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;}
+.gr-card h4{margin:0;font-size:1rem;font-weight:800;letter-spacing:.4px;color:#fde68a;}
+.gr-tbl{width:100%;border-collapse:collapse;font-size:.85rem;}
+.gr-tbl th{font-size:.7rem;font-weight:700;color:var(--muted);text-align:center;padding:6px 4px;border-bottom:1px solid var(--line);}
+.gr-tbl th:nth-child(2){text-align:right;}
+.gr-tbl td{padding:8px 4px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);font-weight:600;}
+.gr-tbl tr:last-child td{border-bottom:none;}
+.gr-tbl td.gr-team{text-align:right;}
+.gr-team{display:flex;align-items:center;gap:6px;font-weight:700;}
+.gr-flag{font-size:1.1rem;}
+.gr-tbl tr.gr-q td:first-child{box-shadow:inset 3px 0 0 #22c55e;}
+.gr-tbl tr.gr-q3 td:first-child{box-shadow:inset 3px 0 0 #fbbf24;}
+.gr-legend{display:flex;gap:14px;font-size:.74rem;color:var(--muted);align-items:center;padding-top:4px;flex-wrap:wrap;}
+.gr-legend span{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle;}
+.gr-legend .lg-q{background:#22c55e;}
+.gr-legend .lg-q3{background:#fbbf24;}
+.sc-hint{font-size:.78rem;color:var(--muted);padding:2px 4px;}
+.sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
+.sc-rank{font-weight:800;color:var(--muted);min-width:24px;text-align:center;font-size:.95rem;}
+.sc-row:nth-child(1) .sc-rank,.sc-row:nth-child(2) .sc-rank{color:#fde68a;}
+.sc-name{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0;}
+.sc-name-main{font-weight:700;font-size:.95rem;color:var(--text);}
+.sc-team{font-size:.78rem;color:var(--muted);}
+.sc-goals{display:flex;align-items:center;gap:4px;font-weight:800;font-size:1.1rem;color:#fde68a;}
+.sc-goals span{font-size:.9rem;}
 .match.live{border-color:rgba(10,92,51,.6);background:rgba(10,92,51,.07);}
 .match.finished{opacity:.6;}
 .match-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:.72rem;color:var(--muted);gap:8px;}
@@ -274,6 +302,21 @@ input.field::placeholder{color:var(--muted);}
   <div id="leaderList" style="width:100%;display:flex;flex-direction:column;gap:10px;"></div>
 </div>
 
+<!-- GROUPS & SCORERS -->
+<div class="screen" id="sGroups">
+  <div class="topbar">
+    <div class="me-chip">👤 <b id="meName4">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">تسجيل الخروج</span></div>
+    <button class="icon-btn" id="btnSettings4">⚙️</button>
+  </div>
+  <div class="section-title">📊 المجموعات والهدافون</div>
+  <div class="sub-tabs">
+    <button class="sub-tab active" data-sub="standings">الترتيب</button>
+    <button class="sub-tab" data-sub="scorers">الهدافون</button>
+  </div>
+  <div id="standingsView" style="width:100%;display:flex;flex-direction:column;gap:14px;"></div>
+  <div id="scorersView" style="width:100%;display:none;flex-direction:column;gap:8px;"></div>
+</div>
+
 <!-- RULES -->
 <div class="screen" id="sRules">
   <div class="topbar">
@@ -346,6 +389,7 @@ input.field::placeholder{color:var(--muted);}
 <!-- TABBAR -->
 <div class="tabbar" id="tabbar" style="display:none">
   <button class="tab active" data-tab="sMatches"><span class="ico">⚽</span>المباريات</button>
+  <button class="tab" data-tab="sGroups"><span class="ico">📊</span>المجموعات</button>
   <button class="tab" data-tab="sLeader"><span class="ico">🏅</span>الترتيب</button>
   <button class="tab" data-tab="sRules"><span class="ico">📖</span>القوانين</button>
 </div>
@@ -512,6 +556,7 @@ var ADMIN_NAME = "Mnajjar3";
 var TOURNAMENT_CHAMPION_PTS = 30;
 var TOURNAMENT_SCORER_PTS   = 15;
 var TOP_SCORERS = ["Bruno Fernandes","Bukayo Saka","Christian Pulisic","Cody Gakpo","Cole Palmer","Cristiano Ronaldo","Endrick","Erling Haaland","Florian Wirtz","Harry Kane","Jamal Musiala","Jude Bellingham","Julián Álvarez","Kylian Mbappé","Lamine Yamal","Lautaro Martínez","Lionel Messi","Memphis Depay","Mohamed Salah","Phil Foden","Rodrygo","Romelu Lukaku","Salem Al-Dawsari","Son Heung-min","Vinicius Jr"];
+var SCORER_TEAMS = {"Bruno Fernandes":"Portugal","Bukayo Saka":"England","Christian Pulisic":"United States","Cody Gakpo":"Netherlands","Cole Palmer":"England","Cristiano Ronaldo":"Portugal","Endrick":"Brazil","Erling Haaland":"Norway","Florian Wirtz":"Germany","Harry Kane":"England","Jamal Musiala":"Germany","Jude Bellingham":"England","Julián Álvarez":"Argentina","Kylian Mbappé":"France","Lamine Yamal":"Spain","Lautaro Martínez":"Argentina","Lionel Messi":"Argentina","Memphis Depay":"Netherlands","Mohamed Salah":"Egypt","Phil Foden":"England","Rodrygo":"Brazil","Romelu Lukaku":"Belgium","Salem Al-Dawsari":"Saudi Arabia","Son Heung-min":"South Korea","Vinicius Jr":"Brazil"};
 
 var configReady = firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('YOUR_')!==0;
 var db=null, ROOT=null, auth=null, myUid=null;
@@ -588,6 +633,52 @@ function tournamentTruth(){return (teamsData&&teamsData.__truth__)||null;}
 function tournamentPicksOf(key){var u=usersData[key]||{};return {scorer:u.scorer||null,champion:u.champion||null};}
 function tournamentPointsFor(picks,truth){if(!picks||!truth)return 0;var p=0;if(picks.champion&&truth.champion&&picks.champion===truth.champion)p+=TOURNAMENT_CHAMPION_PTS;if(picks.scorer&&truth.scorer&&picks.scorer===truth.scorer)p+=TOURNAMENT_SCORER_PTS;return p;}
 function allTeamsAlpha(){var ts=[];Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){(SCHEDULE_DATA.groups[g]||[]).forEach(function(t){ts.push(t.name);});});return ts.sort();}
+
+// ===== الترتيب + الهدافون =====
+var COUNTRY_FLAG=(function(){var m={};Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){(SCHEDULE_DATA.groups[g]||[]).forEach(function(t){m[t.name]=t.flag;});});return m;})();
+function flagOf(c){return COUNTRY_FLAG[c]||'🏳️';}
+function computeStandings(){
+  var out={};var groups=SCHEDULE_DATA.groups||{};
+  Object.keys(groups).forEach(function(g){
+    out[g]=(groups[g]||[]).map(function(t){return {team:t.name,flag:t.flag,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0};});
+  });
+  MATCHES.forEach(function(m){
+    if(m.stage!=='group')return;
+    var r=result(m);if(!r)return;
+    var rows=out[m.group];if(!rows)return;
+    var hRow=null,aRow=null;
+    for(var i=0;i<rows.length;i++){if(rows[i].team===m.home)hRow=rows[i];if(rows[i].team===m.away)aRow=rows[i];}
+    if(!hRow||!aRow)return;
+    var hg=Number(r.h)||0,ag=Number(r.a)||0;
+    hRow.p++;aRow.p++;
+    hRow.gf+=hg;hRow.ga+=ag;hRow.gd=hRow.gf-hRow.ga;
+    aRow.gf+=ag;aRow.ga+=hg;aRow.gd=aRow.gf-aRow.ga;
+    if(hg>ag){hRow.w++;hRow.pts+=3;aRow.l++;}
+    else if(hg<ag){aRow.w++;aRow.pts+=3;hRow.l++;}
+    else{hRow.d++;aRow.d++;hRow.pts++;aRow.pts++;}
+  });
+  Object.keys(out).forEach(function(g){
+    out[g].sort(function(a,b){if(b.pts!==a.pts)return b.pts-a.pts;if(b.gd!==a.gd)return b.gd-a.gd;if(b.gf!==a.gf)return b.gf-a.gf;return a.team.localeCompare(b.team);});
+  });
+  return out;
+}
+function scorerSlug(name){return sanitize(name).replace(/\s+/g,'_');}
+function scorerEntries(){
+  var stored=(teamsData&&teamsData.__scorers__)||{};
+  var seen={};
+  var out=TOP_SCORERS.map(function(name){
+    var slug=scorerSlug(name);seen[slug]=1;
+    var s=stored[slug]||{};
+    return {name:name,team:SCORER_TEAMS[name]||'',goals:Number((s&&s.goals)||0)};
+  });
+  Object.keys(stored).forEach(function(slug){
+    if(seen[slug])return;
+    var s=stored[slug];if(!s||typeof s!=='object'||!s.name)return;
+    out.push({name:s.name,team:s.team||'',goals:Number(s.goals||0)});
+  });
+  out.sort(function(a,b){return b.goals-a.goals||a.name.localeCompare(b.name);});
+  return out;
+}
 
 // ===== LOGIN =====
 // Claim a name atomically: first device to use a name owns it; the same
@@ -666,10 +757,11 @@ function enter(){
   document.getElementById('meName').textContent=myName;
   document.getElementById('meName2').textContent=myName;
   document.getElementById('meName3').textContent=myName;
+  document.getElementById('meName4').textContent=myName;
   document.getElementById('tabbar').style.display='flex';
   applyAdminUI();
   show('sMatches');
-  if(booted){renderMatches();renderLeader();return;}  // re-login: don't re-attach listeners/timers
+  if(booted){renderMatches();renderLeader();renderGroups();return;}  // re-login: don't re-attach listeners/timers
   booted=true;
   buildChips();
   listen();
@@ -697,8 +789,8 @@ document.querySelectorAll('.me-chip').forEach(function(c){
 
 function listen(){
   ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};renderMatches();renderLeader();});
-  ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();});
-  ROOT.child('teams').on('value',function(s){teamsData=s.val()||{};renderMatches();renderLeader();});
+  ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
+  ROOT.child('teams').on('value',function(s){teamsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   ROOT.child('users').on('value',function(s){usersData=s.val()||{};renderLeader();});
 }
 
@@ -1420,7 +1512,7 @@ function isAdminUser(){return !!myName && myName.trim().toLowerCase()===ADMIN_NA
 function applyAdminUI(){
   var au=isAdminUser();
   if(!au && isAdmin){isAdmin=false;try{localStorage.removeItem('saff_admin');}catch(e){}}
-  ['btnSettings','btnSettings2','btnSettings3'].forEach(function(id){
+  ['btnSettings','btnSettings2','btnSettings3','btnSettings4'].forEach(function(id){
     var b=document.getElementById(id);
     b.style.display=au?'':'none';
     b.classList.toggle('admin-on',isAdmin);
@@ -1442,6 +1534,7 @@ function openSettings(){
 document.getElementById('btnSettings').addEventListener('click',openSettings);
 document.getElementById('btnSettings2').addEventListener('click',openSettings);
 document.getElementById('btnSettings3').addEventListener('click',openSettings);
+document.getElementById('btnSettings4').addEventListener('click',openSettings);
 
 // ===== TEAMS MODAL =====
 function openTeamModal(m){
@@ -1478,6 +1571,64 @@ document.getElementById('btnResetTeams').addEventListener('click',function(){
     document.getElementById('teamOverlay').classList.remove('show');
   });
 });
+
+// ===== المجموعات + الهدافون =====
+function renderStandings(){
+  var v=document.getElementById('standingsView');if(!v)return;
+  v.innerHTML='';
+  var st=computeStandings();
+  Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){
+    var card=document.createElement('div');card.className='gr-card';
+    var h=document.createElement('h4');h.textContent='المجموعة '+g;card.appendChild(h);
+    var tbl=document.createElement('table');tbl.className='gr-tbl';
+    tbl.innerHTML='<thead><tr><th>#</th><th>المنتخب</th><th>ل</th><th>ف</th><th>ت</th><th>خ</th><th>ف.أ</th><th>ن</th></tr></thead>';
+    var tb=document.createElement('tbody');
+    (st[g]||[]).forEach(function(r,i){
+      var tr=document.createElement('tr');
+      if(i<2)tr.className='gr-q';
+      else if(i===2)tr.className='gr-q3';
+      tr.innerHTML='<td>'+(i+1)+'</td>'+
+        '<td class="gr-team"><span class="gr-flag">'+r.flag+'</span><span>'+esc(r.team)+'</span></td>'+
+        '<td>'+r.p+'</td><td>'+r.w+'</td><td>'+r.d+'</td><td>'+r.l+'</td>'+
+        '<td>'+(r.gd>0?'+':'')+r.gd+'</td><td><b>'+r.pts+'</b></td>';
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);card.appendChild(tbl);
+    var lg=document.createElement('div');lg.className='gr-legend';
+    lg.innerHTML='<span class="lg-q"></span>أول اثنين يتأهلون · <span class="lg-q3"></span>الثالث قد يتأهل';
+    card.appendChild(lg);
+    v.appendChild(card);
+  });
+}
+function renderScorers(){
+  var v=document.getElementById('scorersView');if(!v)return;
+  v.innerHTML='';
+  var rows=scorerEntries();
+  if(isAdmin){
+    var hint=document.createElement('div');hint.className='sc-hint';hint.textContent='اضغط على أي صف لتعديل عدد الأهداف.';v.appendChild(hint);
+  }
+  rows.forEach(function(r,i){
+    var row=document.createElement('div');row.className='sc-row';
+    row.innerHTML='<div class="sc-rank">'+(i+1)+'</div>'+
+      '<div class="sc-name"><div class="sc-name-main">'+esc(r.name)+'</div>'+
+      '<div class="sc-team">'+flagOf(r.team)+' '+esc(r.team)+'</div></div>'+
+      '<div class="sc-goals">'+r.goals+'<span>⚽</span></div>';
+    if(isAdmin){
+      row.style.cursor='pointer';
+      row.addEventListener('click',function(){
+        var cur=prompt('عدد أهداف '+r.name+':',String(r.goals));
+        if(cur===null)return;
+        var n=parseInt(cur,10);
+        if(isNaN(n)||n<0){toast('أدخل رقماً صحيحاً غير سالب');return;}
+        ROOT.child('teams/__scorers__/'+scorerSlug(r.name)).set({name:r.name,team:r.team,goals:n})
+          .then(function(){toast('تم التحديث ⚽');})
+          .catch(function(e){toast('فشل: '+((e&&e.code)||e));});
+      });
+    }
+    v.appendChild(row);
+  });
+}
+function renderGroups(){renderStandings();renderScorers();}
 
 // ===== LEADERBOARD =====
 function renderLeader(){
@@ -1532,6 +1683,12 @@ function deletePlayer(key,name){
 
 // ===== TABS =====
 document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){show(t.dataset.tab);});});
+document.querySelectorAll('.sub-tab').forEach(function(b){b.addEventListener('click',function(){
+  var s=b.dataset.sub;
+  document.querySelectorAll('.sub-tab').forEach(function(x){x.classList.toggle('active',x.dataset.sub===s);});
+  document.getElementById('standingsView').style.display=s==='standings'?'flex':'none';
+  document.getElementById('scorersView').style.display=s==='scorers'?'flex':'none';
+});});
 
 // ===== PWA: تسجيل service worker للتثبيت والعمل بدون شبكة =====
 if('serviceWorker' in navigator){
