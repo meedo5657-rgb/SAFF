@@ -880,11 +880,40 @@ function playerPicker(id, placeholder, current, hostInputFont){
     hits.forEach(function(p){
       var row=document.createElement('div');row.className='psearch-row';row.setAttribute('data-val',p.n);
       var flag=flagImg(p.t,20);
-      row.innerHTML='<span>'+(flag?flag+' ':'')+esc(p.n)+'</span><span class="psearch-team">'+esc(p.t)+'</span>';
+      row.innerHTML='<span>'+(flag?flag+' ':'')+esc(p.n)+'</span><span class="psearch-team">'+flag+' '+esc(p.t)+'</span>';
       row.addEventListener('mousedown',function(ev){
         ev.preventDefault();
         hidden.value=p.n;input.value=p.n;drop.classList.remove('open');
       });
+      drop.appendChild(row);
+    });
+  }
+  input.addEventListener('focus',function(){render(input.value);drop.classList.add('open');});
+  input.addEventListener('input',function(){hidden.value='';render(input.value);drop.classList.add('open');});
+  input.addEventListener('blur',function(){setTimeout(function(){drop.classList.remove('open');},150);});
+  input.addEventListener('keydown',function(e){if(e.key==='Escape'){drop.classList.remove('open');input.blur();}});
+  wrap.appendChild(hidden);wrap.appendChild(input);wrap.appendChild(drop);
+  return wrap;
+}
+
+function teamPicker(id, placeholder, current){
+  var wrap=document.createElement('div');wrap.className='psearch';
+  var hidden=document.createElement('input');hidden.type='hidden';hidden.id=id;hidden.value=current||'';
+  var input=document.createElement('input');input.type='text';input.className='psearch-input';input.style.direction='rtl';
+  input.setAttribute('placeholder',placeholder);input.setAttribute('autocomplete','off');
+  if(current) input.value=current;
+  var drop=document.createElement('div');drop.className='psearch-drop';
+  var teams=allTeamsAlpha();
+  function render(q){
+    drop.innerHTML='';
+    q=(q||'').trim().toLowerCase();
+    var hits=q?teams.filter(function(t){return t.toLowerCase().indexOf(q)!==-1;}):teams.slice();
+    hits=hits.slice(0,60);
+    if(!hits.length){var em=document.createElement('div');em.className='psearch-empty';em.textContent=placeholder;drop.appendChild(em);return;}
+    hits.forEach(function(t){
+      var row=document.createElement('div');row.className='psearch-row';row.setAttribute('data-val',t);
+      row.innerHTML='<span>'+flagImg(t,20)+' '+esc(t)+'</span>';
+      row.addEventListener('mousedown',function(ev){ev.preventDefault();hidden.value=t;input.value=t;drop.classList.remove('open');});
       drop.appendChild(row);
     });
   }
@@ -906,27 +935,20 @@ function tournamentCard(){
   if(!locked){
     eye.textContent='التوقّع يتقفل مع بداية أول مباراة. بطل الكأس = '+TOURNAMENT_CHAMPION_PTS+' نقطة · هدّاف البطولة = '+TOURNAMENT_SCORER_PTS+' نقطة.';
     card.appendChild(eye);
-    var teams=allTeamsAlpha();
-    function sel(id,placeholder,opts,current){
-      var row=document.createElement('div');row.className='tour-row';
-      var s=document.createElement('select');s.id=id;s.style.direction='rtl';
-      var html='<option value="">'+placeholder+'</option>';
-      for(var i=0;i<opts.length;i++){html+='<option'+(current===opts[i]?' selected':'')+'>'+esc(opts[i])+'</option>';}
-      s.innerHTML=html;
-      row.appendChild(s);
-      return {row:row,sel:s};
-    }
-    var lc=document.createElement('label');lc.textContent='🏆 بطل الكأس';
-    var ch=sel('__pickChampion','— اختر البطل —',teams,picks.champion||'');
-    ch.row.insertBefore(lc,ch.sel);
+    var chRow=document.createElement('div');chRow.className='tour-row';
+    var lc=document.createElement('label');lc.textContent='🏆 بطل الكأس';chRow.appendChild(lc);
+    chRow.appendChild(teamPicker('__pickChampion','ابحث عن منتخب…',picks.champion||''));
     var scRow=document.createElement('div');scRow.className='tour-row';
     var ls=document.createElement('label');ls.textContent='⚽ هدّاف البطولة';scRow.appendChild(ls);
     scRow.appendChild(playerPicker('__pickScorer','ابحث عن لاعب…',picks.scorer||''));
-    card.appendChild(ch.row);card.appendChild(scRow);
+    card.appendChild(chRow);card.appendChild(scRow);
     var btn=document.createElement('button');btn.className='tour-save';
     btn.textContent=(picks.scorer||picks.champion)?'حدّث التوقّعات':'احفظ التوقّعات';
     btn.addEventListener('click',function(){
-      var upd={champion:ch.sel.value||null,scorer:(document.getElementById('__pickScorer')||{value:''}).value||null};
+      var upd={
+        champion:(document.getElementById('__pickChampion')||{value:''}).value||null,
+        scorer:(document.getElementById('__pickScorer')||{value:''}).value||null
+      };
       ROOT.child('users/'+myKey).update(upd).then(function(){toast('انحفظت التوقعات 🏆');}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
     });
     card.appendChild(btn);
@@ -937,15 +959,17 @@ function tournamentCard(){
       var row=document.createElement('div');row.className='tour-locked';
       var l=document.createElement('span');l.className='lbl';l.textContent=label;
       var v=document.createElement('span');v.className='val';
-      var disp=pickVal||'—';
+      function withFlag(name){return (COUNTRY_FLAG[name]?flagImg(name,18)+' ':'')+esc(name);}
       if(truthVal){
         var ok=pickVal && pickVal===truthVal;
         v.className='val '+(ok?'ok':'no');
-        if(ok){ v.textContent=disp+'  ✓  +'+pts+' '+ptsWord(pts); }
-        else if(pickVal){ v.textContent=disp+'  ✗  (الفعلي: '+truthVal+')'; }
-        else{ v.textContent='— (الفعلي: '+truthVal+')'; }
+        if(ok){ v.innerHTML=withFlag(pickVal)+'  ✓  +'+pts+' '+ptsWord(pts); }
+        else if(pickVal){ v.innerHTML=withFlag(pickVal)+'  ✗  (الفعلي: '+withFlag(truthVal)+')'; }
+        else{ v.innerHTML='— (الفعلي: '+withFlag(truthVal)+')'; }
+      }else if(pickVal){
+        v.innerHTML=withFlag(pickVal);
       }else{
-        v.textContent=disp;
+        v.textContent='—';
       }
       row.appendChild(l);row.appendChild(v);
       return row;
@@ -957,22 +981,18 @@ function tournamentCard(){
     var ad=document.createElement('div');ad.style.borderTop='1px dashed rgba(255,255,255,.15)';ad.style.paddingTop='12px';ad.style.marginTop='4px';ad.style.display='flex';ad.style.flexDirection='column';ad.style.gap='10px';
     var ah=document.createElement('div');ah.style.fontSize='.76rem';ah.style.color='var(--muted)';ah.style.fontWeight='700';ah.style.letterSpacing='.4px';ah.textContent='الأدمن · أدخل النتيجة الفعلية';
     ad.appendChild(ah);
-    var teams=allTeamsAlpha();
-    function adminSel(id,opts,current){
-      var s=document.createElement('select');s.id=id;s.style.direction='rtl';
-      var html='<option value="">—</option>';
-      for(var i=0;i<opts.length;i++){html+='<option'+(current===opts[i]?' selected':'')+'>'+esc(opts[i])+'</option>';}
-      s.innerHTML=html;
-      return s;
-    }
-    var tch=adminSel('__truthChampion',teams,(truth&&truth.champion)||'');
-    var r1=document.createElement('div');r1.className='tour-row';var lr1=document.createElement('label');lr1.textContent='البطل الفعلي';r1.appendChild(lr1);r1.appendChild(tch);ad.appendChild(r1);
+    var r1=document.createElement('div');r1.className='tour-row';var lr1=document.createElement('label');lr1.textContent='البطل الفعلي';r1.appendChild(lr1);
+    r1.appendChild(teamPicker('__truthChampion','ابحث عن منتخب…',(truth&&truth.champion)||''));
+    ad.appendChild(r1);
     var r2=document.createElement('div');r2.className='tour-row';var lr2=document.createElement('label');lr2.textContent='الهدّاف الفعلي';r2.appendChild(lr2);
     r2.appendChild(playerPicker('__truthScorer','ابحث عن لاعب…',(truth&&truth.scorer)||''));
     ad.appendChild(r2);
     var ab=document.createElement('button');ab.className='tour-save';ab.style.background='#34d399';ab.style.color='#04130b';ab.textContent='احفظ النتيجة الفعلية';
     ab.addEventListener('click',function(){
-      ROOT.child('teams/__truth__').set({champion:tch.value||null,scorer:(document.getElementById('__truthScorer')||{value:''}).value||null}).then(function(){toast('انحفظت النتيجة 🏆');}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
+      ROOT.child('teams/__truth__').set({
+        champion:(document.getElementById('__truthChampion')||{value:''}).value||null,
+        scorer:(document.getElementById('__truthScorer')||{value:''}).value||null
+      }).then(function(){toast('انحفظت النتيجة 🏆');}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
     });
     ad.appendChild(ab);
     card.appendChild(ad);
