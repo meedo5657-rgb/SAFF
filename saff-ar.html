@@ -972,7 +972,7 @@ function tournamentCard(){
         champion:(document.getElementById('__pickChampion')||{value:''}).value||null,
         scorer:(document.getElementById('__pickScorer')||{value:''}).value||null
       };
-      ROOT.child('users/'+myKey).update(upd).then(function(){toast('انحفظت التوقعات 🏆');}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
+      ROOT.child('users/'+myKey).update(upd).then(function(){toast('انحفظت التوقعات 🏆');btn.textContent='حدّث التوقّعات';}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
     });
     card.appendChild(btn);
   }else{

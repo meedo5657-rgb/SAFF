@@ -967,7 +967,7 @@ function tournamentCard(){
         champion:(document.getElementById('__pickChampion')||{value:''}).value||null,
         scorer:(document.getElementById('__pickScorer')||{value:''}).value||null
       };
-      ROOT.child('users/'+myKey).update(upd).then(function(){toast('Picks saved 🏆');}).catch(function(e){toast('Failed: '+((e&&e.code)||e));});
+      ROOT.child('users/'+myKey).update(upd).then(function(){toast('Picks saved 🏆');btn.textContent='Update picks';}).catch(function(e){toast('Failed: '+((e&&e.code)||e));});
     });
     card.appendChild(btn);
   }else{
