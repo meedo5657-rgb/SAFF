@@ -499,7 +499,9 @@ var COUNTRY_ISO=FLAG_CODE;
 function flagImg(country,size){
   var iso=COUNTRY_ISO[country];
   if(!iso) return '';
-  return '<img class="flag" src="https://flagcdn.com/w'+(size||20)+'/'+iso+'.png" alt="">';
+  var w=size||20, sup=[20,40,80,160,320,640], chosen=sup[sup.length-1];
+  for(var i=0;i<sup.length;i++){if(sup[i]>=w){chosen=sup[i];break;}}
+  return '<img class="flag" src="https://flagcdn.com/w'+chosen+'/'+iso+'.png" alt="">';
 }
 // kickoff shown in the viewer's own device timezone (from the match UTC time)
 function localKick(m){
