@@ -110,6 +110,10 @@ img.flag{display:inline-block;width:auto;height:.95em;vertical-align:-2px;border
 .sub-tab.active{background:#22c55e;color:#fff;}
 .gr-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;}
 .gr-card h4{margin:0;font-size:1rem;font-weight:800;letter-spacing:.4px;color:#fde68a;}
+.gr-card .gr-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.gr-card .gr-flags{display:flex;gap:6px;align-items:center;}
+.gr-card .gr-flags img.flag{height:18px;border-radius:2px;}
+.gr-tbl td.gr-team img.flag{height:18px;margin-inline-end:6px;vertical-align:-3px;}
 .gr-tbl{width:100%;border-collapse:collapse;font-size:.85rem;}
 .gr-tbl th{font-size:.7rem;font-weight:700;color:var(--muted);text-align:center;padding:6px 4px;border-bottom:1px solid var(--line);}
 .gr-tbl th:nth-child(2){text-align:right;}
@@ -1641,7 +1645,12 @@ function renderStandings(){
   var st=computeStandings();
   Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){
     var card=document.createElement('div');card.className='gr-card';
-    var h=document.createElement('h4');h.textContent='المجموعة '+g;card.appendChild(h);
+    var head=document.createElement('div');head.className='gr-head';
+    var h=document.createElement('h4');h.textContent='المجموعة '+g;head.appendChild(h);
+    var flags=document.createElement('div');flags.className='gr-flags';
+    (SCHEDULE_DATA.groups[g]||[]).forEach(function(t){flags.innerHTML+=flagImg(t.name,28);});
+    head.appendChild(flags);
+    card.appendChild(head);
     var tbl=document.createElement('table');tbl.className='gr-tbl';
     tbl.innerHTML='<thead><tr><th>#</th><th>المنتخب</th><th>ل</th><th>ف</th><th>ت</th><th>خ</th><th>ف.أ</th><th>ن</th></tr></thead>';
     var tb=document.createElement('tbody');
@@ -1650,7 +1659,7 @@ function renderStandings(){
       if(i<2)tr.className='gr-q';
       else if(i===2)tr.className='gr-q3';
       tr.innerHTML='<td>'+(i+1)+'</td>'+
-        '<td class="gr-team"><span class="gr-flag">'+flagImg(r.team,28)+'</span><span>'+esc(r.team)+'</span></td>'+
+        '<td class="gr-team">'+flagImg(r.team,28)+esc(r.team)+'</td>'+
         '<td>'+r.p+'</td><td>'+r.w+'</td><td>'+r.d+'</td><td>'+r.l+'</td>'+
         '<td>'+(r.gd>0?'+':'')+r.gd+'</td><td><b>'+r.pts+'</b></td>';
       tb.appendChild(tr);
