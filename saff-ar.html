@@ -663,6 +663,20 @@ function tournamentLockMs(){var ms=MATCHES.map(kickoffMs).filter(isFinite);retur
 function tournamentLocked(){return Date.now()>=tournamentLockMs();}
 function tournamentTruth(){return (teamsData&&teamsData.__truth__)||null;}
 function tournamentPicksOf(key){var u=usersData[key]||{};return {scorer:u.scorer||null,champion:u.champion||null};}
+function resolveTeamPick(id){
+  var h=document.getElementById(id);if(!h)return null;
+  if(h.value)return h.value;
+  var vi=h.parentElement&&h.parentElement.querySelector('.psearch-input');
+  if(vi){var t=vi.value.trim();if(t&&COUNTRY_FLAG[t])return t;}
+  return null;
+}
+function resolveScorerPick(id){
+  var h=document.getElementById(id);if(!h)return null;
+  if(h.value)return h.value;
+  var vi=h.parentElement&&h.parentElement.querySelector('.psearch-input');
+  if(vi){var t=vi.value.trim();if(t){for(var i=0;i<WC_PLAYERS.length;i++)if(WC_PLAYERS[i].n===t)return t;}}
+  return null;
+}
 function tournamentPointsFor(picks,truth){if(!picks||!truth)return 0;var p=0;if(picks.champion&&truth.champion&&picks.champion===truth.champion)p+=TOURNAMENT_CHAMPION_PTS;if(picks.scorer&&truth.scorer&&picks.scorer===truth.scorer)p+=TOURNAMENT_SCORER_PTS;return p;}
 function allTeamsAlpha(){var ts=[];Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){(SCHEDULE_DATA.groups[g]||[]).forEach(function(t){ts.push(t.name);});});return ts.sort();}
 
@@ -807,7 +821,14 @@ function listen(){
   ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};renderMatches();renderLeader();});
   ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   ROOT.child('teams').on('value',function(s){teamsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
-  ROOT.child('users').on('value',function(s){usersData=s.val()||{};renderLeader();});
+  var __myPicksDigest=null;
+  ROOT.child('users').on('value',function(s){
+    usersData=s.val()||{};
+    renderLeader();
+    var u=usersData[myKey];
+    var d=u?(u.champion||'')+'/'+(u.scorer||''):'/';
+    if(d!==__myPicksDigest){__myPicksDigest=d;renderMatches();}
+  });
 }
 
 // ===== FILTER CHIPS ===== (Upcoming first, then groups A-L, then knockout rounds)
@@ -968,10 +989,7 @@ function tournamentCard(){
     var btn=document.createElement('button');btn.className='tour-save';
     btn.textContent=(picks.scorer||picks.champion)?'حدّث التوقّعات':'احفظ التوقّعات';
     btn.addEventListener('click',function(){
-      var upd={
-        champion:(document.getElementById('__pickChampion')||{value:''}).value||null,
-        scorer:(document.getElementById('__pickScorer')||{value:''}).value||null
-      };
+      var upd={champion:resolveTeamPick('__pickChampion'),scorer:resolveScorerPick('__pickScorer')};
       ROOT.child('users/'+myKey).update(upd).then(function(){toast('انحفظت التوقعات 🏆');btn.textContent='حدّث التوقّعات';}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
     });
     card.appendChild(btn);
@@ -1012,10 +1030,7 @@ function tournamentCard(){
     ad.appendChild(r2);
     var ab=document.createElement('button');ab.className='tour-save';ab.style.background='#34d399';ab.style.color='#04130b';ab.textContent='احفظ النتيجة الفعلية';
     ab.addEventListener('click',function(){
-      ROOT.child('teams/__truth__').set({
-        champion:(document.getElementById('__truthChampion')||{value:''}).value||null,
-        scorer:(document.getElementById('__truthScorer')||{value:''}).value||null
-      }).then(function(){toast('انحفظت النتيجة 🏆');}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
+      ROOT.child('teams/__truth__').set({champion:resolveTeamPick('__truthChampion'),scorer:resolveScorerPick('__truthScorer')}).then(function(){toast('انحفظت النتيجة 🏆');}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
     });
     ad.appendChild(ab);
     card.appendChild(ad);
