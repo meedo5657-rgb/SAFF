@@ -216,6 +216,7 @@ img.flag{display:inline-block;width:auto;height:.95em;vertical-align:-2px;border
 .lb-pts{font-size:1.3rem;font-weight:800;color:#fff;}
 .lb-del{margin-inline-start:8px;background:rgba(10,92,51,.15);border:1px solid rgba(10,92,51,.4);color:#fff;border-radius:9px;padding:6px 9px;font-size:.85rem;cursor:pointer;flex-shrink:0;}
 .lb-pts span{font-size:.68rem;color:var(--muted);font-weight:400;}
+.lb-picks{margin-top:4px;color:#cbd5e1;font-weight:600;}.lb-picks img.flag{height:.9em;vertical-align:-2px;}
 .empty{color:var(--muted);font-size:.88rem;text-align:center;padding:30px 10px;line-height:1.8;}
 
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(5px);z-index:100;align-items:flex-end;justify-content:center;}
@@ -647,6 +648,7 @@ function allTeamsAlpha(){var ts=[];Object.keys(SCHEDULE_DATA.groups||{}).forEach
 // ===== الترتيب + الهدافون =====
 var COUNTRY_FLAG=(function(){var m={};Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){(SCHEDULE_DATA.groups[g]||[]).forEach(function(t){m[t.name]=t.flag;});});return m;})();
 function flagOf(c){return COUNTRY_FLAG[c]||'🏳️';}
+function scorerTeam(name){if(!name)return '';for(var i=0;i<WC_PLAYERS.length;i++){if(WC_PLAYERS[i].n===name)return WC_PLAYERS[i].t;}return '';}
 function computeStandings(){
   var out={};var groups=SCHEDULE_DATA.groups||{};
   Object.keys(groups).forEach(function(g){
@@ -880,7 +882,7 @@ function playerPicker(id, placeholder, current, hostInputFont){
     hits.forEach(function(p){
       var row=document.createElement('div');row.className='psearch-row';row.setAttribute('data-val',p.n);
       var flag=flagImg(p.t,20);
-      row.innerHTML='<span>'+(flag?flag+' ':'')+esc(p.n)+'</span><span class="psearch-team">'+flag+' '+esc(p.t)+'</span>';
+      row.innerHTML='<span>'+esc(p.n)+'</span><span class="psearch-team">'+(flag?flag+' ':'')+esc(p.t)+'</span>';
       row.addEventListener('mousedown',function(ev){
         ev.preventDefault();
         hidden.value=p.n;input.value=p.n;drop.classList.remove('open');
@@ -1713,6 +1715,7 @@ function renderLeader(){
   var keys=Object.keys(usersData).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
   if(!keys.length){list.innerHTML='<div class="empty">لا يوجد لاعبون بعد 🏟️</div>';return;}
   var truth=tournamentTruth();
+  var locked=tournamentLocked();
   var rows=keys.map(function(k){
     var total=0,exact=0;
     MATCHES.forEach(function(m){
@@ -1721,9 +1724,10 @@ function renderLeader(){
       total+=scoreOf(pred,r);
       if(Number(pred.h)===Number(r.h)&&Number(pred.a)===Number(r.a))exact++;
     });
-    total+=tournamentPointsFor(tournamentPicksOf(k),truth);
+    var picks=tournamentPicksOf(k);
+    total+=tournamentPointsFor(picks,truth);
     var u=usersData[k];
-    return {key:k,name:(u&&u.name)?u.name:k,total:total,exact:exact};
+    return {key:k,name:(u&&u.name)?u.name:k,total:total,exact:exact,picks:picks};
   });
   rows.sort(function(a,b){return b.total-a.total||b.exact-a.exact;});
   rows.forEach(function(r,i){
@@ -1731,9 +1735,21 @@ function renderLeader(){
     var el=document.createElement('div');
     el.className='lb-row'+(r.key===myKey?' me':'')+(rank<=3?(' top'+rank):'');
     var medal=rank===1?'🥇':(rank===2?'🥈':(rank===3?'🥉':rank));
+    var picksLine='';
+    if(locked){
+      var parts=[];
+      if(r.picks.champion){
+        parts.push((COUNTRY_FLAG[r.picks.champion]?flagImg(r.picks.champion,16)+' ':'')+'🏆 '+esc(r.picks.champion));
+      }
+      if(r.picks.scorer){
+        var st=scorerTeam(r.picks.scorer);
+        parts.push((st&&COUNTRY_FLAG[st]?flagImg(st,16)+' ':'')+'⚽ '+esc(r.picks.scorer));
+      }
+      if(parts.length) picksLine='<div class="lb-sub lb-picks">'+parts.join(' &nbsp;·&nbsp; ')+'</div>';
+    }
     el.innerHTML='<div class="lb-rank">'+medal+'</div>'+
       '<div class="lb-name">'+esc(r.name)+(r.key===myKey?' <span class="lb-sub">(أنت)</span>':'')+
-      '<div class="lb-sub">'+r.exact+' نتيجة مطابقة</div></div>'+
+      '<div class="lb-sub">'+r.exact+' نتيجة مطابقة</div>'+picksLine+'</div>'+
       '<div class="lb-pts">'+r.total+' <span>'+ptsWord(r.total)+'</span></div>';
     if(isAdmin){
       var del=document.createElement('button');del.className='lb-del';del.textContent='🗑';del.title='حذف اللاعب';
