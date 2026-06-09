@@ -110,9 +110,6 @@ img.flag{display:inline-block;width:auto;height:.95em;vertical-align:-2px;border
 .sub-tab.active{background:#e11d48;color:#fff;}
 .gr-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;}
 .gr-card h4{margin:0;font-size:.95rem;font-weight:800;letter-spacing:.5px;color:#fde68a;}
-.gr-card .gr-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.gr-card .gr-flags{display:flex;gap:6px;align-items:center;}
-.gr-card .gr-flags img.flag{height:18px;border-radius:2px;}
 .gr-tbl td.gr-team img.flag{height:18px;margin-inline-end:6px;vertical-align:-3px;}
 .gr-tbl{width:100%;border-collapse:collapse;font-size:.82rem;}
 .gr-tbl th{font-size:.66rem;font-weight:700;color:var(--muted);text-align:center;padding:6px 4px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.4px;}
@@ -378,6 +375,24 @@ img.flag{display:inline-block;width:auto;height:.95em;vertical-align:-2px;border
         <td>You predict <b>Brazil to win</b>, but the match ends a draw and goes to penalties</td>
       </tr>
     </table>
+  </div>
+
+  <div class="rules">
+    <b>🏆 Tournament-long picks</b>
+    <table class="ptable">
+      <tr><th>Points</th><th>When</th><th>Example</th></tr>
+      <tr>
+        <td class="pcell">30</td>
+        <td><b>Champion:</b> you pick the team that wins the 2026 World Cup</td>
+        <td>You pick <b>Argentina</b>, and Argentina win the final</td>
+      </tr>
+      <tr>
+        <td class="pcell">15</td>
+        <td><b>Top scorer:</b> you pick the player who finishes as the tournament's top scorer</td>
+        <td>You pick <b>Kylian Mbappé</b>, and he finishes with the most goals</td>
+      </tr>
+    </table>
+    <div style="font-size:.74rem;color:var(--muted);margin-top:8px">Both picks lock when the first match of the tournament kicks off — no edits after that.</div>
   </div>
 
   <div class="rules">
@@ -1711,12 +1726,7 @@ function renderStandings(){
   var st=computeStandings();
   Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){
     var card=document.createElement('div');card.className='gr-card';
-    var head=document.createElement('div');head.className='gr-head';
-    var h=document.createElement('h4');h.textContent='Group '+g;head.appendChild(h);
-    var flags=document.createElement('div');flags.className='gr-flags';
-    (SCHEDULE_DATA.groups[g]||[]).forEach(function(t){flags.innerHTML+=flagImg(t.name,28);});
-    head.appendChild(flags);
-    card.appendChild(head);
+    var h=document.createElement('h4');h.textContent='Group '+g;card.appendChild(h);
     var tbl=document.createElement('table');tbl.className='gr-tbl';
     tbl.innerHTML='<thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead>';
     var tb=document.createElement('tbody');

@@ -110,9 +110,6 @@ img.flag{display:inline-block;width:auto;height:.95em;vertical-align:-2px;border
 .sub-tab.active{background:#22c55e;color:#fff;}
 .gr-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;}
 .gr-card h4{margin:0;font-size:1rem;font-weight:800;letter-spacing:.4px;color:#fde68a;}
-.gr-card .gr-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.gr-card .gr-flags{display:flex;gap:6px;align-items:center;}
-.gr-card .gr-flags img.flag{height:18px;border-radius:2px;}
 .gr-tbl td.gr-team img.flag{height:18px;margin-inline-end:6px;vertical-align:-3px;}
 .gr-tbl{width:100%;border-collapse:collapse;font-size:.85rem;}
 .gr-tbl th{font-size:.7rem;font-weight:700;color:var(--muted);text-align:center;padding:6px 4px;border-bottom:1px solid var(--line);}
@@ -382,6 +379,24 @@ img.flag{display:inline-block;width:auto;height:.95em;vertical-align:-2px;border
         <td>توقعت <b>فوز البرازيل</b>، بس تعادلوا وراحت بلنتيات</td>
       </tr>
     </table>
+  </div>
+
+  <div class="rules">
+    <b>🏆 توقّعات البطولة الكاملة</b>
+    <table class="ptable">
+      <tr><th>النقاط</th><th>الحالة</th><th>مثال</th></tr>
+      <tr>
+        <td class="pcell">30</td>
+        <td><b>بطل الكأس:</b> اخترت المنتخب الفائز بكأس العالم 2026</td>
+        <td>اخترت <b>الأرجنتين</b> وفازت بالنهائي</td>
+      </tr>
+      <tr>
+        <td class="pcell">15</td>
+        <td><b>هدّاف البطولة:</b> اخترت اللاعب اللي يطلع هدّاف البطولة</td>
+        <td>اخترت <b>كيليان مبابي</b> وطلع هدّاف البطولة بأعلى عدد أهداف</td>
+      </tr>
+    </table>
+    <div style="font-size:.78rem;color:var(--muted);margin-top:8px">يتقفل التوقّع مع بداية أول مباراة في البطولة، وما تقدر تعدّله بعدها.</div>
   </div>
 
   <div class="rules">
@@ -1645,12 +1660,7 @@ function renderStandings(){
   var st=computeStandings();
   Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){
     var card=document.createElement('div');card.className='gr-card';
-    var head=document.createElement('div');head.className='gr-head';
-    var h=document.createElement('h4');h.textContent='المجموعة '+g;head.appendChild(h);
-    var flags=document.createElement('div');flags.className='gr-flags';
-    (SCHEDULE_DATA.groups[g]||[]).forEach(function(t){flags.innerHTML+=flagImg(t.name,28);});
-    head.appendChild(flags);
-    card.appendChild(head);
+    var h=document.createElement('h4');h.textContent='المجموعة '+g;card.appendChild(h);
     var tbl=document.createElement('table');tbl.className='gr-tbl';
     tbl.innerHTML='<thead><tr><th>#</th><th>المنتخب</th><th>ل</th><th>ف</th><th>ت</th><th>خ</th><th>ف.أ</th><th>ن</th></tr></thead>';
     var tb=document.createElement('tbody');
