@@ -35,6 +35,12 @@
         "$mid": {
           ".write": "auth != null"
         }
+      },
+
+      "rooms": {
+        "$rid": {
+          ".write": "auth != null"
+        }
       }
     }
   }
