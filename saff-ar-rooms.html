@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>دوري توقّعات كأس العالم 2026</title>
+<link rel="manifest" href="manifest-ar.json">
+<meta name="theme-color" content="#0a5c33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="كأس العالم 2026">
+<link rel="apple-touch-icon" href="icon-saff-192.png">
+<link rel="icon" type="image/png" href="icon-saff-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<style>
+:root{
+  --bg:#0a1810; --surface:#102a1c; --card:#0d2417;
+  --accent1:#0a5c33; --accent2:#2ea96a; --accent3:#07371f;
+  --gold:#0a5c33; --text:#eafff2; --muted:#8fb3a0;
+  --line:rgba(255,255,255,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+*{scrollbar-width:thin;scrollbar-color:rgba(10,92,51,.55) transparent;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:rgba(10,92,51,.45);border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(10,92,51,.75);}
+::-webkit-scrollbar-track{background:transparent;}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:18px 14px 90px;}
+.screen{display:none;width:100%;max-width:480px;flex-direction:column;align-items:center;gap:14px;}
+.screen.active{display:flex;}
+.cobrand{display:flex;align-items:center;justify-content:center;gap:16px;}
+.cb-caa{height:54px;width:auto;}
+.cb-wc{height:64px;width:auto;}
+.cb-div{width:2px;height:46px;background:rgba(255,255,255,.28);border-radius:2px;}
+.tagline{font-size:.85rem;color:var(--muted);text-align:center;}
+.subtitle{font-size:1.5rem;font-weight:800;color:#fff;text-align:center;margin-top:16px;line-height:1.2;}
+.box{width:100%;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 18px;display:flex;flex-direction:column;gap:12px;}
+.box-title{font-size:.95rem;font-weight:700;color:var(--text);}
+input.field{width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:1rem;outline:none;}
+input.field:focus{border-color:var(--accent2);}
+input.field::placeholder{color:var(--muted);}
+.btn{width:100%;padding:14px;border-radius:13px;border:none;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .2s,transform .1s;}
+.btn:active:not(:disabled){transform:scale(.97);opacity:.9;}
+.btn:disabled{background:#16402a!important;color:var(--muted)!important;cursor:default;}
+.btn-green{background:linear-gradient(135deg,#2ea96a,#07371f);color:#ffffff;}
+.btn-gold{background:linear-gradient(135deg,#0a5c33,#052a18);color:#ffffff;}
+.btn-grad{background:linear-gradient(135deg,#2ea96a,#0a5c33);color:#ffffff;}
+.err{font-size:.82rem;color:#fca5a5;text-align:center;min-height:18px;}
+.install-btn{width:100%;display:none;background:rgba(255,255,255,.10);color:var(--text);border:1px solid var(--line);border-radius:13px;padding:12px;margin:10px 0;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;}
+.install-btn:hover{background:rgba(255,255,255,.16);}
+
+.setup-banner{width:100%;background:rgba(10,92,51,.08);border:1px solid rgba(10,92,51,.3);border-radius:14px;padding:14px;font-size:.82rem;color:#cdeedd;line-height:1.7;display:none;}
+.setup-banner.show{display:block;}
+.setup-banner code{background:rgba(0,0,0,.3);padding:1px 6px;border-radius:6px;font-size:.78rem;}
+
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,#103a23,#06140d);border-top:2px solid #d4af37;box-shadow:0 -10px 30px rgba(0,0,0,.55);display:flex;justify-content:center;gap:4px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:50;}
+.tab{flex:1;max-width:150px;background:none;border:none;color:rgba(255,255,255,.7);font-family:'Tajawal',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;padding:8px 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.tab .ico{font-size:1.2rem;}
+.tab.active{color:#fff;background:rgba(212,175,55,.28);}
+
+.topbar{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.me-chip{font-size:.85rem;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:7px 14px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:border-color .15s,color .15s;}
+.me-chip:hover{border-color:var(--accent1);}
+.me-chip b{color:#fff;}
+.me-out{width:15px;height:15px;color:var(--muted);margin-inline-start:2px;flex-shrink:0;}
+.me-out-label{font-size:.72rem;color:var(--muted);font-weight:600;}
+.me-chip:hover .me-out,.me-chip:hover .me-out-label{color:var(--accent1);}
+.icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:1.1rem;cursor:pointer;flex-shrink:0;}
+.icon-btn:hover{color:var(--text);border-color:var(--accent1);}
+.admin-on{border-color:var(--accent1)!important;color:var(--text)!important;}
+
+.section-title{width:100%;font-size:1rem;font-weight:800;color:var(--text);}
+.hint{width:100%;font-size:.76rem;color:var(--muted);line-height:1.7;}
+
+.chips{width:100%;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:rgba(10,92,51,.5) transparent;}
+.chips::-webkit-scrollbar{height:4px;}
+.chips::-webkit-scrollbar-thumb{background:rgba(10,92,51,.5);border-radius:10px;}
+.chips::-webkit-scrollbar-thumb:hover{background:rgba(10,92,51,.8);}
+.chips::-webkit-scrollbar-track{background:transparent;}
+.chip{flex:0 0 auto;scroll-snap-align:center;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-family:'Tajawal',sans-serif;font-size:.8rem;font-weight:700;padding:7px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s;}
+.chip.active{background:var(--accent1);border-color:var(--accent1);color:#fff;}
+
+.match{width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;}
+.tour-card{width:100%;background:linear-gradient(155deg,rgba(212,175,55,.16),rgba(212,175,55,.04) 55%,rgba(255,255,255,.03));border:1px solid rgba(212,175,55,.55);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.tour-card h3{margin:0;font-size:1.05rem;font-weight:800;color:#fde68a;letter-spacing:.2px;}
+.tour-card .tour-eye{font-size:.78rem;color:#bcd2e6;margin-top:-6px;}
+.tour-row{display:flex;flex-direction:column;gap:6px;}
+.tour-row label{font-size:.82rem;color:var(--muted);font-weight:700;}
+.tour-row select{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-family:'Tajawal',sans-serif;font-size:.95rem;font-weight:600;}
+.tour-row select:focus{outline:none;border-color:#d4af37;}
+.psearch{position:relative;width:100%;}.psearch-input{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-family:'Tajawal',sans-serif;font-size:.92rem;font-weight:600;box-sizing:border-box;}.psearch-input:focus{outline:none;border-color:#d4af37;}.psearch-drop{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--line);border-radius:10px;max-height:240px;overflow-y:auto;z-index:50;display:none;box-shadow:0 8px 24px rgba(0,0,0,.35);}.psearch-drop.open{display:block;}.psearch-row{padding:9px 12px;font-size:.88rem;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(255,255,255,.04);}.psearch-row:last-child{border-bottom:none;}.psearch-row:hover{background:rgba(212,175,55,.12);}.psearch-team{color:var(--muted);font-size:.78rem;font-weight:600;white-space:nowrap;}.psearch-empty{padding:10px 12px;color:var(--muted);font-size:.82rem;text-align:center;}
+img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;border-radius:2px;box-shadow:0 0 0 1px rgba(255,255,255,.08);object-fit:cover;}
+.tour-locked{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,.05);border-radius:10px;font-size:.92rem;}
+.tour-locked .lbl{color:var(--muted);font-weight:700;font-size:.8rem;}
+.tour-locked .val{color:#fff;font-weight:700;}
+.tour-locked .val.ok{color:#34d399;}
+.tour-locked .val.no{color:#fca5a5;}
+.tour-save{background:#d4af37;color:#1a1100;border:none;border-radius:11px;padding:12px;font-family:'Tajawal',sans-serif;font-weight:800;cursor:pointer;font-size:.95rem;}
+.tour-save:disabled{opacity:.5;cursor:default;}
+.sub-tabs{display:flex;gap:6px;width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:6px;}
+.sub-tab{flex:1;background:none;border:none;color:var(--muted);font-family:'Tajawal',sans-serif;font-weight:700;font-size:.9rem;padding:9px 8px;border-radius:9px;cursor:pointer;}
+.sub-tab.active{background:#22c55e;color:#fff;}
+.gr-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;}
+.gr-card h4{margin:0;font-size:1rem;font-weight:800;letter-spacing:.4px;color:#fde68a;}
+.gr-tbl td.gr-team img.flag{width:27px;height:18px;object-fit:cover;margin-inline-end:6px;vertical-align:-3px;}
+.gr-tbl{width:100%;border-collapse:collapse;font-size:.85rem;}
+.gr-tbl th{font-size:.7rem;font-weight:700;color:var(--muted);text-align:center;padding:6px 4px;border-bottom:1px solid var(--line);}
+.gr-tbl th:nth-child(2){text-align:right;}
+.gr-tbl td{padding:8px 4px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);font-weight:600;}
+.gr-tbl tr:last-child td{border-bottom:none;}
+.gr-tbl td.gr-team{text-align:right;}
+.gr-team{display:flex;align-items:center;gap:6px;font-weight:700;}
+.gr-flag{font-size:1.1rem;}
+.gr-tbl tr.gr-q td:first-child{box-shadow:inset 3px 0 0 #22c55e;}
+.gr-tbl tr.gr-q3 td:first-child{box-shadow:inset 3px 0 0 #fbbf24;}
+.gr-legend{display:flex;gap:14px;font-size:.74rem;color:var(--muted);align-items:center;padding-top:4px;flex-wrap:wrap;}
+.gr-legend span{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle;}
+.gr-legend .lg-q{background:#22c55e;}
+.gr-legend .lg-q3{background:#fbbf24;}
+.sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
+.sc-rank{font-weight:800;color:var(--muted);min-width:24px;text-align:center;font-size:.95rem;}
+.sc-row:nth-child(1) .sc-rank,.sc-row:nth-child(2) .sc-rank{color:#fde68a;}
+.sc-name{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0;}
+.sc-name-main{font-weight:700;font-size:.95rem;color:var(--text);}
+.sc-team{font-size:.78rem;color:var(--muted);}
+.sc-goals{display:flex;align-items:center;gap:4px;font-weight:800;font-size:1.1rem;color:#fde68a;}
+.sc-goals span{font-size:.9rem;}
+.match.live{border-color:rgba(10,92,51,.6);background:rgba(10,92,51,.07);}
+.match.finished{opacity:.6;}
+.match-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:.72rem;color:var(--muted);gap:8px;}
+.hc-l{justify-self:start;}
+.hc-c{justify-self:center;text-align:center;color:var(--muted);}
+.hc-r{justify-self:end;}
+.grp-badge{background:rgba(10,92,51,.28);color:#fff;border-radius:8px;padding:2px 9px;font-weight:700;white-space:nowrap;}
+.status-badge{font-weight:800;white-space:nowrap;font-size:.62rem;letter-spacing:.5px;padding:3px 9px;border-radius:8px;}
+.status-badge.open{background:rgba(255,255,255,.10);color:#fff;}
+.status-badge.live{background:var(--accent1);color:#fff;}
+.status-badge.soon{background:rgba(255,255,255,.10);color:var(--muted);}
+.status-badge.finished{background:rgba(255,255,255,.10);color:var(--muted);}
+.match-meta{width:100%;font-size:.7rem;color:var(--muted);text-align:center;}
+.teams{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.team{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;}
+.team .flag{font-size:2rem;line-height:1;}
+.team .flagimg{width:46px;height:31px;object-fit:cover;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.45);}
+.team .tname{font-size:.88rem;font-weight:700;}
+.vs{font-size:.8rem;color:var(--muted);font-weight:700;padding:0 4px;}
+.score-in{display:flex;align-items:center;gap:6px;}
+.stp{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:#fff;font-size:1.1rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.stp:active{transform:scale(.9);}
+.sval{min-width:30px;text-align:center;font-size:1.4rem;font-weight:800;}
+.pred-row{display:flex;align-items:center;gap:8px;}
+.pred-row>.score-in{flex:1;justify-content:center;}
+.result-row{display:flex;align-items:center;justify-content:center;gap:14px;background:var(--surface);border-radius:12px;padding:10px;}
+.result-big{font-size:1.6rem;font-weight:800;color:#fff;}
+.result-lbl{font-size:.72rem;color:var(--muted);}
+.your-pred{font-size:.8rem;color:var(--muted);text-align:center;}
+.your-pred b{color:var(--text);}
+.pts-badge{font-size:.82rem;font-weight:800;border-radius:10px;padding:4px 12px;text-align:center;width:fit-content;margin:0 auto;}
+.pts-hi{background:var(--accent1);color:#fff;}
+.pts-mid{background:rgba(10,92,51,.45);color:#fff;}
+.pts-0{background:rgba(255,255,255,.06);color:var(--muted);}
+.save-pred{padding:10px;font-size:.9rem;}
+.pred-actions{display:flex;gap:8px;width:100%;}
+.pred-actions .save-pred{flex:1;}
+.x2-btn{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:4px 9px;border-radius:10px;border:1px solid rgba(245,179,1,.5);background:rgba(245,179,1,.12);color:#f5b301;font-family:'Tajawal',sans-serif;cursor:pointer;white-space:nowrap;line-height:1;direction:ltr;}
+.x2-ic{font-size:.85rem;}
+.x2-tx{font-size:.6rem;font-weight:800;}
+.x2-btn.on{background:#f5b301;color:#241a00;border-color:#f5b301;}
+.x2-badge{font-size:.72rem;font-weight:800;color:#f5b301;}
+.pen-box{width:100%;background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;transition:opacity .2s;}
+.pen-lbl{font-size:.75rem;color:var(--muted);text-align:center;font-weight:700;}
+.pen-btns{display:flex;gap:8px;}
+.pen-btn{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-family:'Tajawal',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;}
+.pen-btn:disabled{cursor:default;}
+.pen-btn.sel{border-color:var(--accent1);background:var(--accent1);color:#fff;}
+.pen-note{font-size:.72rem;color:#fff;text-align:center;}
+.locked-note{font-size:.75rem;color:var(--muted);text-align:center;}
+.allpreds-wrap{width:100%;border-top:1px dashed var(--line);padding-top:10px;}
+.see-preds{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:8px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;}
+.allpreds{display:none;flex-direction:column;gap:7px;margin-top:8px;}
+.allpreds.show{display:flex;}
+.ap-row{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;gap:8px;}
+.ap-name{color:var(--muted);}
+.ap-row.me .ap-name{color:#fff;font-weight:700;}
+.ap-right{display:flex;align-items:center;gap:10px;}
+.ap-pick{font-weight:700;color:#fff;}
+.ap-pts{font-size:.72rem;color:#fff;font-weight:800;min-width:26px;text-align:right;}
+.ap-empty{color:var(--muted);font-size:.78rem;text-align:center;}
+
+.admin-zone{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px;}
+.admin-zone .lbl{font-size:.72rem;color:var(--muted);font-weight:700;}
+.admin-actions{display:flex;gap:8px;}
+.admin-actions button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-family:'Tajawal',sans-serif;font-size:.8rem;cursor:pointer;color:var(--text);}
+.admin-bar{width:100%;margin-bottom:6px;}
+.btn-clear-all{width:100%;padding:12px;border-radius:10px;border:1px solid #e11d48;background:rgba(225,29,72,.12);color:#fca5a5;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;}
+.btn-clear-all:disabled{opacity:.45;cursor:default;border-color:var(--line);color:var(--muted);background:var(--surface);}
+.btn-summary{width:100%;padding:12px;border-radius:10px;border:1px solid var(--accent1);background:rgba(10,92,51,.30);color:#fff;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;margin-bottom:8px;}
+.btn-summary:hover{background:rgba(10,92,51,.42);}
+.a-edit{color:#fff;}
+.a-del{color:#fca5a5;}
+
+.lb-row{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+.lb-row.me{border-color:rgba(46,169,106,.5);background:rgba(46,169,106,.05);}
+.lb-rank{font-size:1.1rem;font-weight:800;width:34px;text-align:center;color:var(--muted);}
+.lb-row.top1 .lb-rank{color:var(--gold);}
+.lb-row.top2 .lb-rank,.lb-row.top3 .lb-rank{color:var(--accent2);}
+.lb-name{flex:1;font-size:.95rem;font-weight:700;}
+.lb-sub{font-size:.72rem;color:var(--muted);font-weight:400;}
+.lb-pts{font-size:1.3rem;font-weight:800;color:#fff;}
+.lb-del{margin-inline-start:8px;background:rgba(10,92,51,.15);border:1px solid rgba(10,92,51,.4);color:#fff;border-radius:9px;padding:6px 9px;font-size:.85rem;cursor:pointer;flex-shrink:0;}
+.lb-pts span{font-size:.68rem;color:var(--muted);font-weight:400;}
+.lb-picks{margin-top:4px;color:#cbd5e1;font-weight:600;}.lb-picks img.flag{width:1.35em;height:.9em;object-fit:cover;vertical-align:-2px;}
+.empty{color:var(--muted);font-size:.88rem;text-align:center;padding:30px 10px;line-height:1.8;}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(5px);z-index:100;align-items:flex-end;justify-content:center;}
+.overlay.show{display:flex;}
+.modal{background:#0d2417;border:1px solid var(--line);border-radius:22px 22px 0 0;padding:22px 18px calc(34px + env(safe-area-inset-bottom));width:100%;max-width:480px;animation:slideUp .3s ease;max-height:90vh;overflow-y:auto;}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.modal-title{font-size:1rem;font-weight:700;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px;}
+.modal label{display:block;font-size:.78rem;color:var(--muted);margin:10px 0 6px;}
+.modal .row2{display:flex;gap:10px;}
+.modal .row2>div{flex:1;}
+.modal-msg{font-size:.78rem;color:#fff;text-align:center;margin-top:12px;min-height:18px;}
+
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:#102a1c;border:1px solid rgba(46,169,106,.3);border-radius:12px;padding:11px 20px;font-size:.88rem;font-weight:600;opacity:0;transition:opacity .3s;z-index:200;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;}
+
+.rules{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:.82rem;line-height:1.9;color:var(--muted);}
+.rules b{color:#fff;}
+.ptable{width:100%;border-collapse:collapse;font-size:.78rem;line-height:1.5;margin-top:10px;table-layout:fixed;}
+.ptable th,.ptable td{border:1px solid var(--line);padding:8px 9px;color:var(--text);word-wrap:break-word;}
+.ptable td{text-align:start;vertical-align:middle;}
+.ptable th:nth-child(1),.ptable td:nth-child(1){width:21%;}
+.ptable th:nth-child(2),.ptable td:nth-child(2){width:39.5%;}
+.ptable th:nth-child(3),.ptable td:nth-child(3){width:39.5%;}
+.ptable th{color:#fff;font-weight:700;background:rgba(10,92,51,.30);text-align:center;vertical-align:middle;}
+.ptable .pcell{font-weight:800;color:#fff;text-align:center;vertical-align:middle;white-space:nowrap;}
+.ptable td .ex{color:var(--muted);}
+.cobrand{display:flex;align-items:center;justify-content:center;gap:14px;width:fit-content;margin:0 auto;}
+.cb-saff{height:86px;width:auto;display:block;}
+.cb-wc{height:76px;width:auto;display:block;}
+.cb-div{width:2px;height:58px;background:rgba(255,255,255,.28);border-radius:2px;}
+.subtitle{font-size:1.55rem;font-weight:800;color:#fff;text-align:center;margin-top:16px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="screen active" id="sLogin">
+  <div style="margin:20px 0 8px">
+    <div class="cobrand">
+      <img class="cb-saff" src="saff-white.png" alt="الاتحاد السعودي لكرة القدم">
+      <span class="cb-div"></span>
+      <img class="cb-wc" src="wc26.png" alt="كأس العالم 2026">
+    </div>
+    <div class="subtitle">دوري توقّعات كأس العالم 2026</div>
+  </div>
+  <div class="setup-banner" id="setupBanner">
+    ⚙️ <b>الإعداد مطلوب:</b> ضع إعدادات Firebase في الكود (ابحث عن <code>firebaseConfig</code>) حتى تُحفظ التوقعات.
+  </div>
+  <div class="box">
+    <input class="field" id="nameInput" placeholder="اسم المستخدم" maxlength="20" autocomplete="off">
+    <input class="field" id="pinInput" type="tel" inputmode="numeric" maxlength="6" placeholder="الرقم السري (4–6 أرقام)" autocomplete="off" style="text-align:right;direction:rtl;">
+    <button class="btn btn-grad" id="btnLogin">سجّل حسابك / ادخل</button>
+    <div class="hint" style="text-align:center">أول مرة؟ اختر أي اسم مستخدم ورقم سري. استخدم نفس الاسم والرقم للدخول من أي جهاز.</div>
+  </div>
+  <div class="err" id="loginErr"></div>
+  <button class="install-btn" id="btnInstall">📲 ثبّت التطبيق على جوالك</button>
+  <div class="rules">
+    <b>طريقة اللعب</b><br>
+    📊 توقعت النتيجة صح = <b>5 نقاط</b> · توقعت المنتخب الفائز/التعادل صح = <b>3 نقاط</b><br>
+    ⏰ التوقع يفتح قبل المباراة بـ24 ساعة ويقفل أول ما تبدأ<br>
+    📖 التفاصيل كاملة في صفحة القوانين داخل اللعبة
+  </div>
+</div>
+
+<!-- MATCHES -->
+<div class="screen" id="sMatches">
+  <div class="topbar">
+    <div class="me-chip">👤 <b id="meName">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">تسجيل الخروج</span></div>
+    <button class="icon-btn" id="btnSettings">⚙️</button>
+  </div>
+  <div class="section-title">⚽ المباريات</div>
+  <div class="chips" id="chips"></div>
+  <div id="matchList" style="width:100%;display:flex;flex-direction:column;gap:12px;"></div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="screen" id="sLeader">
+  <div class="topbar">
+    <div class="me-chip">👤 <b id="meName2">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">تسجيل الخروج</span></div>
+    <button class="icon-btn" id="btnSettings2">⚙️</button>
+  </div>
+  <div class="section-title">🏅 الترتيب</div>
+  <div id="leaderList" style="width:100%;display:flex;flex-direction:column;gap:10px;"></div>
+</div>
+
+<!-- GROUPS & SCORERS -->
+<div class="screen" id="sGroups">
+  <div class="topbar">
+    <div class="me-chip">👤 <b id="meName4">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">تسجيل الخروج</span></div>
+    <button class="icon-btn" id="btnSettings4">⚙️</button>
+  </div>
+  <div class="section-title">📊 المجموعات والهدافون</div>
+  <div class="sub-tabs">
+    <button class="sub-tab active" data-sub="standings">الترتيب</button>
+    <button class="sub-tab" data-sub="scorers">الهدافون</button>
+  </div>
+  <div id="standingsView" style="width:100%;display:flex;flex-direction:column;gap:14px;"></div>
+  <div id="scorersView" style="width:100%;display:none;flex-direction:column;gap:8px;"></div>
+</div>
+
+<!-- RULES -->
+<div class="screen" id="sRules">
+  <div class="topbar">
+    <div class="me-chip">👤 <b id="meName3">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">تسجيل الخروج</span></div>
+    <button class="icon-btn" id="btnSettings3">⚙️</button>
+  </div>
+  <div class="section-title">📖 القوانين وطريقة اللعب</div>
+  <div class="rules">
+    <b>📊 كيف تنحسب النقاط</b>
+    <table class="ptable">
+      <tr><th>النقاط</th><th>الحالة</th><th>مثال</th></tr>
+      <tr>
+        <td class="pcell">5</td>
+        <td>توقعت النتيجة صح — يعني أهداف الفريقين كلها صح</td>
+        <td>توقعت <b>البرازيل 2–1 إسبانيا</b>، وانتهت <b>البرازيل 2–1 إسبانيا</b></td>
+      </tr>
+      <tr>
+        <td class="pcell">3</td>
+        <td>توقعت الفائز صح، أو أنها تعادل، بس النتيجة غلط</td>
+        <td>توقعت <b>البرازيل 2–0 إسبانيا</b>، وانتهت <b>البرازيل 3–1 إسبانيا</b></td>
+      </tr>
+      <tr>
+        <td class="pcell">0</td>
+        <td>توقعت غلط</td>
+        <td>توقعت <b>البرازيل 2–1 إسبانيا</b>، وانتهت <b>البرازيل 0–1 إسبانيا</b></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="rules">
+    <b>🥅 مباريات خروج المغلوب اللي تروح بلنتيات</b>
+    <table class="ptable">
+      <tr><th>النقاط</th><th>الحالة</th><th>مثال</th></tr>
+      <tr>
+        <td class="pcell">6</td>
+        <td>توقعت نتيجة التعادل صح + الفائز بالبلنتيات صح</td>
+        <td>توقعت <b>البرازيل 1–1 إسبانيا، والبرازيل تفوز بالبلنتيات</b>، وانتهت كذا</td>
+      </tr>
+      <tr>
+        <td class="pcell">5</td>
+        <td>توقعت نتيجة التعادل صح بس الفائز بالبلنتيات غلط</td>
+        <td>توقعت <b>البرازيل 1–1 إسبانيا، والبرازيل تفوز بالبلنتيات</b>، وانتهت <b>1–1</b> وفازت إسبانيا بالبلنتيات</td>
+      </tr>
+      <tr>
+        <td class="pcell">4</td>
+        <td>توقعت تعادل والنتيجة غلط، بس الفائز بالبلنتيات صح</td>
+        <td>توقعت <b>البرازيل 2–2 إسبانيا، والبرازيل تفوز بالبلنتيات</b>، وانتهت <b>البرازيل 1–1 إسبانيا</b> وفازت البرازيل بالبلنتيات</td>
+      </tr>
+      <tr>
+        <td class="pcell">3</td>
+        <td>توقعت تعادل والنتيجة غلط، والفائز بالبلنتيات غلط</td>
+        <td>توقعت <b>البرازيل 2–2 إسبانيا، والبرازيل تفوز بالبلنتيات</b>، وانتهت <b>1–1</b> وفازت إسبانيا بالبلنتيات</td>
+      </tr>
+      <tr>
+        <td class="pcell">0</td>
+        <td>توقعت غلط — توقعت فوز فريق</td>
+        <td>توقعت <b>فوز البرازيل</b>، بس تعادلوا وراحت بلنتيات</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="rules">
+    <b>🏆 توقّعات البطولة الكاملة</b>
+    <table class="ptable">
+      <tr><th>النقاط</th><th>الحالة</th><th>مثال</th></tr>
+      <tr>
+        <td class="pcell">30</td>
+        <td><b>بطل الكأس:</b> اخترت المنتخب الفائز بكأس العالم 2026</td>
+        <td>اخترت <b>الأرجنتين</b> وفازت بالنهائي</td>
+      </tr>
+      <tr>
+        <td class="pcell">15</td>
+        <td><b>هدّاف البطولة:</b> اخترت اللاعب اللي يطلع هدّاف البطولة</td>
+        <td>اخترت <b>كيليان مبابي</b> وطلع هدّاف البطولة بأعلى عدد أهداف</td>
+      </tr>
+    </table>
+    <div style="font-size:.78rem;color:var(--muted);margin-top:8px">يتقفل التوقّع مع بداية أول مباراة في البطولة، وما تقدر تعدّله بعدها.</div>
+  </div>
+
+  <div class="rules">
+    <b>📌 ملاحظات مهمة</b><br>
+    • <b>بطاقات ×2:</b> عندك 5 مرات تستخدم فيها البطاقة في البطولة كاملة، فعّلها على المباراة قبل ما تبدأ <b>وبتتضاعف نقاطك</b> فيها<br>
+    • <b>التوقع يفتح قبل المباراة بـ24 ساعة</b>، وتقدر تغيّره زي ما تبغى لين تبدأ المباراة<br>
+    • <b>لو تعادلتوا في الترتيب</b>، اللي توقع نتائج صح أكثر هو اللي يكون مركزه أعلى
+  </div>
+</div>
+
+<!-- TABBAR -->
+<div class="tabbar" id="tabbar" style="display:none">
+  <button class="tab active" data-tab="sMatches"><span class="ico">⚽</span>المباريات</button>
+  <button class="tab" data-tab="sGroups"><span class="ico">📊</span>المجموعات</button>
+  <button class="tab" data-tab="sLeader"><span class="ico">🏅</span>الترتيب</button>
+  <button class="tab" data-tab="sRules"><span class="ico">📖</span>القوانين</button>
+</div>
+
+<!-- IOS INSTALL HELP -->
+<div class="overlay" id="iosInstall">
+  <div class="modal">
+    <div style="text-align:center;font-size:1.05rem;font-weight:800;margin-bottom:6px">📲 أضف للشاشة الرئيسية (آيفون)</div>
+    <div class="hint" style="text-align:center;margin-bottom:12px">ثبّت التطبيق بـ4 خطوات:</div>
+    <ol style="padding-inline-start:22px;line-height:1.9;font-size:.95rem;color:var(--text);margin:0 0 16px">
+      <li>اضغط على قائمة <b>الثلاث نقاط (•••)</b> تحت في Safari.</li>
+      <li>اضغط زر <b>المشاركة</b>.</li>
+      <li>انزل واضغط على <b>«إضافة إلى الشاشة الرئيسية»</b>.</li>
+      <li>اضغط <b>«إضافة»</b> — بتظهر أيقونة التطبيق على شاشتك.</li>
+    </ol>
+    <button class="btn btn-grad ios-close" style="width:100%">تمام</button>
+  </div>
+</div>
+
+<!-- ANDROID INSTALL HELP -->
+<div class="overlay" id="androidInstall">
+  <div class="modal">
+    <div style="text-align:center;font-size:1.05rem;font-weight:800;margin-bottom:6px">📲 ثبّت على أندرويد</div>
+    <div class="hint" style="text-align:center;margin-bottom:12px">ثبّت التطبيق بـ3 خطوات:</div>
+    <ol style="padding-inline-start:22px;line-height:1.9;font-size:.95rem;color:var(--text);margin:0 0 16px">
+      <li>اضغط على قائمة <b>الثلاث نقاط (⋮)</b> فوق في Chrome.</li>
+      <li>اختر <b>«تثبيت التطبيق»</b> أو <b>«إضافة إلى الشاشة الرئيسية»</b>.</li>
+      <li>اضغط <b>«تثبيت»</b> — راح تظهر أيقونة التطبيق على شاشتك.</li>
+    </ol>
+    <button class="btn btn-grad and-close" style="width:100%">تمام</button>
+  </div>
+</div>
+
+<!-- TEAMS MODAL (admin) -->
+<div class="overlay" id="teamOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">✏️ تعيين الفرق</div>
+      <button class="modal-close" id="teamModalClose">✕</button>
+    </div>
+    <div class="hint" id="teamModalCtx" style="margin-bottom:6px"></div>
+    <div class="row2">
+      <div><label>الفريق الأول</label><input class="field" id="tHome" placeholder="اسم الفريق"></div>
+      <div><label>العلم 🏳️</label><input class="field" id="tHF" placeholder="🏳️" maxlength="8"></div>
+    </div>
+    <div class="row2">
+      <div><label>الفريق الثاني</label><input class="field" id="tAway" placeholder="اسم الفريق"></div>
+      <div><label>العلم 🏳️</label><input class="field" id="tAF" placeholder="🏳️" maxlength="8"></div>
+    </div>
+    <button class="btn btn-grad" id="btnSaveTeams" style="margin-top:16px">احفظ الفرق ✅</button>
+    <button class="btn btn-ghost" id="btnResetTeams" style="margin-top:10px;background:var(--surface);color:var(--muted);border:1px solid var(--line)">ارجع للافتراضي</button>
+    <div class="modal-msg" id="teamModalMsg"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== OFFICIAL FIXTURE DATA (static, embedded) =====
+var SCHEDULE_DATA = {"groups":{"A":[{"name":"Mexico","flag":"🇲🇽"},{"name":"South Africa","flag":"🇿🇦"},{"name":"South Korea","flag":"🇰🇷"},{"name":"Czechia","flag":"🇨🇿"}],"B":[{"name":"Canada","flag":"🇨🇦"},{"name":"Bosnia and Herzegovina","flag":"🇧🇦"},{"name":"Qatar","flag":"🇶🇦"},{"name":"Switzerland","flag":"🇨🇭"}],"C":[{"name":"Brazil","flag":"🇧🇷"},{"name":"Morocco","flag":"🇲🇦"},{"name":"Haiti","flag":"🇭🇹"},{"name":"Scotland","flag":"🏴󠁧󠁢󠁳󠁣󠁴󠁿"}],"D":[{"name":"United States","flag":"🇺🇸"},{"name":"Paraguay","flag":"🇵🇾"},{"name":"Australia","flag":"🇦🇺"},{"name":"Turkiye","flag":"🇹🇷"}],"E":[{"name":"Germany","flag":"🇩🇪"},{"name":"Curacao","flag":"🇨🇼"},{"name":"Ivory Coast","flag":"🇨🇮"},{"name":"Ecuador","flag":"🇪🇨"}],"F":[{"name":"Netherlands","flag":"🇳🇱"},{"name":"Japan","flag":"🇯🇵"},{"name":"Sweden","flag":"🇸🇪"},{"name":"Tunisia","flag":"🇹🇳"}],"G":[{"name":"Belgium","flag":"🇧🇪"},{"name":"Egypt","flag":"🇪🇬"},{"name":"Iran","flag":"🇮🇷"},{"name":"New Zealand","flag":"🇳🇿"}],"H":[{"name":"Spain","flag":"🇪🇸"},{"name":"Cape Verde","flag":"🇨🇻"},{"name":"Saudi Arabia","flag":"🇸🇦"},{"name":"Uruguay","flag":"🇺🇾"}],"I":[{"name":"France","flag":"🇫🇷"},{"name":"Senegal","flag":"🇸🇳"},{"name":"Iraq","flag":"🇮🇶"},{"name":"Norway","flag":"🇳🇴"}],"J":[{"name":"Argentina","flag":"🇦🇷"},{"name":"Algeria","flag":"🇩🇿"},{"name":"Austria","flag":"🇦🇹"},{"name":"Jordan","flag":"🇯🇴"}],"K":[{"name":"Portugal","flag":"🇵🇹"},{"name":"DR Congo","flag":"🇨🇩"},{"name":"Uzbekistan","flag":"🇺🇿"},{"name":"Colombia","flag":"🇨🇴"}],"L":[{"name":"England","flag":"🏴󠁧󠁢󠁥󠁮󠁧󠁿"},{"name":"Croatia","flag":"🇭🇷"},{"name":"Ghana","flag":"🇬🇭"},{"name":"Panama","flag":"🇵🇦"}]},"matches":[{"id":"m1","n":1,"stage":"group","group":"A","home":"Mexico","away":"South Africa","hf":"🇲🇽","af":"🇿🇦","date":"2026-06-11","time":"13:00","venue":"Estadio Azteca, Mexico City","utc":"2026-06-11T19:00:00Z"},{"id":"m2","n":2,"stage":"group","group":"A","home":"South Korea","away":"Czechia","hf":"🇰🇷","af":"🇨🇿","date":"2026-06-11","time":"20:00","venue":"Estadio Akron, Guadalajara","utc":"2026-06-12T02:00:00Z"},{"id":"m3","n":3,"stage":"group","group":"B","home":"Canada","away":"Bosnia and Herzegovina","hf":"🇨🇦","af":"🇧🇦","date":"2026-06-12","time":"15:00","venue":"BMO Field, Toronto","utc":"2026-06-12T19:00:00Z"},{"id":"m4","n":4,"stage":"group","group":"D","home":"United States","away":"Paraguay","hf":"🇺🇸","af":"🇵🇾","date":"2026-06-12","time":"18:00","venue":"SoFi Stadium, Los Angeles","utc":"2026-06-13T01:00:00Z"},{"id":"m5","n":5,"stage":"group","group":"B","home":"Qatar","away":"Switzerland","hf":"🇶🇦","af":"🇨🇭","date":"2026-06-13","time":"12:00","venue":"Levi's Stadium, San Francisco Bay Area","utc":"2026-06-13T19:00:00Z"},{"id":"m6","n":6,"stage":"group","group":"C","home":"Brazil","away":"Morocco","hf":"🇧🇷","af":"🇲🇦","date":"2026-06-13","time":"18:00","venue":"MetLife Stadium, New York/New Jersey","utc":"2026-06-13T22:00:00Z"},{"id":"m7","n":7,"stage":"group","group":"C","home":"Haiti","away":"Scotland","hf":"🇭🇹","af":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","date":"2026-06-13","time":"21:00","venue":"Gillette Stadium, Boston","utc":"2026-06-14T01:00:00Z"},{"id":"m8","n":8,"stage":"group","group":"D","home":"Australia","away":"Turkiye","hf":"🇦🇺","af":"🇹🇷","date":"2026-06-13","time":"21:00","venue":"BC Place, Vancouver","utc":"2026-06-14T04:00:00Z"},{"id":"m9","n":9,"stage":"group","group":"E","home":"Germany","away":"Curacao","hf":"🇩🇪","af":"🇨🇼","date":"2026-06-14","time":"12:00","venue":"NRG Stadium, Houston","utc":"2026-06-14T17:00:00Z"},{"id":"m10","n":10,"stage":"group","group":"F","home":"Netherlands","away":"Japan","hf":"🇳🇱","af":"🇯🇵","date":"2026-06-14","time":"15:00","venue":"AT&T Stadium, Dallas","utc":"2026-06-14T20:00:00Z"},{"id":"m11","n":11,"stage":"group","group":"E","home":"Ivory Coast","away":"Ecuador","hf":"🇨🇮","af":"🇪🇨","date":"2026-06-14","time":"19:00","venue":"Lincoln Financial Field, Philadelphia","utc":"2026-06-14T23:00:00Z"},{"id":"m12","n":12,"stage":"group","group":"F","home":"Sweden","away":"Tunisia","hf":"🇸🇪","af":"🇹🇳","date":"2026-06-14","time":"20:00","venue":"Estadio BBVA, Monterrey","utc":"2026-06-15T02:00:00Z"},{"id":"m13","n":13,"stage":"group","group":"H","home":"Spain","away":"Cape Verde","hf":"🇪🇸","af":"🇨🇻","date":"2026-06-15","time":"12:00","venue":"Mercedes-Benz Stadium, Atlanta","utc":"2026-06-15T16:00:00Z"},{"id":"m14","n":14,"stage":"group","group":"G","home":"Belgium","away":"Egypt","hf":"🇧🇪","af":"🇪🇬","date":"2026-06-15","time":"12:00","venue":"Lumen Field, Seattle","utc":"2026-06-15T19:00:00Z"},{"id":"m15","n":15,"stage":"group","group":"H","home":"Saudi Arabia","away":"Uruguay","hf":"🇸🇦","af":"🇺🇾","date":"2026-06-15","time":"18:00","venue":"Hard Rock Stadium, Miami","utc":"2026-06-15T22:00:00Z"},{"id":"m16","n":16,"stage":"group","group":"G","home":"Iran","away":"New Zealand","hf":"🇮🇷","af":"🇳🇿","date":"2026-06-15","time":"18:00","venue":"SoFi Stadium, Los Angeles","utc":"2026-06-16T01:00:00Z"},{"id":"m17","n":17,"stage":"group","group":"I","home":"France","away":"Senegal","hf":"🇫🇷","af":"🇸🇳","date":"2026-06-16","time":"15:00","venue":"MetLife Stadium, New York/New Jersey","utc":"2026-06-16T19:00:00Z"},{"id":"m18","n":18,"stage":"group","group":"I","home":"Iraq","away":"Norway","hf":"🇮🇶","af":"🇳🇴","date":"2026-06-16","time":"18:00","venue":"Gillette Stadium, Boston","utc":"2026-06-16T22:00:00Z"},{"id":"m19","n":19,"stage":"group","group":"J","home":"Argentina","away":"Algeria","hf":"🇦🇷","af":"🇩🇿","date":"2026-06-16","time":"20:00","venue":"Arrowhead Stadium, Kansas City","utc":"2026-06-17T01:00:00Z"},{"id":"m20","n":20,"stage":"group","group":"J","home":"Austria","away":"Jordan","hf":"🇦🇹","af":"🇯🇴","date":"2026-06-16","time":"21:00","venue":"Levi's Stadium, San Francisco Bay Area","utc":"2026-06-17T04:00:00Z"},{"id":"m21","n":21,"stage":"group","group":"K","home":"Portugal","away":"DR Congo","hf":"🇵🇹","af":"🇨🇩","date":"2026-06-17","time":"12:00","venue":"NRG Stadium, Houston","utc":"2026-06-17T17:00:00Z"},{"id":"m22","n":22,"stage":"group","group":"L","home":"England","away":"Croatia","hf":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","af":"🇭🇷","date":"2026-06-17","time":"15:00","venue":"AT&T Stadium, Dallas","utc":"2026-06-17T20:00:00Z"},{"id":"m23","n":23,"stage":"group","group":"L","home":"Ghana","away":"Panama","hf":"🇬🇭","af":"🇵🇦","date":"2026-06-17","time":"19:00","venue":"BMO Field, Toronto","utc":"2026-06-17T23:00:00Z"},{"id":"m24","n":24,"stage":"group","group":"K","home":"Uzbekistan","away":"Colombia","hf":"🇺🇿","af":"🇨🇴","date":"2026-06-17","time":"20:00","venue":"Estadio Azteca, Mexico City","utc":"2026-06-18T02:00:00Z"},{"id":"m25","n":25,"stage":"group","group":"A","home":"Czechia","away":"South Africa","hf":"🇨🇿","af":"🇿🇦","date":"2026-06-18","time":"12:00","venue":"Mercedes-Benz Stadium, Atlanta","utc":"2026-06-18T16:00:00Z"},{"id":"m26","n":26,"stage":"group","group":"B","home":"Switzerland","away":"Bosnia and Herzegovina","hf":"🇨🇭","af":"🇧🇦","date":"2026-06-18","time":"12:00","venue":"SoFi Stadium, Los Angeles","utc":"2026-06-18T19:00:00Z"},{"id":"m27","n":27,"stage":"group","group":"B","home":"Canada","away":"Qatar","hf":"🇨🇦","af":"🇶🇦","date":"2026-06-18","time":"15:00","venue":"BC Place, Vancouver","utc":"2026-06-18T22:00:00Z"},{"id":"m28","n":28,"stage":"group","group":"A","home":"Mexico","away":"South Korea","hf":"🇲🇽","af":"🇰🇷","date":"2026-06-18","time":"19:00","venue":"Estadio Akron, Guadalajara","utc":"2026-06-19T01:00:00Z"},{"id":"m29","n":29,"stage":"group","group":"D","home":"United States","away":"Australia","hf":"🇺🇸","af":"🇦🇺","date":"2026-06-19","time":"12:00","venue":"Lumen Field, Seattle","utc":"2026-06-19T19:00:00Z"},{"id":"m30","n":30,"stage":"group","group":"C","home":"Scotland","away":"Morocco","hf":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","af":"🇲🇦","date":"2026-06-19","time":"18:00","venue":"Gillette Stadium, Boston","utc":"2026-06-19T22:00:00Z"},{"id":"m31","n":31,"stage":"group","group":"C","home":"Brazil","away":"Haiti","hf":"🇧🇷","af":"🇭🇹","date":"2026-06-19","time":"20:30","venue":"Lincoln Financial Field, Philadelphia","utc":"2026-06-20T00:30:00Z"},{"id":"m32","n":32,"stage":"group","group":"D","home":"Turkiye","away":"Paraguay","hf":"🇹🇷","af":"🇵🇾","date":"2026-06-19","time":"20:00","venue":"Levi's Stadium, San Francisco Bay Area","utc":"2026-06-20T03:00:00Z"},{"id":"m33","n":33,"stage":"group","group":"E","home":"Germany","away":"Ivory Coast","hf":"🇩🇪","af":"🇨🇮","date":"2026-06-20","time":"16:00","venue":"BMO Field, Toronto","utc":"2026-06-20T20:00:00Z"},{"id":"m34","n":34,"stage":"group","group":"F","home":"Netherlands","away":"Sweden","hf":"🇳🇱","af":"🇸🇪","date":"2026-06-20","time":"12:00","venue":"NRG Stadium, Houston","utc":"2026-06-20T17:00:00Z"},{"id":"m35","n":35,"stage":"group","group":"E","home":"Ecuador","away":"Curacao","hf":"🇪🇨","af":"🇨🇼","date":"2026-06-20","time":"19:00","venue":"Lincoln Financial Field, Philadelphia","utc":"2026-06-21T00:00:00Z"},{"id":"m36","n":36,"stage":"group","group":"F","home":"Tunisia","away":"Japan","hf":"🇹🇳","af":"🇯🇵","date":"2026-06-20","time":"22:00","venue":"Estadio BBVA, Monterrey","utc":"2026-06-21T04:00:00Z"},{"id":"m37","n":37,"stage":"group","group":"H","home":"Spain","away":"Saudi Arabia","hf":"🇪🇸","af":"🇸🇦","date":"2026-06-21","time":"12:00","venue":"Mercedes-Benz Stadium, Atlanta","utc":"2026-06-21T16:00:00Z"},{"id":"m38","n":38,"stage":"group","group":"G","home":"Belgium","away":"Iran","hf":"🇧🇪","af":"🇮🇷","date":"2026-06-21","time":"12:00","venue":"SoFi Stadium, Los Angeles","utc":"2026-06-21T19:00:00Z"},{"id":"m39","n":39,"stage":"group","group":"H","home":"Uruguay","away":"Cape Verde","hf":"🇺🇾","af":"🇨🇻","date":"2026-06-21","time":"18:00","venue":"Hard Rock Stadium, Miami","utc":"2026-06-21T22:00:00Z"},{"id":"m40","n":40,"stage":"group","group":"G","home":"New Zealand","away":"Egypt","hf":"🇳🇿","af":"🇪🇬","date":"2026-06-21","time":"18:00","venue":"BC Place, Vancouver","utc":"2026-06-22T01:00:00Z"},{"id":"m41","n":41,"stage":"group","group":"J","home":"Argentina","away":"Austria","hf":"🇦🇷","af":"🇦🇹","date":"2026-06-22","time":"12:00","venue":"AT&T Stadium, Dallas","utc":"2026-06-22T17:00:00Z"},{"id":"m42","n":42,"stage":"group","group":"I","home":"France","away":"Iraq","hf":"🇫🇷","af":"🇮🇶","date":"2026-06-22","time":"17:00","venue":"Lincoln Financial Field, Philadelphia","utc":"2026-06-22T21:00:00Z"},{"id":"m43","n":43,"stage":"group","group":"I","home":"Norway","away":"Senegal","hf":"🇳🇴","af":"🇸🇳","date":"2026-06-22","time":"20:00","venue":"MetLife Stadium, New York/New Jersey","utc":"2026-06-23T00:00:00Z"},{"id":"m44","n":44,"stage":"group","group":"J","home":"Jordan","away":"Algeria","hf":"🇯🇴","af":"🇩🇿","date":"2026-06-22","time":"20:00","venue":"Levi's Stadium, San Francisco Bay Area","utc":"2026-06-23T03:00:00Z"},{"id":"m45","n":45,"stage":"group","group":"K","home":"Portugal","away":"Uzbekistan","hf":"🇵🇹","af":"🇺🇿","date":"2026-06-23","time":"12:00","venue":"NRG Stadium, Houston","utc":"2026-06-23T17:00:00Z"},{"id":"m46","n":46,"stage":"group","group":"L","home":"England","away":"Ghana","hf":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","af":"🇬🇭","date":"2026-06-23","time":"16:00","venue":"Gillette Stadium, Boston","utc":"2026-06-23T20:00:00Z"},{"id":"m47","n":47,"stage":"group","group":"L","home":"Croatia","away":"Panama","hf":"🇭🇷","af":"🇵🇦","date":"2026-06-23","time":"19:00","venue":"BMO Field, Toronto","utc":"2026-06-23T23:00:00Z"},{"id":"m48","n":48,"stage":"group","group":"K","home":"Colombia","away":"DR Congo","hf":"🇨🇴","af":"🇨🇩","date":"2026-06-23","time":"20:00","venue":"Estadio Akron, Guadalajara","utc":"2026-06-24T02:00:00Z"},{"id":"m49","n":49,"stage":"group","group":"C","home":"Scotland","away":"Brazil","hf":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","af":"🇧🇷","date":"2026-06-24","time":"18:00","venue":"Hard Rock Stadium, Miami","utc":"2026-06-24T22:00:00Z"},{"id":"m50","n":50,"stage":"group","group":"C","home":"Morocco","away":"Haiti","hf":"🇲🇦","af":"🇭🇹","date":"2026-06-24","time":"18:00","venue":"Mercedes-Benz Stadium, Atlanta","utc":"2026-06-24T22:00:00Z"},{"id":"m51","n":51,"stage":"group","group":"A","home":"Czechia","away":"Mexico","hf":"🇨🇿","af":"🇲🇽","date":"2026-06-24","time":"19:00","venue":"Estadio Azteca, Mexico City","utc":"2026-06-25T01:00:00Z"},{"id":"m52","n":52,"stage":"group","group":"A","home":"South Africa","away":"South Korea","hf":"🇿🇦","af":"🇰🇷","date":"2026-06-24","time":"19:00","venue":"Estadio BBVA, Monterrey","utc":"2026-06-25T01:00:00Z"},{"id":"m53","n":53,"stage":"group","group":"B","home":"Switzerland","away":"Canada","hf":"🇨🇭","af":"🇨🇦","date":"2026-06-24","time":"12:00","venue":"BC Place, Vancouver","utc":"2026-06-24T19:00:00Z"},{"id":"m54","n":54,"stage":"group","group":"B","home":"Bosnia and Herzegovina","away":"Qatar","hf":"🇧🇦","af":"🇶🇦","date":"2026-06-24","time":"12:00","venue":"Lumen Field, Seattle","utc":"2026-06-24T19:00:00Z"},{"id":"m55","n":55,"stage":"group","group":"F","home":"Japan","away":"Sweden","hf":"🇯🇵","af":"🇸🇪","date":"2026-06-25","time":"18:00","venue":"AT&T Stadium, Dallas","utc":"2026-06-25T23:00:00Z"},{"id":"m56","n":56,"stage":"group","group":"F","home":"Tunisia","away":"Netherlands","hf":"🇹🇳","af":"🇳🇱","date":"2026-06-25","time":"18:00","venue":"Arrowhead Stadium, Kansas City","utc":"2026-06-25T23:00:00Z"},{"id":"m57","n":57,"stage":"group","group":"E","home":"Ecuador","away":"Germany","hf":"🇪🇨","af":"🇩🇪","date":"2026-06-25","time":"16:00","venue":"MetLife Stadium, New York/New Jersey","utc":"2026-06-25T20:00:00Z"},{"id":"m58","n":58,"stage":"group","group":"E","home":"Curacao","away":"Ivory Coast","hf":"🇨🇼","af":"🇨🇮","date":"2026-06-25","time":"16:00","venue":"Lincoln Financial Field, Philadelphia","utc":"2026-06-25T20:00:00Z"},{"id":"m59","n":59,"stage":"group","group":"D","home":"Turkiye","away":"United States","hf":"🇹🇷","af":"🇺🇸","date":"2026-06-25","time":"19:00","venue":"SoFi Stadium, Los Angeles","utc":"2026-06-26T02:00:00Z"},{"id":"m60","n":60,"stage":"group","group":"D","home":"Paraguay","away":"Australia","hf":"🇵🇾","af":"🇦🇺","date":"2026-06-25","time":"19:00","venue":"Levi's Stadium, San Francisco Bay Area","utc":"2026-06-26T02:00:00Z"},{"id":"m61","n":61,"stage":"group","group":"H","home":"Cape Verde","away":"Saudi Arabia","hf":"🇨🇻","af":"🇸🇦","date":"2026-06-26","time":"19:00","venue":"NRG Stadium, Houston","utc":"2026-06-27T00:00:00Z"},{"id":"m62","n":62,"stage":"group","group":"H","home":"Uruguay","away":"Spain","hf":"🇺🇾","af":"🇪🇸","date":"2026-06-26","time":"18:00","venue":"Estadio Akron, Guadalajara","utc":"2026-06-27T00:00:00Z"},{"id":"m63","n":63,"stage":"group","group":"G","home":"Egypt","away":"Iran","hf":"🇪🇬","af":"🇮🇷","date":"2026-06-26","time":"20:00","venue":"Lumen Field, Seattle","utc":"2026-06-27T03:00:00Z"},{"id":"m64","n":64,"stage":"group","group":"G","home":"New Zealand","away":"Belgium","hf":"🇳🇿","af":"🇧🇪","date":"2026-06-26","time":"20:00","venue":"BC Place, Vancouver","utc":"2026-06-27T03:00:00Z"},{"id":"m65","n":65,"stage":"group","group":"I","home":"Norway","away":"France","hf":"🇳🇴","af":"🇫🇷","date":"2026-06-26","time":"15:00","venue":"Gillette Stadium, Boston","utc":"2026-06-26T19:00:00Z"},{"id":"m66","n":66,"stage":"group","group":"I","home":"Senegal","away":"Iraq","hf":"🇸🇳","af":"🇮🇶","date":"2026-06-26","time":"15:00","venue":"BMO Field, Toronto","utc":"2026-06-26T19:00:00Z"},{"id":"m67","n":67,"stage":"group","group":"J","home":"Algeria","away":"Austria","hf":"🇩🇿","af":"🇦🇹","date":"2026-06-27","time":"21:00","venue":"Arrowhead Stadium, Kansas City","utc":"2026-06-28T02:00:00Z"},{"id":"m68","n":68,"stage":"group","group":"J","home":"Jordan","away":"Argentina","hf":"🇯🇴","af":"🇦🇷","date":"2026-06-27","time":"21:00","venue":"AT&T Stadium, Dallas","utc":"2026-06-28T02:00:00Z"},{"id":"m69","n":69,"stage":"group","group":"K","home":"Colombia","away":"Portugal","hf":"🇨🇴","af":"🇵🇹","date":"2026-06-27","time":"19:30","venue":"Hard Rock Stadium, Miami","utc":"2026-06-27T23:30:00Z"},{"id":"m70","n":70,"stage":"group","group":"K","home":"DR Congo","away":"Uzbekistan","hf":"🇨🇩","af":"🇺🇿","date":"2026-06-27","time":"19:30","venue":"Mercedes-Benz Stadium, Atlanta","utc":"2026-06-27T23:30:00Z"},{"id":"m71","n":71,"stage":"group","group":"L","home":"Panama","away":"England","hf":"🇵🇦","af":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","date":"2026-06-27","time":"17:00","venue":"Lincoln Financial Field, Philadelphia","utc":"2026-06-27T21:00:00Z"},{"id":"m72","n":72,"stage":"group","group":"L","home":"Ghana","away":"Croatia","hf":"🇬🇭","af":"🇭🇷","date":"2026-06-27","time":"17:00","venue":"Lumen Field, Seattle","utc":"2026-06-27T21:00:00Z"},{"id":"m73","n":73,"stage":"R32","group":"","home":"Runner-up Group A","away":"Runner-up Group B","hf":"","af":"","date":"2026-06-28","time":"12:00","venue":"SoFi Stadium, Los Angeles","utc":"2026-06-28T19:00:00Z"},{"id":"m74","n":74,"stage":"R32","group":"","home":"Winner Group E","away":"3rd Group A/B/C/D/F","hf":"","af":"","date":"2026-06-29","time":"16:30","venue":"Gillette Stadium, Boston","utc":"2026-06-29T20:30:00Z"},{"id":"m75","n":75,"stage":"R32","group":"","home":"Winner Group F","away":"Runner-up Group C","hf":"","af":"","date":"2026-06-29","time":"19:00","venue":"Estadio BBVA, Monterrey","utc":"2026-06-30T01:00:00Z"},{"id":"m76","n":76,"stage":"R32","group":"","home":"Winner Group C","away":"Runner-up Group F","hf":"","af":"","date":"2026-06-29","time":"12:00","venue":"NRG Stadium, Houston","utc":"2026-06-29T17:00:00Z"},{"id":"m77","n":77,"stage":"R32","group":"","home":"Winner Group I","away":"3rd Group C/D/F/G/H","hf":"","af":"","date":"2026-06-30","time":"17:00","venue":"MetLife Stadium, New York/New Jersey","utc":"2026-06-30T21:00:00Z"},{"id":"m78","n":78,"stage":"R32","group":"","home":"Runner-up Group E","away":"Runner-up Group I","hf":"","af":"","date":"2026-06-30","time":"12:00","venue":"AT&T Stadium, Dallas","utc":"2026-06-30T17:00:00Z"},{"id":"m79","n":79,"stage":"R32","group":"","home":"Winner Group A","away":"3rd Group C/E/F/H/I","hf":"","af":"","date":"2026-06-30","time":"19:00","venue":"Estadio Azteca, Mexico City","utc":"2026-07-01T01:00:00Z"},{"id":"m80","n":80,"stage":"R32","group":"","home":"Winner Group L","away":"3rd Group E/H/I/J/K","hf":"","af":"","date":"2026-07-01","time":"12:00","venue":"Mercedes-Benz Stadium, Atlanta","utc":"2026-07-01T16:00:00Z"},{"id":"m81","n":81,"stage":"R32","group":"","home":"Winner Group D","away":"3rd Group B/E/F/I/J","hf":"","af":"","date":"2026-07-01","time":"17:00","venue":"Levi's Stadium, San Francisco Bay Area","utc":"2026-07-02T00:00:00Z"},{"id":"m82","n":82,"stage":"R32","group":"","home":"Winner Group G","away":"3rd Group A/E/H/I/J","hf":"","af":"","date":"2026-07-01","time":"13:00","venue":"Lumen Field, Seattle","utc":"2026-07-01T20:00:00Z"},{"id":"m83","n":83,"stage":"R32","group":"","home":"Runner-up Group K","away":"Runner-up Group L","hf":"","af":"","date":"2026-07-02","time":"19:00","venue":"BMO Field, Toronto","utc":"2026-07-02T23:00:00Z"},{"id":"m84","n":84,"stage":"R32","group":"","home":"Winner Group H","away":"Runner-up Group J","hf":"","af":"","date":"2026-07-02","time":"12:00","venue":"SoFi Stadium, Los Angeles","utc":"2026-07-02T19:00:00Z"},{"id":"m85","n":85,"stage":"R32","group":"","home":"Winner Group B","away":"3rd Group E/F/G/I/J","hf":"","af":"","date":"2026-07-02","time":"20:00","venue":"BC Place, Vancouver","utc":"2026-07-03T03:00:00Z"},{"id":"m86","n":86,"stage":"R32","group":"","home":"Winner Group J","away":"Runner-up Group H","hf":"","af":"","date":"2026-07-03","time":"18:00","venue":"Hard Rock Stadium, Miami","utc":"2026-07-03T22:00:00Z"},{"id":"m87","n":87,"stage":"R32","group":"","home":"Winner Group K","away":"3rd Group D/E/I/J/L","hf":"","af":"","date":"2026-07-03","time":"20:30","venue":"Arrowhead Stadium, Kansas City","utc":"2026-07-04T01:30:00Z"},{"id":"m88","n":88,"stage":"R32","group":"","home":"Runner-up Group D","away":"Runner-up Group G","hf":"","af":"","date":"2026-07-03","time":"13:00","venue":"AT&T Stadium, Dallas","utc":"2026-07-03T18:00:00Z"},{"id":"m89","n":89,"stage":"R16","group":"","home":"Winner Match 74","away":"Winner Match 77","hf":"","af":"","date":"2026-07-04","time":"17:00","venue":"Lincoln Financial Field, Philadelphia","utc":"2026-07-04T21:00:00Z"},{"id":"m90","n":90,"stage":"R16","group":"","home":"Winner Match 73","away":"Winner Match 75","hf":"","af":"","date":"2026-07-04","time":"12:00","venue":"NRG Stadium, Houston","utc":"2026-07-04T17:00:00Z"},{"id":"m91","n":91,"stage":"R16","group":"","home":"Winner Match 76","away":"Winner Match 78","hf":"","af":"","date":"2026-07-05","time":"16:00","venue":"MetLife Stadium, New York/New Jersey","utc":"2026-07-05T20:00:00Z"},{"id":"m92","n":92,"stage":"R16","group":"","home":"Winner Match 79","away":"Winner Match 80","hf":"","af":"","date":"2026-07-05","time":"18:00","venue":"Estadio Azteca, Mexico City","utc":"2026-07-06T00:00:00Z"},{"id":"m93","n":93,"stage":"R16","group":"","home":"Winner Match 83","away":"Winner Match 84","hf":"","af":"","date":"2026-07-06","time":"14:00","venue":"AT&T Stadium, Dallas","utc":"2026-07-06T19:00:00Z"},{"id":"m94","n":94,"stage":"R16","group":"","home":"Winner Match 81","away":"Winner Match 82","hf":"","af":"","date":"2026-07-06","time":"17:00","venue":"Lumen Field, Seattle","utc":"2026-07-07T00:00:00Z"},{"id":"m95","n":95,"stage":"R16","group":"","home":"Winner Match 86","away":"Winner Match 88","hf":"","af":"","date":"2026-07-07","time":"12:00","venue":"Mercedes-Benz Stadium, Atlanta","utc":"2026-07-07T16:00:00Z"},{"id":"m96","n":96,"stage":"R16","group":"","home":"Winner Match 85","away":"Winner Match 87","hf":"","af":"","date":"2026-07-07","time":"13:00","venue":"BC Place, Vancouver","utc":"2026-07-07T20:00:00Z"},{"id":"m97","n":97,"stage":"QF","group":"","home":"Winner Match 89","away":"Winner Match 90","hf":"","af":"","date":"2026-07-09","time":"16:00","venue":"Gillette Stadium, Boston","utc":"2026-07-09T20:00:00Z"},{"id":"m98","n":98,"stage":"QF","group":"","home":"Winner Match 93","away":"Winner Match 94","hf":"","af":"","date":"2026-07-10","time":"12:00","venue":"SoFi Stadium, Los Angeles","utc":"2026-07-10T19:00:00Z"},{"id":"m99","n":99,"stage":"QF","group":"","home":"Winner Match 91","away":"Winner Match 92","hf":"","af":"","date":"2026-07-11","time":"17:00","venue":"Hard Rock Stadium, Miami","utc":"2026-07-11T21:00:00Z"},{"id":"m100","n":100,"stage":"QF","group":"","home":"Winner Match 95","away":"Winner Match 96","hf":"","af":"","date":"2026-07-11","time":"20:00","venue":"Arrowhead Stadium, Kansas City","utc":"2026-07-12T01:00:00Z"},{"id":"m101","n":101,"stage":"SF","group":"","home":"Winner Match 97","away":"Winner Match 98","hf":"","af":"","date":"2026-07-14","time":"14:00","venue":"AT&T Stadium, Dallas","utc":"2026-07-14T19:00:00Z"},{"id":"m102","n":102,"stage":"SF","group":"","home":"Winner Match 99","away":"Winner Match 100","hf":"","af":"","date":"2026-07-15","time":"15:00","venue":"Mercedes-Benz Stadium, Atlanta","utc":"2026-07-15T19:00:00Z"},{"id":"m103","n":103,"stage":"3RD","group":"","home":"Loser Match 101","away":"Loser Match 102","hf":"","af":"","date":"2026-07-18","time":"17:00","venue":"Hard Rock Stadium, Miami","utc":"2026-07-18T21:00:00Z"},{"id":"m104","n":104,"stage":"FINAL","group":"","home":"Winner Match 101","away":"Winner Match 102","hf":"","af":"","date":"2026-07-19","time":"15:00","venue":"MetLife Stadium, New York/New Jersey","utc":"2026-07-19T19:00:00Z"}]};
+var GROUPS = SCHEDULE_DATA.groups;
+var MATCHES = SCHEDULE_DATA.matches;            // array
+var MATCH_BY_ID = {}; MATCHES.forEach(function(m){MATCH_BY_ID[m.id]=m;});
+
+// ISO codes for real flag images (flagcdn). England/Scotland use UK subdivisions.
+var FLAG_CODE={
+ "Algeria":"dz","Argentina":"ar","Australia":"au","Austria":"at","Belgium":"be",
+ "Bosnia and Herzegovina":"ba","Brazil":"br","Canada":"ca","Cape Verde":"cv","Colombia":"co",
+ "Croatia":"hr","Curacao":"cw","Czechia":"cz","DR Congo":"cd","Ecuador":"ec","Egypt":"eg",
+ "England":"gb-eng","France":"fr","Germany":"de","Ghana":"gh","Haiti":"ht","Iran":"ir",
+ "Iraq":"iq","Ivory Coast":"ci","Japan":"jp","Jordan":"jo","Mexico":"mx","Morocco":"ma",
+ "Netherlands":"nl","New Zealand":"nz","Norway":"no","Panama":"pa","Paraguay":"py",
+ "Portugal":"pt","Qatar":"qa","Saudi Arabia":"sa","Scotland":"gb-sct","Senegal":"sn",
+ "South Africa":"za","South Korea":"kr","Spain":"es","Sweden":"se","Switzerland":"ch",
+ "Tunisia":"tn","Turkiye":"tr","United States":"us","Uruguay":"uy","Uzbekistan":"uz"
+};
+function flagHTML(name,emoji){
+  var code=FLAG_CODE[name];
+  if(code) return '<img class="flagimg" src="https://flagcdn.com/w80/'+code+'.png" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
+  return '<div class="flag">'+esc(emoji||'⚽')+'</div>';
+}
+// اسم الدولة -> رمز flagcdn. نفس بيانات FLAG_CODE؛ التسمية مطابقة للمواصفة.
+var COUNTRY_ISO=FLAG_CODE;
+// يُرجع وسم <img class="flag"> لعلَم الدولة، أو '' إذا كان الاسم غير معروف
+// (مثل "Winner Group A" في أدوار الإقصاء فيُترَك بدون علم).
+function flagImg(country,size){
+  var iso=COUNTRY_ISO[country];
+  if(!iso) return '';
+  var w=size||20, sup=[20,40,80,160,320,640], chosen=sup[sup.length-1];
+  for(var i=0;i<sup.length;i++){if(sup[i]>=w){chosen=sup[i];break;}}
+  return '<img class="flag" src="https://flagcdn.com/w'+chosen+'/'+iso+'.png" alt="">';
+}
+// kickoff shown in the viewer's own device timezone (from the match UTC time)
+function localKick(m){
+  var t=Date.parse(m.utc);
+  if(isNaN(t)) return m.date+(m.time?(' • '+m.time):'');
+  return new Date(t).toLocaleString([], {weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+function openKick(m){var t=Date.parse(m.utc);if(isNaN(t))return '';return new Date(t-24*60*60*1000).toLocaleString([], {weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
+
+// ===== LIVE DATA (openfootball: free, public, no key) =====
+// Auto-fills knockout teams once qualified and official final scores as they
+// are published. Admin entries always override this. Updates are community-
+// maintained so they can lag a little behind the live broadcast.
+var OF_URL='https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
+var OF_ALIAS={'Bosnia & Herzegovina':'Bosnia and Herzegovina','Curaçao':'Curacao','Czech Republic':'Czechia','Turkey':'Turkiye','USA':'United States','Korea Republic':'South Korea','IR Iran':'Iran','Côte d’Ivoire':'Ivory Coast'};
+function canon(n){return OF_ALIAS[n]||n;}
+function isRealTeam(n){return !!(n&&FLAG_CODE[canon(n)]);}
+// group matches are matched by their (unordered) team pair, not by position
+function pairKey(a,b){return [a,b].sort().join(' :: ');}
+var GROUP_BY_PAIR={};
+MATCHES.forEach(function(m){if(m.stage==='group')GROUP_BY_PAIR[pairKey(m.home,m.away)]=m;});
+// group matchday (1-3): order each group's 6 matches by kickoff, two per matchday
+var GROUP_MD={};
+'ABCDEFGHIJKL'.split('').forEach(function(g){
+  MATCHES.filter(function(m){return m.stage==='group'&&m.group===g;})
+    .sort(function(a,b){return Date.parse(a.utc)-Date.parse(b.utc);})
+    .forEach(function(m,i){GROUP_MD[m.id]=Math.floor(i/2)+1;});
+});
+// Final and third-place play-off have no num in the feed -> map by round name
+var OF_ROUND_ID={'Final':'m104','Match for third place':'m103'};
+function loadOpenfootball(){
+  if(typeof fetch!=='function')return;
+  fetch(OF_URL,{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
+    if(!d||!d.matches)return;
+    var nr={}, nt={};
+    d.matches.forEach(function(m){
+      var t1=canon(m.team1), t2=canon(m.team2), st;
+      if(m.num) st=MATCH_BY_ID['m'+m.num];          // knockout: official match number
+      else st=GROUP_BY_PAIR[pairKey(t1,t2)] || MATCH_BY_ID[OF_ROUND_ID[m.round]]; // group pair, or final/3rd
+      if(!st)return;
+      var swapped=(st.home===t2 && st.away===t1);    // align to our home/away order
+      // knockout teams once the qualifiers are known
+      if(st.stage!=='group' && (isRealTeam(m.team1)||isRealTeam(m.team2))){
+        nt[st.id]={home:isRealTeam(m.team1)?t1:null, away:isRealTeam(m.team2)?t2:null};
+      }
+      // official score (after extra time if played), plus penalty-shootout winner
+      var sc=m.score||{};
+      var fin=(sc.et&&sc.et.length===2)?sc.et:sc.ft;   // score when penalties begin / final
+      if(fin&&fin.length===2&&typeof fin[0]==='number'&&typeof fin[1]==='number'){
+        var res= swapped ? {h:fin[1],a:fin[0]} : {h:fin[0],a:fin[1]};
+        var p=sc.p; // penalty shootout score
+        if(p&&p.length===2&&typeof p[0]==='number'&&typeof p[1]==='number'&&p[0]!==p[1]){
+          var homeWon = swapped ? (p[1]>p[0]) : (p[0]>p[1]);
+          res.pw = homeWon?'h':'a';
+        }
+        nr[st.id]=res;
+      }
+    });
+    apiResults=nr; apiTeams=nt;
+    renderMatches(); renderLeader();
+  }).catch(function(){ /* offline or not yet updated -> admin entries still work */ });
+}
+
+// ===== FIREBASE =====
+// ⚠️ Replace these with your own Firebase project config from:
+// Firebase Console > Project settings > Your apps > Web app config
+var firebaseConfig = {
+  apiKey:"AIzaSyBlRu52dh7N58H9j1HebKwI1OSttWyX5ZA",
+  authDomain:"wc-2026-predictions---saff.firebaseapp.com",
+  databaseURL:"https://wc-2026-predictions---saff-default-rtdb.firebaseio.com",
+  projectId:"wc-2026-predictions---saff",
+  storageBucket:"wc-2026-predictions---saff.firebasestorage.app",
+  messagingSenderId:"505320213469",
+  appId:"1:505320213469:web:3f008271525eeb5ef54434"
+};
+
+// Admin code for entering results and assigning knockout teams (change it whenever you like)
+var ADMIN_CODE = "2026";
+// الإعدادات (⚙️) وأدوات الإدارة تظهر فقط لهذا الحساب
+var ADMIN_NAME = "Mnajjar3";
+
+// ===== توقعات البطولة الكاملة (البطل + الهدّاف) =====
+// تتقفل التوقعات مع بداية أول مباراة. النقاط تتحسب بعد ما يدخل الأدمن النتيجة الفعلية.
+var TOURNAMENT_CHAMPION_PTS = 30;
+var TOURNAMENT_SCORER_PTS   = 15;
+var SCORER_TEAM_ALIAS={"Bosnia & Herzegovina":"Bosnia and Herzegovina","Czech Republic":"Czechia","Curaçao":"Curacao","USA":"United States","Turkey":"Turkiye"};
+var WC_PLAYERS = [{n:"Achref Abada",t:"Algeria"},{n:"Adil Boulbina",t:"Algeria"},{n:"Amine Gouiri",t:"Algeria"},{n:"Anis Hadj Moussa",t:"Algeria"},{n:"Aïssa Mandi",t:"Algeria"},{n:"Farès Chaïbi",t:"Algeria"},{n:"Farès Ghedjemis",t:"Algeria"},{n:"Hicham Boudaoui",t:"Algeria"},{n:"Houssem Aouar",t:"Algeria"},{n:"Ibrahim Maza",t:"Algeria"},{n:"Jaouen Hadjam",t:"Algeria"},{n:"Luca Zidane",t:"Algeria"},{n:"Melvin Mastil",t:"Algeria"},{n:"Mohamed Amine Tougai",t:"Algeria"},{n:"Mohamed Amoura",t:"Algeria"},{n:"Nabil Bentaleb",t:"Algeria"},{n:"Nadhir Benbouali",t:"Algeria"},{n:"Oussama Benbot",t:"Algeria"},{n:"Rafik Belghali",t:"Algeria"},{n:"Ramiz Zerrouki",t:"Algeria"},{n:"Ramy Bensebaini",t:"Algeria"},{n:"Rayan Aït-Nouri",t:"Algeria"},{n:"Riyad Mahrez",t:"Algeria"},{n:"Samir Chergui",t:"Algeria"},{n:"Yacine Titraoui",t:"Algeria"},{n:"Zineddine Belaïd",t:"Algeria"},{n:"Alexis Mac Allister",t:"Argentina"},{n:"Cristian Romero",t:"Argentina"},{n:"Emiliano Martínez",t:"Argentina"},{n:"Enzo Fernández",t:"Argentina"},{n:"Exequiel Palacios",t:"Argentina"},{n:"Facundo Medina",t:"Argentina"},{n:"Gerónimo Rulli",t:"Argentina"},{n:"Giovani Lo Celso",t:"Argentina"},{n:"Giuliano Simeone",t:"Argentina"},{n:"Gonzalo Montiel",t:"Argentina"},{n:"José Manuel López",t:"Argentina"},{n:"Juan Musso",t:"Argentina"},{n:"Julián Álvarez",t:"Argentina"},{n:"Lautaro Martínez",t:"Argentina"},{n:"Leandro Paredes",t:"Argentina"},{n:"Leonardo Balerdi",t:"Argentina"},{n:"Lionel Messi",t:"Argentina"},{n:"Lisandro Martínez",t:"Argentina"},{n:"Nahuel Molina",t:"Argentina"},{n:"Nico Paz",t:"Argentina"},{n:"Nicolás González",t:"Argentina"},{n:"Nicolás Otamendi",t:"Argentina"},{n:"Nicolás Tagliafico",t:"Argentina"},{n:"Rodrigo De Paul",t:"Argentina"},{n:"Thiago Almada",t:"Argentina"},{n:"Valentín Barco",t:"Argentina"},{n:"Aiden O'Neill",t:"Australia"},{n:"Ajdin Hrustic",t:"Australia"},{n:"Alessandro Circati",t:"Australia"},{n:"Awer Mabil",t:"Australia"},{n:"Aziz Behich",t:"Australia"},{n:"Cameron Burgess",t:"Australia"},{n:"Cammy Devlin",t:"Australia"},{n:"Connor Metcalfe",t:"Australia"},{n:"Cristian Volpato",t:"Australia"},{n:"Harry Souttar",t:"Australia"},{n:"Jackson Irvine",t:"Australia"},{n:"Jacob Italiano",t:"Australia"},{n:"Jason Geria",t:"Australia"},{n:"Jordan Bos",t:"Australia"},{n:"Kai Trewin",t:"Australia"},{n:"Lucas Herrington",t:"Australia"},{n:"Mathew Leckie",t:"Australia"},{n:"Mathew Ryan",t:"Australia"},{n:"Miloš Degenek",t:"Australia"},{n:"Mohamed Touré",t:"Australia"},{n:"Nestory Irankunda",t:"Australia"},{n:"Nishan Velupillay",t:"Australia"},{n:"Patrick Beach",t:"Australia"},{n:"Paul Izzo",t:"Australia"},{n:"Paul Okon-Engstler",t:"Australia"},{n:"Tete Yengi",t:"Australia"},{n:"Alessandro Schöpf",t:"Austria"},{n:"Alexander Prass",t:"Austria"},{n:"Alexander Schlager",t:"Austria"},{n:"Carney Chukwuemeka",t:"Austria"},{n:"Christoph Baumgartner",t:"Austria"},{n:"David Affengruber",t:"Austria"},{n:"David Alaba",t:"Austria"},{n:"Florian Grillitsch",t:"Austria"},{n:"Florian Wiegele",t:"Austria"},{n:"Kevin Danso",t:"Austria"},{n:"Konrad Laimer",t:"Austria"},{n:"Marcel Sabitzer",t:"Austria"},{n:"Marco Friedl",t:"Austria"},{n:"Marko Arnautović",t:"Austria"},{n:"Michael Gregoritsch",t:"Austria"},{n:"Michael Svoboda",t:"Austria"},{n:"Nicolas Seiwald",t:"Austria"},{n:"Patrick Pentz",t:"Austria"},{n:"Patrick Wimmer",t:"Austria"},{n:"Paul Wanner",t:"Austria"},{n:"Philipp Lienhart",t:"Austria"},{n:"Phillipp Mwene",t:"Austria"},{n:"Romano Schmid",t:"Austria"},{n:"Saša Kalajdzić",t:"Austria"},{n:"Stefan Posch",t:"Austria"},{n:"Xaver Schlager",t:"Austria"},{n:"Alexis Saelemaekers",t:"Belgium"},{n:"Amadou Onana",t:"Belgium"},{n:"Arthur Theate",t:"Belgium"},{n:"Axel Witsel",t:"Belgium"},{n:"Brandon Mechele",t:"Belgium"},{n:"Charles De Ketelaere",t:"Belgium"},{n:"Diego Moreira",t:"Belgium"},{n:"Dodi Lukébakio",t:"Belgium"},{n:"Hans Vanaken",t:"Belgium"},{n:"Joaquin Seys",t:"Belgium"},{n:"Jérémy Doku",t:"Belgium"},{n:"Kevin De Bruyne",t:"Belgium"},{n:"Koni De Winter",t:"Belgium"},{n:"Leandro Trossard",t:"Belgium"},{n:"Matias Fernandez-Pardo",t:"Belgium"},{n:"Maxim De Cuyper",t:"Belgium"},{n:"Mike Penders",t:"Belgium"},{n:"Nathan Ngoy",t:"Belgium"},{n:"Nicolas Raskin",t:"Belgium"},{n:"Romelu Lukaku",t:"Belgium"},{n:"Senne Lammens",t:"Belgium"},{n:"Thibaut Courtois",t:"Belgium"},{n:"Thomas Meunier",t:"Belgium"},{n:"Timothy Castagne",t:"Belgium"},{n:"Youri Tielemans",t:"Belgium"},{n:"Zeno Debast",t:"Belgium"},{n:"Amar Dedić",t:"Bosnia and Herzegovina"},{n:"Amar Memić",t:"Bosnia and Herzegovina"},{n:"Amir Hadžiahmetović",t:"Bosnia and Herzegovina"},{n:"Armin Gigović",t:"Bosnia and Herzegovina"},{n:"Benjamin Tahirović",t:"Bosnia and Herzegovina"},{n:"Dennis Hadžikadunić",t:"Bosnia and Herzegovina"},{n:"Dženis Burnić",t:"Bosnia and Herzegovina"},{n:"Edin Džeko",t:"Bosnia and Herzegovina"},{n:"Ermedin Demirović",t:"Bosnia and Herzegovina"},{n:"Ermin Mahmić",t:"Bosnia and Herzegovina"},{n:"Esmir Bajraktarević",t:"Bosnia and Herzegovina"},{n:"Haris Tabaković",t:"Bosnia and Herzegovina"},{n:"Ivan Bašić",t:"Bosnia and Herzegovina"},{n:"Ivan Šunjić",t:"Bosnia and Herzegovina"},{n:"Jovo Lukić",t:"Bosnia and Herzegovina"},{n:"Kerim Alajbegović",t:"Bosnia and Herzegovina"},{n:"Martin Zlomislić",t:"Bosnia and Herzegovina"},{n:"Mladen Jurkas",t:"Bosnia and Herzegovina"},{n:"Nidal Čelik",t:"Bosnia and Herzegovina"},{n:"Nihad Mujakić",t:"Bosnia and Herzegovina"},{n:"Nikola Katić",t:"Bosnia and Herzegovina"},{n:"Nikola Vasilj",t:"Bosnia and Herzegovina"},{n:"Samed Baždar",t:"Bosnia and Herzegovina"},{n:"Sead Kolašinac",t:"Bosnia and Herzegovina"},{n:"Stjepan Radeljić",t:"Bosnia and Herzegovina"},{n:"Tarik Muharemović",t:"Bosnia and Herzegovina"},{n:"Alex Sandro",t:"Brazil"},{n:"Alisson",t:"Brazil"},{n:"Bremer",t:"Brazil"},{n:"Bruno Guimarães",t:"Brazil"},{n:"Casemiro",t:"Brazil"},{n:"Danilo",t:"Brazil"},{n:"Danilo Santos",t:"Brazil"},{n:"Douglas Santos",t:"Brazil"},{n:"Ederson",t:"Brazil"},{n:"Endrick",t:"Brazil"},{n:"Fabinho",t:"Brazil"},{n:"Gabriel Magalhães",t:"Brazil"},{n:"Gabriel Martinelli",t:"Brazil"},{n:"Igor Thiago",t:"Brazil"},{n:"Lucas Paquetá",t:"Brazil"},{n:"Luiz Henrique",t:"Brazil"},{n:"Léo Pereira",t:"Brazil"},{n:"Marquinhos",t:"Brazil"},{n:"Matheus Cunha",t:"Brazil"},{n:"Neymar",t:"Brazil"},{n:"Raphinha",t:"Brazil"},{n:"Rayan",t:"Brazil"},{n:"Roger Ibañez",t:"Brazil"},{n:"Vinicius Jr",t:"Brazil"},{n:"Wesley",t:"Brazil"},{n:"Weverton",t:"Brazil"},{n:"Alfie Jones",t:"Canada"},{n:"Ali Ahmed",t:"Canada"},{n:"Alistair Johnston",t:"Canada"},{n:"Alphonso Davies",t:"Canada"},{n:"Cyle Larin",t:"Canada"},{n:"Dayne St. Clair",t:"Canada"},{n:"Derek Cornelius",t:"Canada"},{n:"Ismaël Koné",t:"Canada"},{n:"Jacob Shaffelburg",t:"Canada"},{n:"Joel Waterman",t:"Canada"},{n:"Jonathan David",t:"Canada"},{n:"Jonathan Osorio",t:"Canada"},{n:"Liam Millar",t:"Canada"},{n:"Luc de Fougerolles",t:"Canada"},{n:"Mathieu Choinière",t:"Canada"},{n:"Maxime Crépeau",t:"Canada"},{n:"Moïse Bombito",t:"Canada"},{n:"Nathan Saliba",t:"Canada"},{n:"Niko Sigur",t:"Canada"},{n:"Owen Goodman",t:"Canada"},{n:"Promise David",t:"Canada"},{n:"Richie Laryea",t:"Canada"},{n:"Stephen Eustáquio",t:"Canada"},{n:"Tajon Buchanan",t:"Canada"},{n:"Tani Oluwaseyi",t:"Canada"},{n:"CJ dos Santos",t:"Cape Verde"},{n:"Dailon Livramento",t:"Cape Verde"},{n:"Deroy Duarte",t:"Cape Verde"},{n:"Diney",t:"Cape Verde"},{n:"Garry Rodrigues",t:"Cape Verde"},{n:"Gilson Benchimol",t:"Cape Verde"},{n:"Hélio Varela",t:"Cape Verde"},{n:"Jamiro Monteiro",t:"Cape Verde"},{n:"Jovane Cabral",t:"Cape Verde"},{n:"João Paulo",t:"Cape Verde"},{n:"Kelvin Pires",t:"Cape Verde"},{n:"Kevin Pina",t:"Cape Verde"},{n:"Laros Duarte",t:"Cape Verde"},{n:"Logan Costa",t:"Cape Verde"},{n:"Márciyo Rosa",t:"Cape Verde"},{n:"Nuno da Costa",t:"Cape Verde"},{n:"Roberto Lopes",t:"Cape Verde"},{n:"Ryan Mendes",t:"Cape Verde"},{n:"Sidny Lopes Cabral",t:"Cape Verde"},{n:"Steven Moreira",t:"Cape Verde"},{n:"Stopira",t:"Cape Verde"},{n:"Telmo Arcanjo",t:"Cape Verde"},{n:"Vozinha",t:"Cape Verde"},{n:"Wagner Pina",t:"Cape Verde"},{n:"Willy Semedo",t:"Cape Verde"},{n:"Yannick Semedo",t:"Cape Verde"},{n:"Andrés Gómez",t:"Colombia"},{n:"Camilo Vargas",t:"Colombia"},{n:"Cucho Hernández",t:"Colombia"},{n:"Daniel Muñoz",t:"Colombia"},{n:"David Ospina",t:"Colombia"},{n:"Davinson Sánchez",t:"Colombia"},{n:"Deiver Machado",t:"Colombia"},{n:"Gustavo Puerta",t:"Colombia"},{n:"James Rodríguez",t:"Colombia"},{n:"Jaminton Campaz",t:"Colombia"},{n:"Jefferson Lerma",t:"Colombia"},{n:"Jhon Arias",t:"Colombia"},{n:"Jhon Córdoba",t:"Colombia"},{n:"Jhon Lucumí",t:"Colombia"},{n:"Johan Mojica",t:"Colombia"},{n:"Jorge Carrascal",t:"Colombia"},{n:"Juan Fernando Quintero",t:"Colombia"},{n:"Juan Portilla",t:"Colombia"},{n:"Kevin Castaño",t:"Colombia"},{n:"Luis Díaz",t:"Colombia"},{n:"Luis Suárez",t:"Colombia"},{n:"Richard Ríos",t:"Colombia"},{n:"Santiago Arias",t:"Colombia"},{n:"Willer Ditta",t:"Colombia"},{n:"Yerry Mina",t:"Colombia"},{n:"Álvaro Montero",t:"Colombia"},{n:"Andrej Kramarić",t:"Croatia"},{n:"Ante Budimir",t:"Croatia"},{n:"Dominik Kotarski",t:"Croatia"},{n:"Dominik Livaković",t:"Croatia"},{n:"Duje Ćaleta-Car",t:"Croatia"},{n:"Igor Matanović",t:"Croatia"},{n:"Ivan Perišić",t:"Croatia"},{n:"Ivor Pandur",t:"Croatia"},{n:"Josip Stanišić",t:"Croatia"},{n:"Josip Šutalo",t:"Croatia"},{n:"Joško Gvardiol",t:"Croatia"},{n:"Kristijan Jakić",t:"Croatia"},{n:"Luka Modrić",t:"Croatia"},{n:"Luka Sučić",t:"Croatia"},{n:"Luka Vušković",t:"Croatia"},{n:"Marco Pašalić",t:"Croatia"},{n:"Marin Pongračić",t:"Croatia"},{n:"Mario Pašalić",t:"Croatia"},{n:"Martin Baturina",t:"Croatia"},{n:"Martin Erlić",t:"Croatia"},{n:"Mateo Kovačić",t:"Croatia"},{n:"Nikola Moro",t:"Croatia"},{n:"Nikola Vlašić",t:"Croatia"},{n:"Petar Musa",t:"Croatia"},{n:"Petar Sučić",t:"Croatia"},{n:"Toni Fruk",t:"Croatia"},{n:"Ar'jany Martha",t:"Curacao"},{n:"Armando Obispo",t:"Curacao"},{n:"Brandley Kuwas",t:"Curacao"},{n:"Deveron Fonville",t:"Curacao"},{n:"Eloy Room",t:"Curacao"},{n:"Gervane Kastaneer",t:"Curacao"},{n:"Godfried Roemeratoe",t:"Curacao"},{n:"Jearl Margaritha",t:"Curacao"},{n:"Jeremy Antonisse",t:"Curacao"},{n:"Joshua Brenet",t:"Curacao"},{n:"Juninho Bacuna",t:"Curacao"},{n:"Jurién Gaari",t:"Curacao"},{n:"Jürgen Locadia",t:"Curacao"},{n:"Kenji Gorré",t:"Curacao"},{n:"Kevin Felida",t:"Curacao"},{n:"Leandro Bacuna",t:"Curacao"},{n:"Livano Comenencia",t:"Curacao"},{n:"Riechedly Bazoer",t:"Curacao"},{n:"Roshon van Eijma",t:"Curacao"},{n:"Sherel Floranus",t:"Curacao"},{n:"Shurandy Sambo",t:"Curacao"},{n:"Sontje Hansen",t:"Curacao"},{n:"Tahith Chong",t:"Curacao"},{n:"Trevor Doornbusch",t:"Curacao"},{n:"Tyrese Noslin",t:"Curacao"},{n:"Tyrick Bodak",t:"Curacao"},{n:"Adam Hložek",t:"Czechia"},{n:"Alexandr Sojka",t:"Czechia"},{n:"David Douděra",t:"Czechia"},{n:"David Jurásek",t:"Czechia"},{n:"David Zima",t:"Czechia"},{n:"Denis Višinský",t:"Czechia"},{n:"Hugo Sochůrek",t:"Czechia"},{n:"Jan Kuchta",t:"Czechia"},{n:"Jaroslav Zelený",t:"Czechia"},{n:"Jindřich Staněk",t:"Czechia"},{n:"Ladislav Krejčí",t:"Czechia"},{n:"Lukáš Horníček",t:"Czechia"},{n:"Lukáš Provod",t:"Czechia"},{n:"Lukáš Červ",t:"Czechia"},{n:"Matěj Kovář",t:"Czechia"},{n:"Michal Sadílek",t:"Czechia"},{n:"Mojmír Chytil",t:"Czechia"},{n:"Patrik Schick",t:"Czechia"},{n:"Pavel Šulc",t:"Czechia"},{n:"Robin Hranáč",t:"Czechia"},{n:"Tomáš Chorý",t:"Czechia"},{n:"Tomáš Holeš",t:"Czechia"},{n:"Tomáš Souček",t:"Czechia"},{n:"Vladimír Coufal",t:"Czechia"},{n:"Vladimír Darida",t:"Czechia"},{n:"Štěpán Chaloupek",t:"Czechia"},{n:"Aaron Tshibola",t:"DR Congo"},{n:"Aaron Wan-Bissaka",t:"DR Congo"},{n:"Arthur Masuaku",t:"DR Congo"},{n:"Axel Tuanzebe",t:"DR Congo"},{n:"Brian Cipenga",t:"DR Congo"},{n:"Chancel Mbemba",t:"DR Congo"},{n:"Charles Pickel",t:"DR Congo"},{n:"Cédric Bakambu",t:"DR Congo"},{n:"Dylan Batubinsika",t:"DR Congo"},{n:"Edo Kayembe",t:"DR Congo"},{n:"Fiston Mayele",t:"DR Congo"},{n:"Gaël Kakuta",t:"DR Congo"},{n:"Gédéon Kalulu",t:"DR Congo"},{n:"Joris Kayembe",t:"DR Congo"},{n:"Lionel Mpasi",t:"DR Congo"},{n:"Matthieu Epolo",t:"DR Congo"},{n:"Meschak Elia",t:"DR Congo"},{n:"Nathanaël Mbuku",t:"DR Congo"},{n:"Ngal'ayel Mukau",t:"DR Congo"},{n:"Noah Sadiki",t:"DR Congo"},{n:"Samuel Moutoussamy",t:"DR Congo"},{n:"Simon Banza",t:"DR Congo"},{n:"Steve Kapuadi",t:"DR Congo"},{n:"Théo Bongonda",t:"DR Congo"},{n:"Timothy Fayulu",t:"DR Congo"},{n:"Yoane Wissa",t:"DR Congo"},{n:"Alan Franco",t:"Ecuador"},{n:"Alan Minda",t:"Ecuador"},{n:"Anthony Valencia",t:"Ecuador"},{n:"Denil Castillo",t:"Ecuador"},{n:"Enner Valencia",t:"Ecuador"},{n:"Félix Torres",t:"Ecuador"},{n:"Gonzalo Plata",t:"Ecuador"},{n:"Gonzalo Valle",t:"Ecuador"},{n:"Hernán Galíndez",t:"Ecuador"},{n:"Jackson Porozo",t:"Ecuador"},{n:"Jeremy Arévalo",t:"Ecuador"},{n:"Joel Ordóñez",t:"Ecuador"},{n:"John Yeboah",t:"Ecuador"},{n:"Jordy Alcívar",t:"Ecuador"},{n:"Jordy Caicedo",t:"Ecuador"},{n:"Kendry Páez",t:"Ecuador"},{n:"Kevin Rodríguez",t:"Ecuador"},{n:"Moisés Caicedo",t:"Ecuador"},{n:"Moisés Ramírez",t:"Ecuador"},{n:"Nilson Angulo",t:"Ecuador"},{n:"Pedro Vite",t:"Ecuador"},{n:"Pervis Estupiñán",t:"Ecuador"},{n:"Piero Hincapié",t:"Ecuador"},{n:"Willian Pacho",t:"Ecuador"},{n:"Yaimar Medina",t:"Ecuador"},{n:"Ángelo Preciado",t:"Ecuador"},{n:"Ahmed Fatouh",t:"Egypt"},{n:"El Mahdy Soliman",t:"Egypt"},{n:"Emam Ashour",t:"Egypt"},{n:"Haissem Hassan",t:"Egypt"},{n:"Hamdy Fathy",t:"Egypt"},{n:"Hamza Abdelkarim",t:"Egypt"},{n:"Hossam Abdelmaguid",t:"Egypt"},{n:"Ibrahim Adel",t:"Egypt"},{n:"Karim Hafez",t:"Egypt"},{n:"Mahmoud Saber",t:"Egypt"},{n:"Marwan Attia",t:"Egypt"},{n:"Mohamed Abdelmonem",t:"Egypt"},{n:"Mohamed Alaa",t:"Egypt"},{n:"Mohamed El Shenawy",t:"Egypt"},{n:"Mohamed Hany",t:"Egypt"},{n:"Mohamed Salah",t:"Egypt"},{n:"Mohanad Lasheen",t:"Egypt"},{n:"Mostafa Shobeir",t:"Egypt"},{n:"Mostafa Ziko",t:"Egypt"},{n:"Nabil Emad",t:"Egypt"},{n:"Omar Marmoush",t:"Egypt"},{n:"Ramy Rabia",t:"Egypt"},{n:"Tarek Alaa",t:"Egypt"},{n:"Trézéguet",t:"Egypt"},{n:"Yasser Ibrahim",t:"Egypt"},{n:"Zizo",t:"Egypt"},{n:"Anthony Gordon",t:"England"},{n:"Bukayo Saka",t:"England"},{n:"Dan Burn",t:"England"},{n:"Dean Henderson",t:"England"},{n:"Declan Rice",t:"England"},{n:"Djed Spence",t:"England"},{n:"Eberechi Eze",t:"England"},{n:"Elliot Anderson",t:"England"},{n:"Ezri Konsa",t:"England"},{n:"Harry Kane",t:"England"},{n:"Ivan Toney",t:"England"},{n:"James Trafford",t:"England"},{n:"Jarell Quansah",t:"England"},{n:"John Stones",t:"England"},{n:"Jordan Henderson",t:"England"},{n:"Jordan Pickford",t:"England"},{n:"Jude Bellingham",t:"England"},{n:"Kobbie Mainoo",t:"England"},{n:"Marc Guéhi",t:"England"},{n:"Marcus Rashford",t:"England"},{n:"Morgan Rogers",t:"England"},{n:"Nico O'Reilly",t:"England"},{n:"Noni Madueke",t:"England"},{n:"Ollie Watkins",t:"England"},{n:"Reece James",t:"England"},{n:"Tino Livramento",t:"England"},{n:"Adrien Rabiot",t:"France"},{n:"Aurélien Tchouaméni",t:"France"},{n:"Bradley Barcola",t:"France"},{n:"Brice Samba",t:"France"},{n:"Dayot Upamecano",t:"France"},{n:"Désiré Doué",t:"France"},{n:"Ibrahima Konate",t:"France"},{n:"Jean-Philippe Mateta",t:"France"},{n:"Jules Koundé",t:"France"},{n:"Kylian Mbappé",t:"France"},{n:"Lucas Digne",t:"France"},{n:"Lucas Hernandez",t:"France"},{n:"Maghnes Akliouche",t:"France"},{n:"Malo Gusto",t:"France"},{n:"Manu Koné",t:"France"},{n:"Marcus Thuram",t:"France"},{n:"Maxence Lacroix",t:"France"},{n:"Michael Olise",t:"France"},{n:"Mike Maignan",t:"France"},{n:"N'Golo Kanté",t:"France"},{n:"Ousmane Dembélé",t:"France"},{n:"Rayan Cherki",t:"France"},{n:"Robin Risser",t:"France"},{n:"Théo Hernandez",t:"France"},{n:"Warren Zaïre-Emery",t:"France"},{n:"William Saliba",t:"France"},{n:"Aleksandar Pavlović",t:"Germany"},{n:"Alexander Nübel",t:"Germany"},{n:"Angelo Stiller",t:"Germany"},{n:"Antonio Rüdiger",t:"Germany"},{n:"Assan Ouédraogo",t:"Germany"},{n:"David Raum",t:"Germany"},{n:"Deniz Undav",t:"Germany"},{n:"Felix Nmecha",t:"Germany"},{n:"Florian Wirtz",t:"Germany"},{n:"Jamal Musiala",t:"Germany"},{n:"Jamie Leweling",t:"Germany"},{n:"Jonathan Tah",t:"Germany"},{n:"Joshua Kimmich",t:"Germany"},{n:"Kai Havertz",t:"Germany"},{n:"Leon Goretzka",t:"Germany"},{n:"Leroy Sané",t:"Germany"},{n:"Malick Thiaw",t:"Germany"},{n:"Manuel Neuer",t:"Germany"},{n:"Maximilian Beier",t:"Germany"},{n:"Nadiem Amiri",t:"Germany"},{n:"Nathaniel Brown",t:"Germany"},{n:"Nick Woltemade",t:"Germany"},{n:"Nico Schlotterbeck",t:"Germany"},{n:"Oliver Baumann",t:"Germany"},{n:"Pascal Groß",t:"Germany"},{n:"Waldemar Anton",t:"Germany"},{n:"Abdul Fatawu",t:"Ghana"},{n:"Abdul Mumin",t:"Ghana"},{n:"Abdul Rahman Baba",t:"Ghana"},{n:"Alidu Seidu",t:"Ghana"},{n:"Antoine Semenyo",t:"Ghana"},{n:"Augustine Boakye",t:"Ghana"},{n:"Benjamin Asare",t:"Ghana"},{n:"Brandon Thomas-Asante",t:"Ghana"},{n:"Caleb Yirenkyi",t:"Ghana"},{n:"Christopher Bonsu Baah",t:"Ghana"},{n:"Derrick Luckassen",t:"Ghana"},{n:"Elisha Owusu",t:"Ghana"},{n:"Ernest Nuamah",t:"Ghana"},{n:"Gideon Mensah",t:"Ghana"},{n:"Inaki Williams",t:"Ghana"},{n:"Jerome Opoku",t:"Ghana"},{n:"Jonas Adjetey",t:"Ghana"},{n:"Jordan Ayew",t:"Ghana"},{n:"Joseph Anang",t:"Ghana"},{n:"Kamaldeen Sulemana",t:"Ghana"},{n:"Kojo Peprah Oppong",t:"Ghana"},{n:"Kwasi Sibo",t:"Ghana"},{n:"Lawrence Ati-Zigi",t:"Ghana"},{n:"Marvin Senaya",t:"Ghana"},{n:"Prince Kwabena Adu",t:"Ghana"},{n:"Thomas Partey",t:"Ghana"},{n:"Alexandre Pierre",t:"Haiti"},{n:"Carl Sainté",t:"Haiti"},{n:"Carlens Arcus",t:"Haiti"},{n:"Danley Jean Jacques",t:"Haiti"},{n:"Derrick Etienne Jr.",t:"Haiti"},{n:"Dominique Simon",t:"Haiti"},{n:"Duckens Nazon",t:"Haiti"},{n:"Duke Lacroix",t:"Haiti"},{n:"Frantzdy Pierrot",t:"Haiti"},{n:"Hannes Delcroix",t:"Haiti"},{n:"Jean-Kévin Duverne",t:"Haiti"},{n:"Jean-Ricner Bellegarde",t:"Haiti"},{n:"Johny Placide",t:"Haiti"},{n:"Josué Casimir",t:"Haiti"},{n:"Josué Duverger",t:"Haiti"},{n:"Keeto Thermoncy",t:"Haiti"},{n:"Lenny Joseph",t:"Haiti"},{n:"Leverton Pierre",t:"Haiti"},{n:"Louicius Deedson",t:"Haiti"},{n:"Martin Expérience",t:"Haiti"},{n:"Ricardo Adé",t:"Haiti"},{n:"Ruben Providence",t:"Haiti"},{n:"Wilguens Paugain",t:"Haiti"},{n:"Wilson Isidor",t:"Haiti"},{n:"Woodensky Pierre",t:"Haiti"},{n:"Yassin Fortuné",t:"Haiti"},{n:"Ali Alipour",t:"Iran"},{n:"Ali Nemati",t:"Iran"},{n:"Alireza Beiranvand",t:"Iran"},{n:"Alireza Jahanbakhsh",t:"Iran"},{n:"Amirhossein Hosseinzadeh",t:"Iran"},{n:"Amirmohammad Razzaghinia",t:"Iran"},{n:"Aria Yousefi",t:"Iran"},{n:"Danial Eiri",t:"Iran"},{n:"Dennis Eckert",t:"Iran"},{n:"Ehsan Hajsafi",t:"Iran"},{n:"Hossein Hosseini",t:"Iran"},{n:"Hossein Kanaanizadegan",t:"Iran"},{n:"Mehdi Ghayedi",t:"Iran"},{n:"Mehdi Taremi",t:"Iran"},{n:"Mehdi Torabi",t:"Iran"},{n:"Milad Mohammadi",t:"Iran"},{n:"Mohammad Ghorbani",t:"Iran"},{n:"Mohammad Mohebi",t:"Iran"},{n:"Payam Niazmand",t:"Iran"},{n:"Ramin Rezaeian",t:"Iran"},{n:"Rouzbeh Cheshmi",t:"Iran"},{n:"Saeid Ezatolahi",t:"Iran"},{n:"Saleh Hardani",t:"Iran"},{n:"Saman Ghoddos",t:"Iran"},{n:"Shahriyar Moghanlou",t:"Iran"},{n:"Shojae Khalilzadeh",t:"Iran"},{n:"Ahmed Basil",t:"Iraq"},{n:"Ahmed Qasem",t:"Iraq"},{n:"Ahmed Yahya",t:"Iraq"},{n:"Aimar Sher",t:"Iraq"},{n:"Akam Hashim",t:"Iraq"},{n:"Ali Al-Hamadi",t:"Iraq"},{n:"Ali Jasim",t:"Iraq"},{n:"Ali Yousif",t:"Iraq"},{n:"Amir Al-Ammari",t:"Iraq"},{n:"Aymen Hussein",t:"Iraq"},{n:"Fahad Talib",t:"Iraq"},{n:"Frans Putros",t:"Iraq"},{n:"Hussein Ali",t:"Iraq"},{n:"Ibrahim Bayesh",t:"Iraq"},{n:"Jalal Hassan",t:"Iraq"},{n:"Kevin Yakob",t:"Iraq"},{n:"Manaf Younis",t:"Iraq"},{n:"Marko Farji",t:"Iraq"},{n:"Merchas Doski",t:"Iraq"},{n:"Mohanad Ali",t:"Iraq"},{n:"Mustafa Saadoon",t:"Iraq"},{n:"Rebin Sulaka",t:"Iraq"},{n:"Youssef Amyn",t:"Iraq"},{n:"Zaid Ismail",t:"Iraq"},{n:"Zaid Tahseen",t:"Iraq"},{n:"Zidane Iqbal",t:"Iraq"},{n:"Alban Lafont",t:"Ivory Coast"},{n:"Amad Diallo",t:"Ivory Coast"},{n:"Ange-Yoan Bonny",t:"Ivory Coast"},{n:"Bazoumana Touré",t:"Ivory Coast"},{n:"Christ Inao Oulaï",t:"Ivory Coast"},{n:"Christopher Opéri",t:"Ivory Coast"},{n:"Elye Wahi",t:"Ivory Coast"},{n:"Emmanuel Agbadou",t:"Ivory Coast"},{n:"Evan Ndicka",t:"Ivory Coast"},{n:"Evann Guessand",t:"Ivory Coast"},{n:"Franck Kessié",t:"Ivory Coast"},{n:"Ghislain Konan",t:"Ivory Coast"},{n:"Guéla Doué",t:"Ivory Coast"},{n:"Ibrahim Sangaré",t:"Ivory Coast"},{n:"Jean Michaël Seri",t:"Ivory Coast"},{n:"Mohamed Koné",t:"Ivory Coast"},{n:"Nicolas Pépé",t:"Ivory Coast"},{n:"Odilon Kossounou",t:"Ivory Coast"},{n:"Oumar Diakité",t:"Ivory Coast"},{n:"Ousmane Diomande",t:"Ivory Coast"},{n:"Parfait Guiagon",t:"Ivory Coast"},{n:"Seko Fofana",t:"Ivory Coast"},{n:"Simon Adingra",t:"Ivory Coast"},{n:"Wilfried Singo",t:"Ivory Coast"},{n:"Yahia Fofana",t:"Ivory Coast"},{n:"Yan Diomande",t:"Ivory Coast"},{n:"Ao Tanaka",t:"Japan"},{n:"Ayase Ueda",t:"Japan"},{n:"Ayumu Seko",t:"Japan"},{n:"Daichi Kamada",t:"Japan"},{n:"Daizen Maeda",t:"Japan"},{n:"Hiroki Itō",t:"Japan"},{n:"Junnosuke Suzuki",t:"Japan"},{n:"Junya Itō",t:"Japan"},{n:"Kaishū Sano",t:"Japan"},{n:"Keisuke Gotō",t:"Japan"},{n:"Keisuke Ōsako",t:"Japan"},{n:"Keito Nakamura",t:"Japan"},{n:"Kento Shiogai",t:"Japan"},{n:"Kō Itakura",t:"Japan"},{n:"Kōki Ogawa",t:"Japan"},{n:"Ritsu Dōan",t:"Japan"},{n:"Shōgo Taniguchi",t:"Japan"},{n:"Takefusa Kubo",t:"Japan"},{n:"Takehiro Tomiyasu",t:"Japan"},{n:"Tomoki Hayakawa",t:"Japan"},{n:"Tsuyoshi Watanabe",t:"Japan"},{n:"Wataru Endo",t:"Japan"},{n:"Yuito Suzuki",t:"Japan"},{n:"Yukinari Sugawara",t:"Japan"},{n:"Yūto Nagatomo",t:"Japan"},{n:"Zion Suzuki",t:"Japan"},{n:"Abdallah Al-Fakhouri",t:"Jordan"},{n:"Abdallah Nasib",t:"Jordan"},{n:"Ali Azaizeh",t:"Jordan"},{n:"Ali Olwan",t:"Jordan"},{n:"Amer Jamous",t:"Jordan"},{n:"Anas Badawi",t:"Jordan"},{n:"Husam Abu Dahab",t:"Jordan"},{n:"Ibrahim Sabra",t:"Jordan"},{n:"Ibrahim Sadeh",t:"Jordan"},{n:"Ihsan Haddad",t:"Jordan"},{n:"Mahmoud Al-Mardi",t:"Jordan"},{n:"Mo Abualnadi",t:"Jordan"},{n:"Mohammad Abu Hashish",t:"Jordan"},{n:"Mohammad Abu Zrayq",t:"Jordan"},{n:"Mohammad Al-Dawoud",t:"Jordan"},{n:"Mohannad Abu Taha",t:"Jordan"},{n:"Musa Al-Taamari",t:"Jordan"},{n:"Nizar Al-Rashdan",t:"Jordan"},{n:"Noor Al-Rawabdeh",t:"Jordan"},{n:"Nour Bani Attiah",t:"Jordan"},{n:"Odeh Al-Fakhouri",t:"Jordan"},{n:"Rajaei Ayed",t:"Jordan"},{n:"Saed Al-Rosan",t:"Jordan"},{n:"Salim Obaid",t:"Jordan"},{n:"Yazan Al-Arab",t:"Jordan"},{n:"Yazeed Abulaila",t:"Jordan"},{n:"Alexis Vega",t:"Mexico"},{n:"Armando González",t:"Mexico"},{n:"Brian Gutiérrez",t:"Mexico"},{n:"Carlos Acevedo",t:"Mexico"},{n:"César Huerta",t:"Mexico"},{n:"César Montes",t:"Mexico"},{n:"Edson Álvarez",t:"Mexico"},{n:"Gilberto Mora",t:"Mexico"},{n:"Guillermo Martínez",t:"Mexico"},{n:"Guillermo Ochoa",t:"Mexico"},{n:"Israel Reyes",t:"Mexico"},{n:"Jesús Gallardo",t:"Mexico"},{n:"Johan Vásquez",t:"Mexico"},{n:"Jorge Sánchez",t:"Mexico"},{n:"Julián Quiñones",t:"Mexico"},{n:"Luis Chávez",t:"Mexico"},{n:"Luis Romo",t:"Mexico"},{n:"Mateo Chávez",t:"Mexico"},{n:"Obed Vargas",t:"Mexico"},{n:"Orbelin Pineda",t:"Mexico"},{n:"Raúl Jiménez",t:"Mexico"},{n:"Raúl Rangel",t:"Mexico"},{n:"Roberto Alvarado",t:"Mexico"},{n:"Santiago Giménez",t:"Mexico"},{n:"Álvaro Fidalgo",t:"Mexico"},{n:"Érik Lira",t:"Mexico"},{n:"Abde Ezzalzouli",t:"Morocco"},{n:"Achraf Hakimi",t:"Morocco"},{n:"Ahmed Reda Tagnaouti",t:"Morocco"},{n:"Anass Salah-Eddine",t:"Morocco"},{n:"Ayoub El Kaabi",t:"Morocco"},{n:"Ayoube Amaimouni",t:"Morocco"},{n:"Ayyoub Bouaddi",t:"Morocco"},{n:"Azzedine Ounahi",t:"Morocco"},{n:"Bilal El Khannouss",t:"Morocco"},{n:"Brahim Díaz",t:"Morocco"},{n:"Chadi Riad",t:"Morocco"},{n:"Chemsdine Talbi",t:"Morocco"},{n:"Gessime Yassine",t:"Morocco"},{n:"Ismael Saibari",t:"Morocco"},{n:"Issa Diop",t:"Morocco"},{n:"Munir Mohamedi",t:"Morocco"},{n:"Nayef Aguerd",t:"Morocco"},{n:"Neil El Aynaoui",t:"Morocco"},{n:"Noussair Mazraoui",t:"Morocco"},{n:"Redouane Halhal",t:"Morocco"},{n:"Samir El Mourabet",t:"Morocco"},{n:"Sofyan Amrabat",t:"Morocco"},{n:"Soufiane Rahimi",t:"Morocco"},{n:"Yassine Bounou",t:"Morocco"},{n:"Youssef Belammari",t:"Morocco"},{n:"Zakaria El Ouahdi",t:"Morocco"},{n:"Bart Verbruggen",t:"Netherlands"},{n:"Brian Brobbey",t:"Netherlands"},{n:"Cody Gakpo",t:"Netherlands"},{n:"Crysencio Summerville",t:"Netherlands"},{n:"Denzel Dumfries",t:"Netherlands"},{n:"Donyell Malen",t:"Netherlands"},{n:"Frenkie de Jong",t:"Netherlands"},{n:"Guus Til",t:"Netherlands"},{n:"Jan Paul van Hecke",t:"Netherlands"},{n:"Jorrel Hato",t:"Netherlands"},{n:"Jurriën Timber",t:"Netherlands"},{n:"Justin Kluivert",t:"Netherlands"},{n:"Mark Flekken",t:"Netherlands"},{n:"Marten de Roon",t:"Netherlands"},{n:"Mats Wieffer",t:"Netherlands"},{n:"Memphis Depay",t:"Netherlands"},{n:"Micky van de Ven",t:"Netherlands"},{n:"Nathan Aké",t:"Netherlands"},{n:"Noa Lang",t:"Netherlands"},{n:"Quinten Timber",t:"Netherlands"},{n:"Robin Roefs",t:"Netherlands"},{n:"Ryan Gravenberch",t:"Netherlands"},{n:"Teun Koopmeiners",t:"Netherlands"},{n:"Tijjani Reijnders",t:"Netherlands"},{n:"Virgil van Dijk",t:"Netherlands"},{n:"Wout Weghorst",t:"Netherlands"},{n:"Alex Paulsen",t:"New Zealand"},{n:"Alex Rufer",t:"New Zealand"},{n:"Ben Old",t:"New Zealand"},{n:"Ben Waine",t:"New Zealand"},{n:"Callan Elliot",t:"New Zealand"},{n:"Callum McCowatt",t:"New Zealand"},{n:"Chris Wood",t:"New Zealand"},{n:"Elijah Just",t:"New Zealand"},{n:"Finn Surman",t:"New Zealand"},{n:"Francis de Vries",t:"New Zealand"},{n:"Jesse Randall",t:"New Zealand"},{n:"Joe Bell",t:"New Zealand"},{n:"Kosta Barbarouses",t:"New Zealand"},{n:"Lachlan Bayliss",t:"New Zealand"},{n:"Liberato Cacace",t:"New Zealand"},{n:"Marko Stamenić",t:"New Zealand"},{n:"Matthew Garbett",t:"New Zealand"},{n:"Max Crocombe",t:"New Zealand"},{n:"Michael Boxall",t:"New Zealand"},{n:"Michael Woud",t:"New Zealand"},{n:"Nando Pijnaker",t:"New Zealand"},{n:"Ryan Thomas",t:"New Zealand"},{n:"Sarpreet Singh",t:"New Zealand"},{n:"Tim Payne",t:"New Zealand"},{n:"Tommy Smith",t:"New Zealand"},{n:"Tyler Bindon",t:"New Zealand"},{n:"Alexander Sørloth",t:"Norway"},{n:"Andreas Schjelderup",t:"Norway"},{n:"Antonio Nusa",t:"Norway"},{n:"David Møller Wolfe",t:"Norway"},{n:"Egil Selvik",t:"Norway"},{n:"Erling Haaland",t:"Norway"},{n:"Fredrik André Bjørkan",t:"Norway"},{n:"Fredrik Aursnes",t:"Norway"},{n:"Henrik Falchener",t:"Norway"},{n:"Jens Petter Hauge",t:"Norway"},{n:"Julian Ryerson",t:"Norway"},{n:"Jørgen Strand Larsen",t:"Norway"},{n:"Kristian Thorstvedt",t:"Norway"},{n:"Kristoffer Ajer",t:"Norway"},{n:"Leo Østigård",t:"Norway"},{n:"Marcus Holmgren Pedersen",t:"Norway"},{n:"Martin Ødegaard",t:"Norway"},{n:"Morten Thorsby",t:"Norway"},{n:"Oscar Bobb",t:"Norway"},{n:"Patrick Berg",t:"Norway"},{n:"Sander Berge",t:"Norway"},{n:"Sander Tangvik",t:"Norway"},{n:"Sondre Langås",t:"Norway"},{n:"Thelo Aasgaard",t:"Norway"},{n:"Torbjørn Heggem",t:"Norway"},{n:"Ørjan Nyland",t:"Norway"},{n:"Adalberto Carrasquilla",t:"Panama"},{n:"Alberto Quintero",t:"Panama"},{n:"Andrés Andrade",t:"Panama"},{n:"Aníbal Godoy",t:"Panama"},{n:"Azarias Londoño",t:"Panama"},{n:"Carlos Harvey",t:"Panama"},{n:"Cecilio Waterman",t:"Panama"},{n:"Cristian Martínez",t:"Panama"},{n:"César Blackman",t:"Panama"},{n:"César Samudio",t:"Panama"},{n:"César Yanis",t:"Panama"},{n:"Edgardo Fariña",t:"Panama"},{n:"Eric Davis",t:"Panama"},{n:"Fidel Escobar",t:"Panama"},{n:"Ismael Díaz",t:"Panama"},{n:"Jiovany Ramos",t:"Panama"},{n:"Jorge Gutiérrez",t:"Panama"},{n:"José Córdoba",t:"Panama"},{n:"José Fajardo",t:"Panama"},{n:"José Luis Rodríguez",t:"Panama"},{n:"Luis Mejía",t:"Panama"},{n:"Michael Amir Murillo",t:"Panama"},{n:"Orlando Mosquera",t:"Panama"},{n:"Roderick Miller",t:"Panama"},{n:"Tomás Rodríguez",t:"Panama"},{n:"Yoel Bárcenas",t:"Panama"},{n:"Alexandro Maidana",t:"Paraguay"},{n:"Andrés Cubas",t:"Paraguay"},{n:"Antonio Sanabria",t:"Paraguay"},{n:"Braian Ojeda",t:"Paraguay"},{n:"Damián Bobadilla",t:"Paraguay"},{n:"Diego Gómez",t:"Paraguay"},{n:"Fabián Balbuena",t:"Paraguay"},{n:"Gabriel Ávalos",t:"Paraguay"},{n:"Gastón Olveira",t:"Paraguay"},{n:"Gatito Fernández",t:"Paraguay"},{n:"Gustavo Caballero",t:"Paraguay"},{n:"Gustavo Gómez",t:"Paraguay"},{n:"Gustavo Velázquez",t:"Paraguay"},{n:"Isidro Pitta",t:"Paraguay"},{n:"José Canale",t:"Paraguay"},{n:"Juan José Cáceres",t:"Paraguay"},{n:"Julio Enciso",t:"Paraguay"},{n:"Júnior Alonso",t:"Paraguay"},{n:"Kaku",t:"Paraguay"},{n:"Matías Galarza",t:"Paraguay"},{n:"Maurício",t:"Paraguay"},{n:"Miguel Almirón",t:"Paraguay"},{n:"Omar Alderete",t:"Paraguay"},{n:"Orlando Gill",t:"Paraguay"},{n:"Ramón Sosa",t:"Paraguay"},{n:"Álex Arce",t:"Paraguay"},{n:"Bernardo Silva",t:"Portugal"},{n:"Bruno Fernandes",t:"Portugal"},{n:"Cristiano Ronaldo",t:"Portugal"},{n:"Diogo Costa",t:"Portugal"},{n:"Diogo Dalot",t:"Portugal"},{n:"Francisco Conceição",t:"Portugal"},{n:"Francisco Trincão",t:"Portugal"},{n:"Gonçalo Guedes",t:"Portugal"},{n:"Gonçalo Inácio",t:"Portugal"},{n:"Gonçalo Ramos",t:"Portugal"},{n:"José Sá",t:"Portugal"},{n:"João Cancelo",t:"Portugal"},{n:"João Félix",t:"Portugal"},{n:"João Neves",t:"Portugal"},{n:"Matheus Nunes",t:"Portugal"},{n:"Nuno Mendes",t:"Portugal"},{n:"Nélson Semedo",t:"Portugal"},{n:"Pedro Neto",t:"Portugal"},{n:"Rafael Leão",t:"Portugal"},{n:"Renato Veiga",t:"Portugal"},{n:"Rui Silva",t:"Portugal"},{n:"Rúben Dias",t:"Portugal"},{n:"Rúben Neves",t:"Portugal"},{n:"Samú Costa",t:"Portugal"},{n:"Tomás Araújo",t:"Portugal"},{n:"Vitinha",t:"Portugal"},{n:"Abdulaziz Hatem",t:"Qatar"},{n:"Ahmed Al-Ganehi",t:"Qatar"},{n:"Ahmed Alaaeldin",t:"Qatar"},{n:"Ahmed Fathy",t:"Qatar"},{n:"Akram Afif",t:"Qatar"},{n:"Al-Hashmi Al-Hussain",t:"Qatar"},{n:"Almoez Ali",t:"Qatar"},{n:"Assim Madibo",t:"Qatar"},{n:"Ayoub Al-Oui",t:"Qatar"},{n:"Boualem Khoukhi",t:"Qatar"},{n:"Edmilson Junior",t:"Qatar"},{n:"Hassan Al-Haydos",t:"Qatar"},{n:"Homam Ahmed",t:"Qatar"},{n:"Issa Laye",t:"Qatar"},{n:"Jassem Gaber",t:"Qatar"},{n:"Karim Boudiaf",t:"Qatar"},{n:"Lucas Mendes",t:"Qatar"},{n:"Mahmud Abunada",t:"Qatar"},{n:"Meshaal Barsham",t:"Qatar"},{n:"Mohamed Manai",t:"Qatar"},{n:"Mohammed Muntari",t:"Qatar"},{n:"Pedro Miguel",t:"Qatar"},{n:"Salah Zakaria",t:"Qatar"},{n:"Sultan Al-Brake",t:"Qatar"},{n:"Tahsin Jamshid",t:"Qatar"},{n:"Yusuf Abdurisag",t:"Qatar"},{n:"Abdulelah Al-Amri",t:"Saudi Arabia"},{n:"Abdullah Al-Hamdan",t:"Saudi Arabia"},{n:"Abdullah Al-Khaibari",t:"Saudi Arabia"},{n:"Ahmed Al-Kassar",t:"Saudi Arabia"},{n:"Alaa Al-Hejji",t:"Saudi Arabia"},{n:"Ali Lajami",t:"Saudi Arabia"},{n:"Ali Majrashi",t:"Saudi Arabia"},{n:"Ayman Yahya",t:"Saudi Arabia"},{n:"Firas Al-Buraikan",t:"Saudi Arabia"},{n:"Hassan Al-Tambakti",t:"Saudi Arabia"},{n:"Hassan Kadesh",t:"Saudi Arabia"},{n:"Jehad Thakri",t:"Saudi Arabia"},{n:"Khalid Al-Ghannam",t:"Saudi Arabia"},{n:"Mohamed Kanno",t:"Saudi Arabia"},{n:"Mohammed Abu Al-Shamat",t:"Saudi Arabia"},{n:"Mohammed Al-Owais",t:"Saudi Arabia"},{n:"Moteb Al-Harbi",t:"Saudi Arabia"},{n:"Musab Al-Juwayr",t:"Saudi Arabia"},{n:"Nasser Al-Dawsari",t:"Saudi Arabia"},{n:"Nawaf Al-Aqidi",t:"Saudi Arabia"},{n:"Nawaf Boushal",t:"Saudi Arabia"},{n:"Saleh Al-Shehri",t:"Saudi Arabia"},{n:"Salem Al-Dawsari",t:"Saudi Arabia"},{n:"Saud Abdulhamid",t:"Saudi Arabia"},{n:"Sultan Mandash",t:"Saudi Arabia"},{n:"Ziyad Al-Johani",t:"Saudi Arabia"},{n:"Aaron Hickey",t:"Scotland"},{n:"Andy Robertson",t:"Scotland"},{n:"Angus Gunn",t:"Scotland"},{n:"Anthony Ralston",t:"Scotland"},{n:"Ben Doak",t:"Scotland"},{n:"Billy Gilmour",t:"Scotland"},{n:"Chè Adams",t:"Scotland"},{n:"Craig Gordon",t:"Scotland"},{n:"Dominic Hyam",t:"Scotland"},{n:"Findlay Curtis",t:"Scotland"},{n:"George Hirst",t:"Scotland"},{n:"Grant Hanley",t:"Scotland"},{n:"Jack Hendry",t:"Scotland"},{n:"John McGinn",t:"Scotland"},{n:"John Souttar",t:"Scotland"},{n:"Kenny McLean",t:"Scotland"},{n:"Kieran Tierney",t:"Scotland"},{n:"Lawrence Shankland",t:"Scotland"},{n:"Lewis Ferguson",t:"Scotland"},{n:"Liam Kelly",t:"Scotland"},{n:"Lyndon Dykes",t:"Scotland"},{n:"Nathan Patterson",t:"Scotland"},{n:"Ross Stewart",t:"Scotland"},{n:"Ryan Christie",t:"Scotland"},{n:"Scott McKenna",t:"Scotland"},{n:"Scott McTominay",t:"Scotland"},{n:"Abdoulaye Seck",t:"Senegal"},{n:"Antoine Mendy",t:"Senegal"},{n:"Assane Diao",t:"Senegal"},{n:"Bamba Dieng",t:"Senegal"},{n:"Bara Sapoko Ndiaye",t:"Senegal"},{n:"Cherif Ndiaye",t:"Senegal"},{n:"El Hadji Malick Diouf",t:"Senegal"},{n:"Habib Diarra",t:"Senegal"},{n:"Ibrahim Mbaye",t:"Senegal"},{n:"Idrissa Gueye",t:"Senegal"},{n:"Iliman Ndiaye",t:"Senegal"},{n:"Ismail Jakobs",t:"Senegal"},{n:"Ismaïla Sarr",t:"Senegal"},{n:"Kalidou Koulibaly",t:"Senegal"},{n:"Krépin Diatta",t:"Senegal"},{n:"Lamine Camara",t:"Senegal"},{n:"Mamadou Sarr",t:"Senegal"},{n:"Mory Diaw",t:"Senegal"},{n:"Moussa Niakhaté",t:"Senegal"},{n:"Nicolas Jackson",t:"Senegal"},{n:"Pape Gueye",t:"Senegal"},{n:"Pape Matar Sarr",t:"Senegal"},{n:"Pathé Ciss",t:"Senegal"},{n:"Sadio Mané",t:"Senegal"},{n:"Yehvann Diouf",t:"Senegal"},{n:"Édouard Mendy",t:"Senegal"},{n:"Aubrey Modiba",t:"South Africa"},{n:"Bradley Cross",t:"South Africa"},{n:"Evidence Makgopa",t:"South Africa"},{n:"Ime Okon",t:"South Africa"},{n:"Iqraam Rayners",t:"South Africa"},{n:"Jayden Adams",t:"South Africa"},{n:"Kamogelo Sebelebele",t:"South Africa"},{n:"Khuliso Mudau",t:"South Africa"},{n:"Khulumani Ndamane",t:"South Africa"},{n:"Lyle Foster",t:"South Africa"},{n:"Mbekezeli Mbokazi",t:"South Africa"},{n:"Nkosinathi Sibisi",t:"South Africa"},{n:"Olwethu Makhanya",t:"South Africa"},{n:"Oswin Appollis",t:"South Africa"},{n:"Relebohile Mofokeng",t:"South Africa"},{n:"Ricardo Goss",t:"South Africa"},{n:"Ronwen Williams",t:"South Africa"},{n:"Samukele Kabini",t:"South Africa"},{n:"Sipho Chaine",t:"South Africa"},{n:"Sphephelo Sithole",t:"South Africa"},{n:"Teboho Mokoena",t:"South Africa"},{n:"Thabang Matuludi",t:"South Africa"},{n:"Thalente Mbatha",t:"South Africa"},{n:"Thapelo Maseko",t:"South Africa"},{n:"Themba Zwane",t:"South Africa"},{n:"Tshepang Moremi",t:"South Africa"},{n:"Bae Jun-ho",t:"South Korea"},{n:"Cho Gue-sung",t:"South Korea"},{n:"Cho Yu-min",t:"South Korea"},{n:"Eom Ji-sung",t:"South Korea"},{n:"Hwang Hee-chan",t:"South Korea"},{n:"Hwang In-beom",t:"South Korea"},{n:"Jens Castrop",t:"South Korea"},{n:"Jo Hyeon-woo",t:"South Korea"},{n:"Kim Jin-gyu",t:"South Korea"},{n:"Kim Min-jae",t:"South Korea"},{n:"Kim Moon-hwan",t:"South Korea"},{n:"Kim Seung-gyu",t:"South Korea"},{n:"Kim Tae-hyeon",t:"South Korea"},{n:"Lee Dong-gyeong",t:"South Korea"},{n:"Lee Han-beom",t:"South Korea"},{n:"Lee Jae-sung",t:"South Korea"},{n:"Lee Kang-in",t:"South Korea"},{n:"Lee Ki-hyuk",t:"South Korea"},{n:"Lee Tae-seok",t:"South Korea"},{n:"Oh Hyeon-gyu",t:"South Korea"},{n:"Paik Seung-ho",t:"South Korea"},{n:"Park Jin-seob",t:"South Korea"},{n:"Seol Young-woo",t:"South Korea"},{n:"Son Heung-min",t:"South Korea"},{n:"Song Bum-keun",t:"South Korea"},{n:"Yang Hyun-jun",t:"South Korea"},{n:"Aymeric Laporte",t:"Spain"},{n:"Borja Iglesias",t:"Spain"},{n:"Dani Olmo",t:"Spain"},{n:"David Raya",t:"Spain"},{n:"Eric García",t:"Spain"},{n:"Fabián Ruiz",t:"Spain"},{n:"Ferran Torres",t:"Spain"},{n:"Gavi",t:"Spain"},{n:"Joan Garcia",t:"Spain"},{n:"Lamine Yamal",t:"Spain"},{n:"Marc Cucurella",t:"Spain"},{n:"Marc Pubill",t:"Spain"},{n:"Marcos Llorente",t:"Spain"},{n:"Martín Zubimendi",t:"Spain"},{n:"Mikel Merino",t:"Spain"},{n:"Mikel Oyarzabal",t:"Spain"},{n:"Nico Williams",t:"Spain"},{n:"Pau Cubarsí",t:"Spain"},{n:"Pedri",t:"Spain"},{n:"Pedro Porro",t:"Spain"},{n:"Rodri",t:"Spain"},{n:"Unai Simón",t:"Spain"},{n:"Víctor Muñoz",t:"Spain"},{n:"Yéremy Pino",t:"Spain"},{n:"Álex Baena",t:"Spain"},{n:"Álex Grimaldo",t:"Spain"},{n:"Alexander Bernhardsson",t:"Sweden"},{n:"Alexander Isak",t:"Sweden"},{n:"Anthony Elanga",t:"Sweden"},{n:"Benjamin Nygren",t:"Sweden"},{n:"Besfort Zeneli",t:"Sweden"},{n:"Carl Starfelt",t:"Sweden"},{n:"Daniel Svensson",t:"Sweden"},{n:"Elliot Stroud",t:"Sweden"},{n:"Emil Holm",t:"Sweden"},{n:"Eric Smith",t:"Sweden"},{n:"Gabriel Gudmundsson",t:"Sweden"},{n:"Gustaf Lagerbielke",t:"Sweden"},{n:"Gustaf Nilsson",t:"Sweden"},{n:"Hjalmar Ekdal",t:"Sweden"},{n:"Isak Hien",t:"Sweden"},{n:"Jacob Widell Zetterström",t:"Sweden"},{n:"Jesper Karlström",t:"Sweden"},{n:"Ken Sema",t:"Sweden"},{n:"Kristoffer Nordfeldt",t:"Sweden"},{n:"Lucas Bergvall",t:"Sweden"},{n:"Mattias Svanberg",t:"Sweden"},{n:"Taha Ali",t:"Sweden"},{n:"Victor Lindelöf",t:"Sweden"},{n:"Viktor Gyökeres",t:"Sweden"},{n:"Viktor Johansson",t:"Sweden"},{n:"Yasin Ayari",t:"Sweden"},{n:"Ardon Jashari",t:"Switzerland"},{n:"Aurèle Amenda",t:"Switzerland"},{n:"Breel Embolo",t:"Switzerland"},{n:"Cedric Itten",t:"Switzerland"},{n:"Christian Fassnacht",t:"Switzerland"},{n:"Dan Ndoye",t:"Switzerland"},{n:"Denis Zakaria",t:"Switzerland"},{n:"Djibril Sow",t:"Switzerland"},{n:"Eray Cömert",t:"Switzerland"},{n:"Fabian Rieder",t:"Switzerland"},{n:"Granit Xhaka",t:"Switzerland"},{n:"Gregor Kobel",t:"Switzerland"},{n:"Johan Manzambi",t:"Switzerland"},{n:"Luca Jaquez",t:"Switzerland"},{n:"Manuel Akanji",t:"Switzerland"},{n:"Marvin Keller",t:"Switzerland"},{n:"Michel Aebischer",t:"Switzerland"},{n:"Miro Muheim",t:"Switzerland"},{n:"Nico Elvedi",t:"Switzerland"},{n:"Noah Okafor",t:"Switzerland"},{n:"Remo Freuler",t:"Switzerland"},{n:"Ricardo Rodriguez",t:"Switzerland"},{n:"Rubén Vargas",t:"Switzerland"},{n:"Silvan Widmer",t:"Switzerland"},{n:"Yvon Mvogo",t:"Switzerland"},{n:"Zeki Amdouni",t:"Switzerland"},{n:"Adem Arous",t:"Tunisia"},{n:"Ali Abdi",t:"Tunisia"},{n:"Anis Ben Slimane",t:"Tunisia"},{n:"Aymen Dahmen",t:"Tunisia"},{n:"Dylan Bronn",t:"Tunisia"},{n:"Elias Achouri",t:"Tunisia"},{n:"Elias Saad",t:"Tunisia"},{n:"Ellyes Skhiri",t:"Tunisia"},{n:"Firas Chaouat",t:"Tunisia"},{n:"Hadj Mahmoud",t:"Tunisia"},{n:"Hannibal Mejbri",t:"Tunisia"},{n:"Hazem Mastouri",t:"Tunisia"},{n:"Ismaël Gharbi",t:"Tunisia"},{n:"Khalil Ayari",t:"Tunisia"},{n:"Mohamed Amine Ben Hamida",t:"Tunisia"},{n:"Montassar Talbi",t:"Tunisia"},{n:"Mortadha Ben Ouanes",t:"Tunisia"},{n:"Mouhib Chamakh",t:"Tunisia"},{n:"Moutaz Neffati",t:"Tunisia"},{n:"Omar Rekik",t:"Tunisia"},{n:"Raed Chikhaoui",t:"Tunisia"},{n:"Rani Khedira",t:"Tunisia"},{n:"Rayan Elloumi",t:"Tunisia"},{n:"Sabri Ben Hessen",t:"Tunisia"},{n:"Sebastian Tounekti",t:"Tunisia"},{n:"Yan Valery",t:"Tunisia"},{n:"Abdülkerim Bardakcı",t:"Turkiye"},{n:"Altay Bayındır",t:"Turkiye"},{n:"Arda Güler",t:"Turkiye"},{n:"Barış Alper Yılmaz",t:"Turkiye"},{n:"Can Uzun",t:"Turkiye"},{n:"Deniz Gül",t:"Turkiye"},{n:"Eren Elmalı",t:"Turkiye"},{n:"Ferdi Kadıoğlu",t:"Turkiye"},{n:"Hakan Çalhanoğlu",t:"Turkiye"},{n:"Kaan Ayhan",t:"Turkiye"},{n:"Kenan Yıldız",t:"Turkiye"},{n:"Kerem Aktürkoğlu",t:"Turkiye"},{n:"Merih Demiral",t:"Turkiye"},{n:"Mert Günok",t:"Turkiye"},{n:"Mert Müldür",t:"Turkiye"},{n:"Orkun Kökçü",t:"Turkiye"},{n:"Ozan Kabak",t:"Turkiye"},{n:"Oğuz Aydın",t:"Turkiye"},{n:"Salih Özcan",t:"Turkiye"},{n:"Samet Akaydin",t:"Turkiye"},{n:"Uğurcan Çakır",t:"Turkiye"},{n:"Yunus Akgün",t:"Turkiye"},{n:"Zeki Çelik",t:"Turkiye"},{n:"Çağlar Söyüncü",t:"Turkiye"},{n:"İrfan Can Kahveci",t:"Turkiye"},{n:"İsmail Yüksek",t:"Turkiye"},{n:"Alejandro Zendejas",t:"United States"},{n:"Alex Freeman",t:"United States"},{n:"Antonee Robinson",t:"United States"},{n:"Auston Trusty",t:"United States"},{n:"Brenden Aaronson",t:"United States"},{n:"Chris Brady",t:"United States"},{n:"Chris Richards",t:"United States"},{n:"Christian Pulisic",t:"United States"},{n:"Cristian Roldan",t:"United States"},{n:"Folarin Balogun",t:"United States"},{n:"Giovanni Reyna",t:"United States"},{n:"Haji Wright",t:"United States"},{n:"Joe Scally",t:"United States"},{n:"Malik Tillman",t:"United States"},{n:"Mark McKenzie",t:"United States"},{n:"Matt Freese",t:"United States"},{n:"Matt Turner",t:"United States"},{n:"Maximilian Arfsten",t:"United States"},{n:"Miles Robinson",t:"United States"},{n:"Ricardo Pepi",t:"United States"},{n:"Sebastian Berhalter",t:"United States"},{n:"Sergino Dest",t:"United States"},{n:"Tim Ream",t:"United States"},{n:"Timothy Weah",t:"United States"},{n:"Tyler Adams",t:"United States"},{n:"Weston McKennie",t:"United States"},{n:"Agustín Canobbio",t:"Uruguay"},{n:"Brian Rodríguez",t:"Uruguay"},{n:"Darwin Núñez",t:"Uruguay"},{n:"Emiliano Martínez",t:"Uruguay"},{n:"Facundo Pellistri",t:"Uruguay"},{n:"Federico Valverde",t:"Uruguay"},{n:"Federico Viñas",t:"Uruguay"},{n:"Fernando Muslera",t:"Uruguay"},{n:"Giorgian de Arrascaeta",t:"Uruguay"},{n:"Guillermo Varela",t:"Uruguay"},{n:"Joaquín Piquerez",t:"Uruguay"},{n:"José Giménez",t:"Uruguay"},{n:"Juan Manuel Sanabria",t:"Uruguay"},{n:"Manuel Ugarte",t:"Uruguay"},{n:"Mathías Olivera",t:"Uruguay"},{n:"Matías Viña",t:"Uruguay"},{n:"Maximiliano Araújo",t:"Uruguay"},{n:"Nicolás de la Cruz",t:"Uruguay"},{n:"Rodrigo Aguirre",t:"Uruguay"},{n:"Rodrigo Bentancur",t:"Uruguay"},{n:"Rodrigo Zalazar",t:"Uruguay"},{n:"Ronald Araújo",t:"Uruguay"},{n:"Santiago Bueno",t:"Uruguay"},{n:"Santiago Mele",t:"Uruguay"},{n:"Sebastián Cáceres",t:"Uruguay"},{n:"Sergio Rochet",t:"Uruguay"},{n:"Abbosbek Fayzullaev",t:"Uzbekistan"},{n:"Abdukodir Khusanov",t:"Uzbekistan"},{n:"Abdulla Abdullaev",t:"Uzbekistan"},{n:"Abduvohid Nematov",t:"Uzbekistan"},{n:"Akmal Mozgovoy",t:"Uzbekistan"},{n:"Avazbek Ulmasaliev",t:"Uzbekistan"},{n:"Azizbek Amonov",t:"Uzbekistan"},{n:"Azizjon Ganiev",t:"Uzbekistan"},{n:"Bekhruz Karimov",t:"Uzbekistan"},{n:"Botirali Ergashev",t:"Uzbekistan"},{n:"Dostonbek Khamdamov",t:"Uzbekistan"},{n:"Eldor Shomurodov",t:"Uzbekistan"},{n:"Farrukh Sayfiev",t:"Uzbekistan"},{n:"Igor Sergeev",t:"Uzbekistan"},{n:"Jakhongir Urozov",t:"Uzbekistan"},{n:"Jaloliddin Masharipov",t:"Uzbekistan"},{n:"Jamshid Iskanderov",t:"Uzbekistan"},{n:"Khojiakbar Alijonov",t:"Uzbekistan"},{n:"Odiljon Hamrobekov",t:"Uzbekistan"},{n:"Oston Urunov",t:"Uzbekistan"},{n:"Otabek Shukurov",t:"Uzbekistan"},{n:"Rustam Ashurmatov",t:"Uzbekistan"},{n:"Sherzod Esanov",t:"Uzbekistan"},{n:"Sherzod Nasrullaev",t:"Uzbekistan"},{n:"Umar Eshmurodov",t:"Uzbekistan"},{n:"Utkir Yusupov",t:"Uzbekistan"}];
+
+var configReady = firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('YOUR_')!==0;
+var db=null, ROOT=null, auth=null, myUid=null;
+if(configReady){
+  firebase.initializeApp(firebaseConfig);
+  db=firebase.database();
+  ROOT=db.ref('saff2026');
+  auth=firebase.auth();
+}else{
+  document.getElementById('setupBanner').classList.add('show');
+}
+
+// ===== STATE (Firebase: only predictions, results, team overrides, users) =====
+var myName='', myKey='', isAdmin=false, authError=null;
+var predsData={}, resultsData={}, teamsData={}, usersData={};
+// auto-pulled from openfootball (knockout teams + official results)
+var apiResults={}, apiTeams={};
+var currentFilter='upcoming'; // selected chip: 'upcoming' | 'g:X' | 'r:R'
+var editingMatch=null;
+var draft={}; // matchId -> {h,a}
+
+// ===== HELPERS =====
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active',t.dataset.tab===id);});
+}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);}
+function sanitize(s){return s.replace(/[.#$\[\]\/]/g,'_').trim();}
+function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
+function sign(n){return n>0?1:(n<0?-1:0);}
+// تمييز عربي صحيح للنقاط: 1/2/11+ -> نقطة ; 3..10 -> نقاط
+function ptsWord(n){return (n>=3 && n<=10) ? 'نقاط' : 'نقطة';}
+
+// effective teams: admin override > auto API team > static fixture label
+function teamsOf(m){
+  var o=teamsData[m.id]||{}, a=apiTeams[m.id]||{};
+  return {
+    home:o.home||a.home||m.home,
+    away:o.away||a.away||m.away,
+    hf:o.hf||m.hf||'', af:o.af||m.af||''   // flag drawn from team name; emoji is just a fallback
+  };
+}
+function kickoffMs(m){var t=Date.parse(m.utc); return isNaN(t)?Infinity:t;}
+// effective result: admin override wins, otherwise the auto API result
+function result(m){return resultsData[m.id]||apiResults[m.id]||null;}
+var OPEN_WINDOW = 24*60*60*1000; // التوقعات تفتح فقط قبل المباراة بـ24 ساعة
+function statusOf(m){
+  if(result(m))return 'finished';
+  var now=Date.now(), k=kickoffMs(m);
+  if(now>=k)return 'locked';
+  if(now>=k-OPEN_WINDOW)return 'open';
+  return 'soon';
+}
+function pointsFor(pred,r){
+  if(!pred||!r)return null;
+  var exact=Number(pred.h)===Number(r.h)&&Number(pred.a)===Number(r.a);
+  var base=exact?5:(sign(pred.h-pred.a)===sign(r.h-r.a)?3:0);
+  var bonus=0;
+  // penalty bonus: match went to a shootout (draw + pw), and the user predicted
+  // a draw and picked the correct shootout winner
+  if(r.pw&&pred.pw&&Number(r.h)===Number(r.a)&&Number(pred.h)===Number(pred.a)&&pred.pw===r.pw) bonus=1;
+  return base+bonus;
+}
+// ===== 2x BOOST CARDS (5 per player; stored inside the prediction as x2) =====
+var MAX_BOOST=5;
+function boostsUsed(key,exceptId){var n=0;MATCHES.forEach(function(m){if(m.id===exceptId)return;var p=predsData[m.id]&&predsData[m.id][key];if(p&&p.x2)n++;});return n;}
+function scoreOf(pred,r){var p=pointsFor(pred,r);return p==null?null:p*((pred&&pred.x2)?2:1);}
+
+// ===== مساعدات توقعات البطولة =====
+function tournamentLockMs(){var ms=MATCHES.map(kickoffMs).filter(isFinite);return ms.length?Math.min.apply(null,ms):Infinity;}
+function tournamentLocked(){return Date.now()>=tournamentLockMs();}
+function tournamentTruth(){return (teamsData&&teamsData.__truth__)||null;}
+function tournamentPicksOf(key){var u=usersData[key]||{};return {scorer:u.scorer||null,champion:u.champion||null};}
+function resolveTeamPick(id){
+  var h=document.getElementById(id);if(!h)return null;
+  if(h.value)return h.value;
+  var vi=h.parentElement&&h.parentElement.querySelector('.psearch-input');
+  if(vi){var t=vi.value.trim();if(t&&COUNTRY_FLAG[t])return t;}
+  return null;
+}
+function resolveScorerPick(id){
+  var h=document.getElementById(id);if(!h)return null;
+  if(h.value)return h.value;
+  var vi=h.parentElement&&h.parentElement.querySelector('.psearch-input');
+  if(vi){var t=vi.value.trim();if(t){for(var i=0;i<WC_PLAYERS.length;i++)if(WC_PLAYERS[i].n===t)return t;}}
+  return null;
+}
+function tournamentPointsFor(picks,truth){if(!picks||!truth)return 0;var p=0;if(picks.champion&&truth.champion&&picks.champion===truth.champion)p+=TOURNAMENT_CHAMPION_PTS;if(picks.scorer&&truth.scorer&&picks.scorer===truth.scorer)p+=TOURNAMENT_SCORER_PTS;return p;}
+function allTeamsAlpha(){var ts=[];Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){(SCHEDULE_DATA.groups[g]||[]).forEach(function(t){ts.push(t.name);});});return ts.sort();}
+
+// ===== الترتيب + الهدافون =====
+var COUNTRY_FLAG=(function(){var m={};Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){(SCHEDULE_DATA.groups[g]||[]).forEach(function(t){m[t.name]=t.flag;});});return m;})();
+function flagOf(c){return COUNTRY_FLAG[c]||'🏳️';}
+function scorerTeam(name){if(!name)return '';for(var i=0;i<WC_PLAYERS.length;i++){if(WC_PLAYERS[i].n===name)return WC_PLAYERS[i].t;}return '';}
+function computeStandings(){
+  var out={};var groups=SCHEDULE_DATA.groups||{};
+  Object.keys(groups).forEach(function(g){
+    out[g]=(groups[g]||[]).map(function(t){return {team:t.name,flag:t.flag,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0};});
+  });
+  MATCHES.forEach(function(m){
+    if(m.stage!=='group')return;
+    var r=result(m);if(!r)return;
+    var rows=out[m.group];if(!rows)return;
+    var hRow=null,aRow=null;
+    for(var i=0;i<rows.length;i++){if(rows[i].team===m.home)hRow=rows[i];if(rows[i].team===m.away)aRow=rows[i];}
+    if(!hRow||!aRow)return;
+    var hg=Number(r.h)||0,ag=Number(r.a)||0;
+    hRow.p++;aRow.p++;
+    hRow.gf+=hg;hRow.ga+=ag;hRow.gd=hRow.gf-hRow.ga;
+    aRow.gf+=ag;aRow.ga+=hg;aRow.gd=aRow.gf-aRow.ga;
+    if(hg>ag){hRow.w++;hRow.pts+=3;aRow.l++;}
+    else if(hg<ag){aRow.w++;aRow.pts+=3;hRow.l++;}
+    else{hRow.d++;aRow.d++;hRow.pts++;aRow.pts++;}
+  });
+  Object.keys(out).forEach(function(g){
+    out[g].sort(function(a,b){if(b.pts!==a.pts)return b.pts-a.pts;if(b.gd!==a.gd)return b.gd-a.gd;if(b.gf!==a.gf)return b.gf-a.gf;return a.team.localeCompare(b.team);});
+  });
+  return out;
+}
+
+// ===== LOGIN =====
+// Claim a name atomically: first device to use a name owns it; the same
+// device can always reclaim it; anyone else is rejected as "taken".
+// lightweight non-crypto hash for the PIN (friends game, not high security)
+function hashPin(s){var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h)+s.charCodeAt(i);h|=0;}return 'p'+(h>>>0).toString(36);}
+// A name is owned by whoever set its PIN. Same name + PIN = same account on any device.
+function attemptLogin(name,pin,fromAuto){
+  myName=name; myKey=sanitize(name);
+  ROOT.child('users/'+myKey).once('value').then(function(snap){
+    var u=snap.val();
+    if(u){ // existing name -> verify PIN
+      if(u.ph && u.ph!==hashPin(pin)){ fail('الرقم السري خاطئ لهذا الاسم.',fromAuto); return; }
+      var upd={name:myName}; if(!u.ph) upd.ph=hashPin(pin); // adopt PIN if legacy record had none
+      ROOT.child('users/'+myKey).update(upd).then(function(){ok(name,pin);}).catch(function(e){fail('كتابة: '+writeErr(e),fromAuto);});
+    } else { // new name -> create with PIN
+      if(!/^[0-9]{4,6}$/.test(pin)){ fail('اختر رقماً سرياً من 4–6 أرقام لحماية اسمك.',fromAuto); return; }
+      ROOT.child('users/'+myKey).set({name:myName,ph:hashPin(pin)}).then(function(){ok(name,pin);}).catch(function(e){fail('كتابة: '+writeErr(e),fromAuto);});
+    }
+  }).catch(function(e){fail('قراءة: '+writeErr(e),fromAuto);});
+}
+function writeErr(e){
+  var m=(e&&(e.code||e.message))?(''+(e.code||e.message)):'';
+  if(/permission|denied/i.test(m)) return 'مرفوض من القواعد ['+m+']';
+  return 'خطأ'+(m?(' ['+m+']'):' — تحقّق من اتصالك.');
+}
+function ok(name,pin){
+  try{localStorage.setItem('saff_name',name);localStorage.setItem('saff_pin',pin);}catch(e){}
+  document.getElementById('loginErr').textContent='';
+  enter();
+}
+function fail(msg,fromAuto){
+  myName='';myKey='';
+  if(fromAuto){try{localStorage.removeItem('saff_name');localStorage.removeItem('saff_pin');}catch(e){}show('sLogin');}
+  document.getElementById('loginErr').textContent=msg;
+}
+function doLogin(){
+  var v=document.getElementById('nameInput').value.trim();
+  var pin=document.getElementById('pinInput').value.trim();
+  if(!v){document.getElementById('loginErr').textContent='اكتب اسم المستخدم';return;}
+  if(!/^[0-9]{4,6}$/.test(pin)){document.getElementById('loginErr').textContent='أدخل رقماً سرياً من 4 إلى 6 أرقام';return;}
+  if(!configReady){document.getElementById('loginErr').textContent='يجب إعداد Firebase أولاً (انظر التنبيه أعلاه).';return;}
+  if(!myUid){document.getElementById('loginErr').textContent=authError||'جارٍ الاتصال… حاول بعد ثانية.';return;}
+  attemptLogin(v,pin,false);
+}
+document.getElementById('btnLogin').addEventListener('click',doLogin);
+document.getElementById('pinInput').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.getElementById('nameInput').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('pinInput').focus();});
+try{if(localStorage.getItem('saff_admin')==='1')isAdmin=true;}catch(e){}
+
+// Anonymous sign-in is still required by the security rules (auth != null);
+// the player's identity itself is the name + PIN, so it works across devices.
+if(configReady){
+  auth.onAuthStateChanged(function(user){
+    if(!user)return;
+    myUid=user.uid;
+    if(!myKey){ // not logged in yet -> try saved name + pin
+      try{var sv=localStorage.getItem('saff_name'),sp=localStorage.getItem('saff_pin'); if(sv&&sp)attemptLogin(sv,sp,true);}catch(e){}
+    }
+  });
+  auth.signInAnonymously().catch(function(e){
+    console.error(e);
+    if(e&&e.code==='auth/operation-not-allowed'){
+      authError='الدخول المجهول معطّل. من Firebase: Authentication ← Sign-in method ← فعّل Anonymous ثم حدّث.';
+    }else if(e&&(e.code==='auth/unauthorized-domain'||e.code==='auth/argument-error')){
+      authError='This page\'s address is not authorized in Firebase. Open the hosted link (https), not the local file, or add the domain under Authentication → Settings → Authorized domains.';
+    }else{
+      authError='فشل الدخول ('+((e&&e.code)||'unknown')+'). افتح رابط https وتحقّق من اتصالك.';
+    }
+    document.getElementById('loginErr').textContent=authError;
+  });
+}
+
+var booted=false;
+function enter(){
+  document.getElementById('meName').textContent=myName;
+  document.getElementById('meName2').textContent=myName;
+  document.getElementById('meName3').textContent=myName;
+  document.getElementById('meName4').textContent=myName;
+  document.getElementById('tabbar').style.display='flex';
+  applyAdminUI();
+  show('sMatches');
+  if(booted){renderMatches();renderLeader();renderGroups();return;}  // re-login: don't re-attach listeners/timers
+  booted=true;
+  buildChips();
+  listen();
+  setInterval(function(){renderMatches();},30000);   // refresh locks over time
+  loadOpenfootball();                                 // initial auto data pull
+  setInterval(loadOpenfootball,300000);               // refresh teams/results every 5 min
+}
+
+// Sign out / switch name — triggered by tapping your name chip
+function logout(){
+  if(!myKey)return;
+  if(!confirm('تسجيل الخروج واستخدام اسم آخر؟'))return;
+  try{localStorage.removeItem('saff_name');localStorage.removeItem('saff_pin');}catch(e){}
+  myName=''; myKey=''; draft={};   // clear the previous user's unsaved inputs
+  document.getElementById('nameInput').value='';
+  document.getElementById('pinInput').value='';
+  document.getElementById('loginErr').textContent='';
+  document.getElementById('tabbar').style.display='none';
+  show('sLogin');
+}
+document.querySelectorAll('.me-chip').forEach(function(c){
+  c.style.cursor='pointer'; c.title='خروج';
+  c.addEventListener('click',logout);
+});
+
+function listen(){
+  ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};renderMatches();renderLeader();});
+  ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
+  ROOT.child('teams').on('value',function(s){teamsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
+  var __myPicksDigest=null;
+  ROOT.child('users').on('value',function(s){
+    usersData=s.val()||{};
+    renderLeader();
+    var u=usersData[myKey];
+    var d=u?(u.champion||'')+'/'+(u.scorer||''):'/';
+    if(d!==__myPicksDigest){__myPicksDigest=d;renderMatches();}
+  });
+}
+
+// ===== FILTER CHIPS ===== (Upcoming first, then groups A-L, then knockout rounds)
+var FILTERS=[{k:'upcoming',label:'⏰ القادمة'}];
+['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(function(g){FILTERS.push({k:'g:'+g,label:'المجموعة '+g});});
+[['R32','دور الـ32'],['R16','ثمن النهائي'],['QF','ربع النهائي'],['SF','نصف النهائي'],['3RD','المركز الثالث'],['FINAL','النهائي']]
+  .forEach(function(r){FILTERS.push({k:'r:'+r[0],label:r[1]});});
+
+function buildChips(){
+  var c=document.getElementById('chips');c.innerHTML='';
+  FILTERS.forEach(function(f){
+    var b=document.createElement('button');
+    b.className='chip'+(f.k===currentFilter?' active':'');
+    b.textContent=f.label;
+    b.addEventListener('click',function(){
+      if(currentFilter===f.k)return;
+      currentFilter=f.k;
+      // just move the highlight; don't rebuild or scroll the strip
+      document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      renderMatches();
+    });
+    c.appendChild(b);
+  });
+  // center the active chip only on initial build (not on user taps)
+  var active=c.querySelector('.chip.active');
+  if(active) c.scrollLeft = active.offsetLeft - c.clientWidth/2 + active.clientWidth/2;
+}
+
+function filteredMatches(){
+  if(currentFilter==='upcoming'){ // today's matches (even if finished) + all future days
+    var d0=new Date(Date.now());d0.setHours(0,0,0,0);var today=d0.getTime();
+    return MATCHES.filter(function(m){var k=kickoffMs(m);if(!isFinite(k))return false;var d=new Date(k);d.setHours(0,0,0,0);var day=d.getTime();return day>=today&&(day===today||statusOf(m)!=='finished');})
+      .sort(function(a,b){return kickoffMs(a)-kickoffMs(b);});
+  }
+  if(currentFilter.indexOf('g:')===0){
+    var g=currentFilter.slice(2);
+    return MATCHES.filter(function(m){return m.stage==='group'&&m.group===g;})
+      .sort(function(a,b){return kickoffMs(a)-kickoffMs(b);});
+  }
+  if(currentFilter.indexOf('r:')===0){
+    var r=currentFilter.slice(2);
+    return MATCHES.filter(function(m){return m.stage===r;})
+      .sort(function(a,b){return a.n-b.n;});
+  }
+  return [];
+}
+
+// ===== RENDER MATCHES =====
+function renderMatches(){
+  var list=document.getElementById('matchList');
+  if(!list)return;
+  list.innerHTML='';
+  if(isAdmin) list.appendChild(adminBar());
+  list.appendChild(tournamentCard());
+  var ms=filteredMatches();
+  if(!ms.length){
+    var e=document.createElement('div');e.className='empty';
+    e.textContent=(currentFilter==='upcoming'?'لا مباريات قادمة — خلصت! اختر مجموعة أو دوراً. 🏟️':'لا مباريات هنا.');
+    list.appendChild(e);
+    return;
+  }
+  ms.forEach(function(m){list.appendChild(matchCard(m));});
+}
+
+
+function _wcFlagEmoji(team){
+  try{return COUNTRY_FLAG[team]||'';}catch(e){return '';}
+}
+function playerPicker(id, placeholder, current, hostInputFont){
+  var wrap=document.createElement('div');wrap.className='psearch';
+  var hidden=document.createElement('input');hidden.type='hidden';hidden.id=id;hidden.value=current||'';
+  var input=document.createElement('input');input.type='text';input.className='psearch-input';
+  input.setAttribute('placeholder',placeholder);
+  input.setAttribute('autocomplete','off');
+  if(current) input.value=current;
+  var drop=document.createElement('div');drop.className='psearch-drop';
+  function render(q){
+    drop.innerHTML='';
+    q=(q||'').trim().toLowerCase();
+    var starts=[],contains=[];
+    for(var i=0;i<WC_PLAYERS.length;i++){
+      var p=WC_PLAYERS[i];
+      var nm=p.n.toLowerCase(), tm=p.t.toLowerCase();
+      if(!q){contains.push(p);continue;}
+      if(nm.indexOf(q)===0||tm.indexOf(q)===0) starts.push(p);
+      else if(nm.indexOf(q)!==-1||tm.indexOf(q)!==-1) contains.push(p);
+    }
+    var hits=starts.concat(contains).slice(0,50);
+    if(!hits.length){
+      var em=document.createElement('div');em.className='psearch-empty';em.textContent=placeholder;drop.appendChild(em);return;
+    }
+    hits.forEach(function(p){
+      var row=document.createElement('div');row.className='psearch-row';row.setAttribute('data-val',p.n);
+      var flag=flagImg(p.t,20);
+      row.innerHTML='<span>'+esc(p.n)+'</span><span class="psearch-team">'+(flag?flag+' ':'')+esc(p.t)+'</span>';
+      row.addEventListener('mousedown',function(ev){
+        ev.preventDefault();
+        hidden.value=p.n;input.value=p.n;drop.classList.remove('open');
+      });
+      drop.appendChild(row);
+    });
+  }
+  input.addEventListener('focus',function(){render(input.value);drop.classList.add('open');});
+  input.addEventListener('input',function(){hidden.value='';render(input.value);drop.classList.add('open');});
+  input.addEventListener('blur',function(){setTimeout(function(){drop.classList.remove('open');},150);});
+  input.addEventListener('keydown',function(e){if(e.key==='Escape'){drop.classList.remove('open');input.blur();}});
+  wrap.appendChild(hidden);wrap.appendChild(input);wrap.appendChild(drop);
+  return wrap;
+}
+
+function teamPicker(id, placeholder, current){
+  var wrap=document.createElement('div');wrap.className='psearch';
+  var hidden=document.createElement('input');hidden.type='hidden';hidden.id=id;hidden.value=current||'';
+  var input=document.createElement('input');input.type='text';input.className='psearch-input';input.style.direction='rtl';
+  input.setAttribute('placeholder',placeholder);input.setAttribute('autocomplete','off');
+  if(current) input.value=current;
+  var drop=document.createElement('div');drop.className='psearch-drop';
+  var teams=allTeamsAlpha();
+  function render(q){
+    drop.innerHTML='';
+    q=(q||'').trim().toLowerCase();
+    var hits=q?teams.filter(function(t){return t.toLowerCase().indexOf(q)!==-1;}):teams.slice();
+    hits=hits.slice(0,60);
+    if(!hits.length){var em=document.createElement('div');em.className='psearch-empty';em.textContent=placeholder;drop.appendChild(em);return;}
+    hits.forEach(function(t){
+      var row=document.createElement('div');row.className='psearch-row';row.setAttribute('data-val',t);
+      row.innerHTML='<span>'+flagImg(t,20)+' '+esc(t)+'</span>';
+      row.addEventListener('mousedown',function(ev){ev.preventDefault();hidden.value=t;input.value=t;drop.classList.remove('open');});
+      drop.appendChild(row);
+    });
+  }
+  input.addEventListener('focus',function(){render(input.value);drop.classList.add('open');});
+  input.addEventListener('input',function(){hidden.value='';render(input.value);drop.classList.add('open');});
+  input.addEventListener('blur',function(){setTimeout(function(){drop.classList.remove('open');},150);});
+  input.addEventListener('keydown',function(e){if(e.key==='Escape'){drop.classList.remove('open');input.blur();}});
+  wrap.appendChild(hidden);wrap.appendChild(input);wrap.appendChild(drop);
+  return wrap;
+}
+
+function tournamentCard(){
+  var card=document.createElement('div');card.className='tour-card';
+  var h=document.createElement('h3');h.textContent='🏆 توقّعات البطولة';card.appendChild(h);
+  var locked=tournamentLocked();
+  var truth=tournamentTruth();
+  var picks=tournamentPicksOf(myKey);
+  var eye=document.createElement('div');eye.className='tour-eye';
+  if(!locked){
+    eye.textContent='التوقّع يتقفل مع بداية أول مباراة. بطل الكأس = '+TOURNAMENT_CHAMPION_PTS+' نقطة · هدّاف البطولة = '+TOURNAMENT_SCORER_PTS+' نقطة.';
+    card.appendChild(eye);
+    var chRow=document.createElement('div');chRow.className='tour-row';
+    var lc=document.createElement('label');lc.textContent='🏆 بطل الكأس';chRow.appendChild(lc);
+    chRow.appendChild(teamPicker('__pickChampion','ابحث عن منتخب…',picks.champion||''));
+    var scRow=document.createElement('div');scRow.className='tour-row';
+    var ls=document.createElement('label');ls.textContent='⚽ هدّاف البطولة';scRow.appendChild(ls);
+    scRow.appendChild(playerPicker('__pickScorer','ابحث عن لاعب…',picks.scorer||''));
+    card.appendChild(chRow);card.appendChild(scRow);
+    var btn=document.createElement('button');btn.className='tour-save';
+    btn.textContent=(picks.scorer||picks.champion)?'حدّث التوقّعات':'احفظ التوقّعات';
+    btn.addEventListener('click',function(){
+      var upd={champion:resolveTeamPick('__pickChampion'),scorer:resolveScorerPick('__pickScorer')};
+      ROOT.child('users/'+myKey).update(upd).then(function(){toast('انحفظت التوقعات 🏆');btn.textContent='حدّث التوقّعات';}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
+    });
+    card.appendChild(btn);
+  }else{
+    eye.textContent=truth?'🔒 التوقّعات مقفّلة. النتيجة الفعلية تحت.':'🔒 التوقّعات مقفّلة — بانتظار نهاية البطولة.';
+    card.appendChild(eye);
+    function lockedRow(label, pickVal, truthVal, pts){
+      var row=document.createElement('div');row.className='tour-locked';
+      var l=document.createElement('span');l.className='lbl';l.textContent=label;
+      var v=document.createElement('span');v.className='val';
+      function withFlag(name){return (COUNTRY_FLAG[name]?flagImg(name,18)+' ':'')+esc(name);}
+      if(truthVal){
+        var ok=pickVal && pickVal===truthVal;
+        v.className='val '+(ok?'ok':'no');
+        if(ok){ v.innerHTML=withFlag(pickVal)+'  ✓  +'+pts+' '+ptsWord(pts); }
+        else if(pickVal){ v.innerHTML=withFlag(pickVal)+'  ✗  (الفعلي: '+withFlag(truthVal)+')'; }
+        else{ v.innerHTML='— (الفعلي: '+withFlag(truthVal)+')'; }
+      }else if(pickVal){
+        v.innerHTML=withFlag(pickVal);
+      }else{
+        v.textContent='—';
+      }
+      row.appendChild(l);row.appendChild(v);
+      return row;
+    }
+    card.appendChild(lockedRow('🏆 بطل الكأس', picks.champion, truth&&truth.champion, TOURNAMENT_CHAMPION_PTS));
+    card.appendChild(lockedRow('⚽ هدّاف البطولة', picks.scorer, truth&&truth.scorer, TOURNAMENT_SCORER_PTS));
+  }
+  if(isAdmin && locked){
+    var ad=document.createElement('div');ad.style.borderTop='1px dashed rgba(255,255,255,.15)';ad.style.paddingTop='12px';ad.style.marginTop='4px';ad.style.display='flex';ad.style.flexDirection='column';ad.style.gap='10px';
+    var ah=document.createElement('div');ah.style.fontSize='.76rem';ah.style.color='var(--muted)';ah.style.fontWeight='700';ah.style.letterSpacing='.4px';ah.textContent='الأدمن · أدخل النتيجة الفعلية';
+    ad.appendChild(ah);
+    var r1=document.createElement('div');r1.className='tour-row';var lr1=document.createElement('label');lr1.textContent='البطل الفعلي';r1.appendChild(lr1);
+    r1.appendChild(teamPicker('__truthChampion','ابحث عن منتخب…',(truth&&truth.champion)||''));
+    ad.appendChild(r1);
+    var r2=document.createElement('div');r2.className='tour-row';var lr2=document.createElement('label');lr2.textContent='الهدّاف الفعلي';r2.appendChild(lr2);
+    r2.appendChild(playerPicker('__truthScorer','ابحث عن لاعب…',(truth&&truth.scorer)||''));
+    ad.appendChild(r2);
+    var ab=document.createElement('button');ab.className='tour-save';ab.style.background='#34d399';ab.style.color='#04130b';ab.textContent='احفظ النتيجة الفعلية';
+    ab.addEventListener('click',function(){
+      ROOT.child('teams/__truth__').set({champion:resolveTeamPick('__truthChampion'),scorer:resolveScorerPick('__truthScorer')}).then(function(){toast('انحفظت النتيجة 🏆');}).catch(function(e){toast('فشل الحفظ: '+((e&&e.code)||e));});
+    });
+    ad.appendChild(ab);
+    card.appendChild(ad);
+  }
+  return card;
+}
+
+function matchCard(m){
+  var st=statusOf(m);
+  var t=teamsOf(m);
+  var myPred=(predsData[m.id]&&predsData[m.id][myKey])?predsData[m.id][myKey]:null;
+  if(draft[m.id]===undefined) draft[m.id]=myPred?{h:Number(myPred.h),a:Number(myPred.a),pw:myPred.pw||null,x2:!!myPred.x2}:{h:0,a:0,pw:null,x2:false};
+
+  var el=document.createElement('div');
+  el.className='match'+(st==='locked'?' live':'')+(st==='finished'?' finished':'');
+
+  var stageLabel = m.stage==='group' ? ('المجموعة '+m.group) :
+    ({R32:'دور الـ32',R16:'ثمن النهائي',QF:'ربع النهائي',SF:'نصف النهائي','3RD':'المركز الثالث',FINAL:'النهائي'}[m.stage]||m.stage);
+  var roundLabel = m.stage==='group' ? ('الجولة '+(GROUP_MD[m.id]||'')) : ('مباراة '+m.n);
+  var stBadge = st==='finished'?'<span class="status-badge finished">انتهت</span>'
+    : st==='locked'?'<span class="status-badge live">● مباشر</span>'
+    : st==='soon'?'<span class="status-badge soon">قريبًا</span>'
+    : '<span class="status-badge open">متاحة</span>';
+
+  var head=document.createElement('div');head.className='match-head';
+  head.innerHTML='<span class="hc-l"><span class="grp-badge">'+esc(stageLabel)+'</span></span>'
+    +'<span class="hc-c">'+esc(roundLabel)+' • '+esc(localKick(m))+'</span>'
+    +'<span class="hc-r">'+stBadge+'</span>';
+  el.appendChild(head);
+
+  var teams=document.createElement('div');teams.className='teams';
+  teams.innerHTML='<div class="team">'+flagHTML(t.home,t.hf)+'<div class="tname">'+esc(t.home)+'</div></div>'+
+    '<div class="vs">ضد</div>'+
+    '<div class="team">'+flagHTML(t.away,t.af)+'<div class="tname">'+esc(t.away)+'</div></div>';
+  el.appendChild(teams);
+
+  var ko=m.stage!=='group';
+  if(st==='finished'){
+    var r=result(m);
+    var res=document.createElement('div');res.className='result-row';
+    res.innerHTML='<span class="result-lbl">النتيجة</span><span class="result-big">'+r.h+' - '+r.a+'</span>';
+    el.appendChild(res);
+    if(r.pw){
+      var pn=document.createElement('div');pn.className='pen-note';
+      pn.textContent='🥅 البلنتيات: فاز '+(r.pw==='h'?t.home:t.away);el.appendChild(pn);
+    }
+    if(myPred){
+      var base=pointsFor(myPred,r), pts=base*(myPred.x2?2:1);
+      var yp=document.createElement('div');yp.className='your-pred';
+      yp.innerHTML='توقّعك: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • بلنتيات: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'')+(myPred.x2?' <span class="x2-badge">⚡2x</span>':'');el.appendChild(yp);
+      var cls=pts>=5?'pts-hi':(pts>=3?'pts-mid':'pts-0');
+      var icon=(myPred.x2?'⚡ ':'')+(base===0?'':((base>=5?'🎯 ':'')+((base===6||base===4)?'🥅 ':'')));
+      var pb=document.createElement('div');pb.className='pts-badge '+cls;
+      pb.textContent=icon+'+'+pts+' '+ptsWord(pts);el.appendChild(pb);
+    }else{
+      var no=document.createElement('div');no.className='locked-note';no.textContent='ماتوقعت نتيجة هذه المباراة';el.appendChild(no);
+    }
+  }else if(st==='locked'){
+    var ln=document.createElement('div');ln.className='locked-note';ln.textContent='● مباشر — أُغلقت التوقعات، بانتظار النتيجة الرسمية';el.appendChild(ln);
+    if(myPred){var yp2=document.createElement('div');yp2.className='your-pred';yp2.innerHTML='توقّعك: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • بلنتيات: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'')+(myPred.x2?' <span class="x2-badge">⚡2x</span>':'');el.appendChild(yp2);}
+    else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='ماتوقعت نتيجة هذه المباراة';el.appendChild(no2);}
+  }else if(st==='soon'){
+    var sn=document.createElement('div');sn.className='locked-note';
+    sn.innerHTML='🔒 التوقع يفتح قبل المباراة بـ24 ساعة'+(openKick(m)?('<br><span style="opacity:.85">يفتح '+esc(openKick(m))+'</span>'):'');
+    el.appendChild(sn);
+  }else{
+    var pen=null;
+    var pr=document.createElement('div');pr.className='pred-row';
+    pr.appendChild(stepper(m.id,'h',function(){if(pen)pen.refresh();}));
+    var dash=document.createElement('div');dash.className='vs';dash.textContent='-';pr.appendChild(dash);
+    pr.appendChild(stepper(m.id,'a',function(){if(pen)pen.refresh();}));
+    el.appendChild(pr);
+    if(ko){ pen=penRow(draft[m.id],t.home,t.away); el.appendChild(pen.el); }
+    var x2btn=document.createElement('button');
+    function x2lbl(){var left=MAX_BOOST-boostsUsed(myKey,m.id)-(draft[m.id].x2?1:0);return draft[m.id].x2?'×2 ✓':'×2 ('+left+')';}
+    function x2cls(){x2btn.className='x2-btn'+(draft[m.id].x2?' on':'');x2btn.innerHTML='<span class="x2-ic">⚡</span><span class="x2-tx">'+x2lbl()+'</span>';}
+    x2cls();
+    x2btn.title='ضاعف نقاطك في هذه المباراة';
+    x2btn.addEventListener('click',function(){
+      if(!draft[m.id].x2){ if(boostsUsed(myKey,m.id)>=MAX_BOOST){toast("استخدمت كل بطاقات ×2 ("+MAX_BOOST+")");return;} draft[m.id].x2=true; }
+      else draft[m.id].x2=false;
+      x2cls();
+    });
+    var sb=document.createElement('button');sb.className='btn btn-green save-pred';
+    sb.textContent=myPred?'حدّث التوقّع':'احفظ التوقّع';
+    sb.addEventListener('click',function(){savePred(m.id);});
+    var actions=document.createElement('div');actions.className='pred-actions';
+    actions.appendChild(x2btn);actions.appendChild(sb);
+    el.appendChild(actions);
+  }
+
+  if(st==='locked'||st==='finished') el.appendChild(allPredsBlock(m,result(m)));
+  if(isAdmin) el.appendChild(adminZone(m));
+  return el;
+}
+
+// Everyone's predictions for a match — revealed only after kickoff (live/finished)
+function allPredsBlock(m,r){
+  var box=document.createElement('div');box.className='allpreds-wrap';
+  var obj=predsData[m.id]||{}, keys=Object.keys(obj), t=teamsOf(m);
+  var btn=document.createElement('button');btn.className='see-preds';
+  btn.textContent='اعرض توقعات الآخرين ('+keys.length+')';
+  var list=document.createElement('div');list.className='allpreds';
+  if(!keys.length){var e=document.createElement('div');e.className='ap-empty';e.textContent='مافيه أحد توقع نتيجة هذه المباراة';list.appendChild(e);}
+  var entries=keys.map(function(k){
+    var nm=(usersData[k]&&usersData[k].name)?usersData[k].name:k;
+    return {key:k,name:nm,p:obj[k],pt:r?scoreOf(obj[k],r):null};
+  });
+  if(r) entries.sort(function(a,b){return b.pt-a.pt;});
+  else entries.sort(function(a,b){return (''+a.name).localeCompare(''+b.name);});
+  entries.forEach(function(en){
+    var row=document.createElement('div');row.className='ap-row'+(en.key===myKey?' me':'');
+    var nm=document.createElement('span');nm.className='ap-name';nm.textContent=en.name+(en.key===myKey?' (أنت)':'');
+    var rt=document.createElement('span');rt.className='ap-right';
+    var pk=document.createElement('span');pk.className='ap-pick';
+    pk.textContent=en.p.h+' - '+en.p.a+(en.p.x2?' ⚡':'')+(en.p.pw?(' · '+(en.p.pw==='h'?t.home:t.away)+' بلنتيات'):'');
+    rt.appendChild(pk);
+    if(r){var pb=document.createElement('span');pb.className='ap-pts';pb.textContent='+'+en.pt;rt.appendChild(pb);}
+    row.appendChild(nm);row.appendChild(rt);list.appendChild(row);
+  });
+  btn.addEventListener('click',function(){list.classList.toggle('show');});
+  box.appendChild(btn);box.appendChild(list);
+  return box;
+}
+
+function stepper(id,k,onChange){
+  var wrap=document.createElement('div');wrap.className='score-in';
+  var minus=document.createElement('button');minus.className='stp';minus.textContent='−';
+  var val=document.createElement('div');val.className='sval';val.textContent=draft[id][k];
+  var plus=document.createElement('button');plus.className='stp';plus.textContent='+';
+  minus.addEventListener('click',function(){if(draft[id][k]>0){draft[id][k]--;val.textContent=draft[id][k];if(onChange)onChange();}});
+  plus.addEventListener('click',function(){if(draft[id][k]<20){draft[id][k]++;val.textContent=draft[id][k];if(onChange)onChange();}});
+  wrap.appendChild(minus);wrap.appendChild(val);wrap.appendChild(plus);
+  return wrap;
+}
+
+// penalty-shootout winner picker; enabled only when the score is a draw
+function penRow(obj,homeName,awayName){
+  var box=document.createElement('div');box.className='pen-box';
+  var lbl=document.createElement('div');lbl.className='pen-lbl';lbl.textContent='🥅 If it goes to penalties, who wins?';
+  var btns=document.createElement('div');btns.className='pen-btns';
+  var bh=document.createElement('button');bh.className='pen-btn';bh.textContent=homeName;
+  var ba=document.createElement('button');ba.className='pen-btn';ba.textContent=awayName;
+  function refresh(){
+    var draw=Number(obj.h)===Number(obj.a);
+    box.style.opacity=draw?'1':'.45';
+    bh.disabled=!draw;ba.disabled=!draw;
+    if(!draw)obj.pw=null;
+    bh.classList.toggle('sel',obj.pw==='h');
+    ba.classList.toggle('sel',obj.pw==='a');
+    lbl.textContent=draw?'🥅 لو راحت بلنتيات، مين يفوز؟':'🥅 اختر تعادل لتحديد الفائز بالبلنتيات';
+  }
+  bh.addEventListener('click',function(){if(bh.disabled)return;obj.pw='h';refresh();});
+  ba.addEventListener('click',function(){if(ba.disabled)return;obj.pw='a';refresh();});
+  btns.appendChild(bh);btns.appendChild(ba);box.appendChild(lbl);box.appendChild(btns);
+  refresh();
+  return {el:box,refresh:refresh};
+}
+
+function savePred(id){
+  var m=MATCH_BY_ID[id];
+  if(statusOf(m)!=='open'){toast('التوقعات مغلقة لهذه المباراة');renderMatches();return;}
+  var d=draft[id];
+  var data={h:d.h,a:d.a};
+  if(m.stage!=='group'&&Number(d.h)===Number(d.a)){ // knockout draw: penalties winner is required
+    if(!d.pw){toast('اختر الفائز بالبلنتيات');return;}
+    data.pw=d.pw;
+  }
+  if(d.x2) data.x2=true; // 2x boost card
+  ROOT.child('predictions/'+id+'/'+myKey).set(data).then(function(){toast('تم حفظ التوقّع ✅');});
+}
+
+// ===== ADMIN =====
+function adminBar(){
+  var bar=document.createElement('div');bar.className='admin-bar';
+  var sb=document.createElement('button');sb.className='btn-summary';sb.textContent='📸 ملخّص اليوم';
+  sb.addEventListener('click',genDailySummary);
+  bar.appendChild(sb);
+  var n=Object.keys(resultsData||{}).length;
+  var b=document.createElement('button');b.className='btn-clear-all';
+  b.textContent='🗑 امسح كل النتائج ('+n+')';
+  b.disabled=(n===0);
+  b.addEventListener('click',function(){
+    if(n===0){toast('مافيه نتائج تمسحها');return;}
+    if(!confirm('متأكد تبي تمسح كل ('+n+') النتائج اللي دخّلتها للمباريات؟ ما يمكن التراجع.'))return;
+    ROOT.child('results').remove().then(function(){toast('انمسحت كل النتائج 🗑');}).catch(function(e){toast('فشل المسح: '+((e&&e.code)||e));});
+  });
+  bar.appendChild(b);
+  return bar;
+}
+function genDailySummary(){
+  var TH = {bg1:'#06140d',bg2:'#0e2719',gold:'#d4af37',goldSoft:'rgba(212,175,55,.18)',goldGlow:'rgba(212,175,55,.32)',accent:'#34d399',accentSoft:'rgba(52,211,153,.16)',accentGlow:'rgba(52,211,153,.22)',leaf:'rgba(60,140,90,1)',muted:'#9bc1ad',font:'"Tajawal",sans-serif',rtl:true,locale:'ar',
+    t:{brand:'دوري توقّعات كأس العالم 2026',title:'ملخّص اليوم',resultsHdr:'نتائج اليوم',topHdr:'أفضل متوقّع اليوم',lbHdr:'أعلى 5 لاعبين',tomorrowHdr:'مباريات بكرة',resIcon:'⚽',topIcon:'🏆',lbIcon:'🏅',tomIcon:'📅',pts:'نقطة',vs:'×',noResults:'ما فيه نتائج اليوم.',noPts:'ما فيه نقاط اليوم.',noLb:'ما فيه لاعبين بعد.',noTomorrow:'ما فيه مباريات بكرة.',toastDone:'ملخص اليوم جاهز 📸'}};
+  var W=1080, PAD=50, CARD_X=PAD, CARD_W=W-2*PAD;
+  var RAIL=W-(PAD-20); // vertical accent rail x (RTL → on the right edge)
+  var ITEM=72, GAP=24, SH=46, HERO=200;
+  var TOMITEM=48; // slimmer rhythm for tomorrow list
+  var now=Date.now();
+  function dayStart(off){var d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return d.getTime();}
+  var t0=dayStart(0), t1=dayStart(1), t2=dayStart(2);
+  var todayM=MATCHES.filter(function(m){var k=kickoffMs(m);return k>=t0&&k<t1;});
+  var tomorrowM=MATCHES.filter(function(m){var k=kickoffMs(m);return k>=t1&&k<t2;}).slice(0,8);
+  var todayR=todayM.filter(function(m){return !!result(m);});
+  var up={};
+  todayR.forEach(function(m){
+    var r=result(m), o=predsData[m.id]||{};
+    Object.keys(o).forEach(function(k){
+      var p=scoreOf(o[k],r);
+      if(p){if(!up[k])up[k]={name:(usersData[k]&&usersData[k].name)||k,pts:0};up[k].pts+=p;}
+    });
+  });
+  var topT=Object.keys(up).map(function(k){return up[k];}).sort(function(a,b){return b.pts-a.pts;}).slice(0,1);
+  var ttruth=tournamentTruth();
+  var totals=Object.keys(usersData||{}).map(function(k){
+    var t=0;MATCHES.forEach(function(m){var r=result(m);var p=predsData[m.id]&&predsData[m.id][k];if(p&&r)t+=scoreOf(p,r);});
+    t+=tournamentPointsFor(tournamentPicksOf(k),ttruth);
+    return {name:(usersData[k]&&usersData[k].name)||k,pts:t};
+  }).sort(function(a,b){return b.pts-a.pts;}).slice(0,5);
+  // composition: WINNERS band groups hero+top5 onto one tinted panel with a single eyebrow
+  var EYE=30;
+  var BAND_PAD_TOP=50, BAND_PAD_BOT=34, BAND_INNER_GAP=18;
+  var winnersBodyH = (topT.length>0 ? HERO : 60) + BAND_INNER_GAP + (totals.length ? totals.length*ITEM : 60);
+  var winnersBandH = EYE + winnersBodyH + BAND_PAD_TOP + BAND_PAD_BOT;
+  function resH(n){return EYE+(n?n*ITEM:60)+GAP+8;}
+  function tomH(n){return EYE+(n?n*TOMITEM:60)+GAP+8;}
+  var HEAD=250;
+  var H=HEAD+winnersBandH+28+resH(todayR.length)+60;
+  H=Math.max(1200,H);
+  var cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  var c=cv.getContext('2d');
+  // ----- helpers -----
+  function rr(x,y,w,h,r){
+    if(c.roundRect){c.beginPath();c.roundRect(x,y,w,h,r);return;}
+    r=Math.min(r,w/2,h/2);
+    c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);
+    c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);
+    c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();
+  }
+  function fillRR(x,y,w,h,r,fill){rr(x,y,w,h,r);c.fillStyle=fill;c.fill();}
+  function strokeRR(x,y,w,h,r,col,lw){rr(x,y,w,h,r);c.strokeStyle=col;c.lineWidth=lw||1;c.stroke();}
+  function card(x,y,w,h){
+    // dark-green capsule (slightly lighter than background) with thin accent stripe
+    var grd=c.createLinearGradient(x,y,x,y+h);
+    grd.addColorStop(0,'rgba(40,90,60,.32)');
+    grd.addColorStop(1,'rgba(30,70,48,.42)');
+    fillRR(x,y,w,h,16,grd);
+    strokeRR(x,y,w,h,16,'rgba(120,200,160,.14)',1);
+    c.save();
+    rr(x,y,w,h,16);c.clip();
+    var sx = TH.rtl ? x+w-4 : x;
+    c.fillStyle=TH.accent;c.fillRect(sx,y,4,h);
+    c.restore();
+  }
+  function heroCard(x,y,w,h){
+    // hero card uses antique GOLD accent against deep green
+    var rg=c.createRadialGradient(x+w/2,y+h/2,10,x+w/2,y+h/2,w/1.5);
+    rg.addColorStop(0,TH.goldGlow);rg.addColorStop(1,'rgba(0,0,0,0)');
+    c.fillStyle=rg;c.fillRect(x-40,y-40,w+80,h+80);
+    var grd=c.createLinearGradient(x,y,x,y+h);
+    grd.addColorStop(0,'rgba(50,110,75,.35)');
+    grd.addColorStop(1,'rgba(28,68,48,.45)');
+    fillRR(x,y,w,h,22,grd);
+    strokeRR(x,y,w,h,22,TH.gold,2);
+  }
+  function hexagon(cx,cy,r,fill,stroke,lw){
+    c.beginPath();
+    for(var i=0;i<6;i++){
+      var a=Math.PI/3*i-Math.PI/2;
+      var xx=cx+r*Math.cos(a), yy=cy+r*Math.sin(a);
+      if(i===0)c.moveTo(xx,yy);else c.lineTo(xx,yy);
+    }
+    c.closePath();
+    if(fill){c.fillStyle=fill;c.fill();}
+    if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||1.5;c.stroke();}
+  }
+  function rankBadge(x,y,d,rank){
+    var styles={1:{bg:'#facc15',tx:'#1a1206',ring:'#fde68a'},
+                2:{bg:'#cbd5e1',tx:'#0f172a',ring:'#e2e8f0'},
+                3:{bg:'#f59e0b',tx:'#1c0f02',ring:'#fcd34d'}};
+    var s=styles[rank];
+    c.save();
+    if(s){
+      var rg=c.createRadialGradient(x+d/2,y+d/2,2,x+d/2,y+d/2,d);
+      rg.addColorStop(0,s.bg+'aa');rg.addColorStop(1,'rgba(0,0,0,0)');
+      c.fillStyle=rg;c.fillRect(x-8,y-8,d+16,d+16);
+      c.beginPath();c.arc(x+d/2,y+d/2,d/2,0,Math.PI*2);c.fillStyle=s.bg;c.fill();
+      c.lineWidth=2;c.strokeStyle=s.ring;c.stroke();
+      c.fillStyle=s.tx;c.font='800 26px '+TH.font;c.textAlign='center';c.textBaseline='middle';
+      c.fillText(String(rank),x+d/2,y+d/2+1);
+    } else {
+      c.beginPath();c.arc(x+d/2,y+d/2,d/2,0,Math.PI*2);
+      c.fillStyle='rgba(255,255,255,.10)';c.fill();
+      c.lineWidth=1;c.strokeStyle='rgba(255,255,255,.18)';c.stroke();
+      c.fillStyle='#cbd5e1';c.font='700 22px '+TH.font;c.textAlign='center';c.textBaseline='middle';
+      c.fillText(String(rank),x+d/2,y+d/2+1);
+    }
+    c.restore();
+  }
+  function star(cx,cy,r1,r2,n,fill,stroke){
+    c.beginPath();
+    for(var i=0;i<2*n;i++){
+      var rr2=(i%2===0)?r1:r2, a=Math.PI/n*i-Math.PI/2;
+      var x=cx+rr2*Math.cos(a), y=cy+rr2*Math.sin(a);
+      if(i===0)c.moveTo(x,y);else c.lineTo(x,y);
+    }
+    c.closePath();
+    if(fill){c.fillStyle=fill;c.fill();}
+    if(stroke){c.strokeStyle=stroke;c.lineWidth=2;c.stroke();}
+  }
+  // ----- background -----
+  var g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,TH.bg1);g.addColorStop(0.55,'#0a1f14');g.addColorStop(1,TH.bg2);
+  c.fillStyle=g;c.fillRect(0,0,W,H);
+  // soft botanical leaf brushstrokes behind hero/title area
+  // draw multiple overlapping tilted ellipses with very low alpha to look like organic foliage
+  c.save();
+  c.beginPath();c.rect(0,0,W,HEAD+220);c.clip();
+  function leaf(cx,cy,rx,ry,rot,alpha){
+    c.save();
+    c.translate(cx,cy);c.rotate(rot);
+    var rg=c.createRadialGradient(0,0,4,0,0,rx);
+    rg.addColorStop(0,'rgba(80,160,110,'+alpha+')');
+    rg.addColorStop(1,'rgba(80,160,110,0)');
+    c.fillStyle=rg;
+    c.beginPath();c.ellipse(0,0,rx,ry,0,0,Math.PI*2);c.fill();
+    c.restore();
+  }
+  // upper-left organic leaf cluster
+  leaf( 100,  60, 380, 120, -0.55, 0.30);
+  leaf( 220, 150, 340, 100, -0.40, 0.24);
+  leaf( -40, 200, 300, 100, -0.30, 0.20);
+  // lower-right cluster behind hero band
+  leaf( 980, 100, 360, 110,  0.60, 0.28);
+  leaf( 880, 210, 320,  90,  0.40, 0.20);
+  leaf(1100, 310, 380, 110,  0.55, 0.16);
+  // diagonal middle sweep behind title
+  leaf( 540, 170, 560, 140,  0.25, 0.14);
+  leaf( 540, 280, 500, 110, -0.20, 0.10);
+  c.restore();
+  // mid-poster leaf echo — extends brand language down the page
+  c.save();
+  c.beginPath();c.rect(0,HEAD+winnersBandH-60,W,420);c.clip();
+  var midY=HEAD+winnersBandH+80;
+  leaf(  60, midY,      360, 100, -0.45, 0.22);
+  leaf(1000, midY+90,   330, 100,  0.55, 0.18);
+  leaf( 540, midY+170,  520, 110,  0.18, 0.10);
+  c.restore();
+  // lower-right leaf cluster behind tomorrow section
+  c.save();
+  c.beginPath();c.rect(0,H-380,W,380);c.clip();
+  leaf(1020, H-180, 360, 110,  0.55, 0.20);
+  leaf( 920, H-90,  300, 90,   0.40, 0.14);
+  leaf(  80, H-220, 320, 90,  -0.45, 0.16);
+  c.restore();
+  // subtle bloom at top
+  var bloom=c.createRadialGradient(W/2,-60,30,W/2,-60,W*0.65);
+  bloom.addColorStop(0,TH.goldSoft);bloom.addColorStop(1,'rgba(0,0,0,0)');
+  c.fillStyle=bloom;c.fillRect(0,0,W,360);
+  // thin gold top strip (premium hairline) over an accent base
+  c.fillStyle=TH.accent;c.fillRect(0,0,W,5);
+  c.fillStyle=TH.gold;c.fillRect(0,5,W,1);
+  // vertical gold rail down the RIGHT edge (RTL spine)
+  c.fillStyle='rgba(212,175,55,.32)';c.fillRect(RAIL, HEAD+10, 1, H-HEAD-70);
+  c.direction=TH.rtl?'rtl':'ltr';
+  // ----- header -----
+  c.textAlign='center';c.textBaseline='alphabetic';
+  c.font='800 26px '+TH.font;c.fillStyle=TH.accent;
+  c.fillText(TH.t.brand,W/2,58);
+  c.fillStyle=TH.gold;c.fillRect(W/2-30,68,60,2);
+  c.font='500 22px '+TH.font;c.fillStyle=TH.muted;
+  c.fillText(new Date(now).toLocaleDateString(TH.locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),W/2,100);
+  // big title — heavier and in white, with a tiny gold dot as designed punctuation
+  c.font='900 72px '+TH.font;c.fillStyle='#fff';
+  c.fillText(TH.t.title,W/2,180);
+  c.fillStyle=TH.gold;c.beginPath();c.arc(W/2,202,4,0,Math.PI*2);c.fill();
+  var y=HEAD;
+  // section labels removed by request — keep the breathing room only
+  function eyebrow(text,opts){ y += EYE; }
+  function emptyRow(text){
+    fillRR(CARD_X,y,CARD_W,56,16,'rgba(255,255,255,.04)');
+    strokeRR(CARD_X,y,CARD_W,56,16,'rgba(255,255,255,.08)',1);
+    c.font='500 22px '+TH.font;c.fillStyle=TH.muted;
+    c.textAlign='center';c.textBaseline='middle';
+    c.fillText(text,W/2,y+30);
+    y+=60;
+  }
+  function rRes(m,_,yy){
+    card(CARD_X,yy,CARD_W,ITEM-8);
+    var t=teamsOf(m),r=result(m);
+    var cy=yy+(ITEM-8)/2;
+    // solid accent green score pill, white score
+    c.font='900 28px '+TH.font;
+    var scoreText=r.h+' – '+r.a;
+    var sw=c.measureText(scoreText).width+30;
+    var sh=42;
+    var sx=W/2-sw/2;
+    fillRR(sx,cy-sh/2,sw,sh,6,TH.accent);
+    c.fillStyle='#06180f';c.textAlign='center';c.textBaseline='middle';
+    c.fillText(scoreText,W/2,cy+1);
+    c.font='600 26px '+TH.font;c.fillStyle='#fff';c.textBaseline='middle';
+    var hx = TH.rtl ? W-PAD-22 : PAD+22;
+    var ax = TH.rtl ? PAD+22   : W-PAD-22;
+    c.textAlign=TH.rtl?'right':'left';
+    c.fillText((t.hf||'')+' '+t.home,hx,cy);
+    c.textAlign=TH.rtl?'left':'right';
+    c.fillText(t.away+' '+(t.af||''),ax,cy);
+  }
+  function rUsr(u,i,yy){
+    card(CARD_X,yy,CARD_W,ITEM-8);
+    var cy=yy+(ITEM-8)/2;
+    var rank=i+1;
+    var bd=44;
+    // rank pinned at the LEADING edge of the row (right in RTL — where reading starts)
+    var bx = TH.rtl ? W-PAD-18-bd : PAD+18;
+    rankBadge(bx,cy-bd/2,bd,rank);
+    // name sits next to rank, flowing toward the trailing edge
+    c.font='700 26px '+TH.font;c.fillStyle='#fff';c.textBaseline='middle';
+    c.textAlign=TH.rtl?'right':'left';
+    var nx = TH.rtl ? bx-14 : bx+bd+14;
+    c.fillText(u.name,nx,cy);
+    // points pill at the TRAILING edge (left in RTL, right in LTR)
+    c.font='800 24px '+TH.font;
+    var ptsText=u.pts+' '+ptsWord(u.pts);
+    var pw=c.measureText(ptsText).width+24;
+    var ph=36;
+    var px = TH.rtl ? PAD+18 : W-PAD-18-pw;
+    fillRR(px,cy-ph/2,pw,ph,ph/2,u.pts>0?TH.accentSoft:'rgba(255,255,255,.06)');
+    strokeRR(px,cy-ph/2,pw,ph,ph/2,u.pts>0?TH.accent:'rgba(255,255,255,.14)',1);
+    c.fillStyle=u.pts>0?TH.accent:TH.muted;
+    c.textAlign='center';c.textBaseline='middle';
+    c.fillText(ptsText,px+pw/2,cy+1);
+  }
+  function rHero(u,_,yy){
+    var ch=HERO-10;
+    heroCard(CARD_X,yy,CARD_W,ch);
+    var mcx=W/2, mcy=yy+54, mr=34;
+    // hexagon backdrop behind medallion (subtle gold ornament)
+    hexagon(mcx,mcy,mr+18,'rgba(212,175,55,.12)','rgba(212,175,55,.45)',1.5);
+    // gold "winner" medallion
+    var halo=c.createRadialGradient(mcx,mcy,2,mcx,mcy,mr*2);
+    halo.addColorStop(0,'rgba(250,204,21,.55)');halo.addColorStop(1,'rgba(250,204,21,0)');
+    c.fillStyle=halo;c.fillRect(mcx-mr*2,mcy-mr*2,mr*4,mr*4);
+    c.beginPath();c.arc(mcx,mcy,mr,0,Math.PI*2);c.fillStyle='#facc15';c.fill();
+    c.lineWidth=2.5;c.strokeStyle='#fde68a';c.stroke();
+    star(mcx,mcy,17,8,5,'#7a4a02',null);
+    // name in GOLD against deep green — pops with brand authority
+    c.font='900 46px '+TH.font;c.fillStyle=TH.gold;c.textBaseline='alphabetic';c.textAlign='center';
+    c.fillText(u.name,W/2,yy+125);
+    // points pill below name — solid gold rectangle with dark text (premium plaque feel)
+    c.font='800 22px '+TH.font;
+    var ptsText=u.pts+' '+ptsWord(u.pts);
+    var pw=c.measureText(ptsText).width+34;
+    var ph=38;
+    var py=yy+142;
+    fillRR(W/2-pw/2,py,pw,ph,ph/2,TH.gold);
+    c.fillStyle='#1a1206';c.textAlign='center';c.textBaseline='middle';
+    c.fillText(ptsText,W/2,py+ph/2+1);
+  }
+  function rTom(m,_,yy){
+    // slim calendar row — no card chrome, faint hairline, muted teams, gold kickoff time
+    var t=teamsOf(m);
+    var rowH=TOMITEM-6;
+    var cy=yy+rowH/2;
+    var lg = c.createLinearGradient(W-PAD,yy+rowH,PAD,yy+rowH);
+    lg.addColorStop(0,'rgba(212,175,55,.18)');
+    lg.addColorStop(1,'rgba(212,175,55,0)');
+    c.fillStyle=lg;c.fillRect(PAD,yy+rowH,W-2*PAD,1);
+    c.font='600 22px '+TH.font;c.fillStyle='#dff0e6';c.textBaseline='middle';
+    var hx = W-PAD;
+    c.textAlign='right';
+    var label=(t.hf||'')+' '+t.home+'   '+TH.t.vs+'   '+t.away+' '+(t.af||'');
+    c.fillText(label,hx,cy);
+    // gold kickoff time at trailing edge (left in RTL), no pill chrome
+    c.font='800 18px '+TH.font;
+    var kText=localKick(m);
+    c.fillStyle=TH.gold;c.textAlign='left';c.textBaseline='middle';
+    c.fillText(kText,PAD,cy);
+  }
+
+  // ===== composed flow =====
+  // 1) WINNERS band — hero + Top-5 share one tinted gold-edged panel with a single eyebrow
+  var bandY = y;
+  var bandGrd = c.createLinearGradient(0,bandY,0,bandY+winnersBandH);
+  bandGrd.addColorStop(0,'rgba(212,175,55,.10)');
+  bandGrd.addColorStop(0.55,'rgba(212,175,55,.05)');
+  bandGrd.addColorStop(1,'rgba(212,175,55,.00)');
+  fillRR(PAD-16,bandY,W-2*(PAD-16),winnersBandH,28,bandGrd);
+  // soft gold hairlines top + bottom of the band — frames it as a held panel
+  var bandHairlineG=c.createLinearGradient(PAD-16,bandY,W-(PAD-16),bandY);
+  bandHairlineG.addColorStop(0,'rgba(212,175,55,0)');
+  bandHairlineG.addColorStop(0.5,'rgba(212,175,55,.60)');
+  bandHairlineG.addColorStop(1,'rgba(212,175,55,0)');
+  c.fillStyle=bandHairlineG;c.fillRect(PAD-16,bandY,W-2*(PAD-16),1);
+  c.fillStyle=bandHairlineG;c.fillRect(PAD-16,bandY+winnersBandH-1,W-2*(PAD-16),1);
+  y = bandY + BAND_PAD_TOP;
+  eyebrow('الفائزون اليوم');
+  // hero
+  if(topT.length){ rHero(topT[0],0,y); y+=HERO; }
+  else { emptyRow(TH.t.noPts); y-=4; }
+  y += BAND_INNER_GAP;
+  if(totals.length){
+    totals.forEach(function(u,i){ rUsr(u,i,y); y+=ITEM; });
+  } else {
+    emptyRow(TH.t.noLb);
+  }
+  y = bandY + winnersBandH + 28;
+
+  // 2) RESULTS — quiet eyebrow + cards
+  eyebrow('نتائج اليوم');
+  if(todayR.length){
+    todayR.forEach(function(m,i){ rRes(m,i,y); y+=ITEM; });
+  } else { emptyRow(TH.t.noResults); }
+  var fname='wc2026-summary-'+new Date(now).toISOString().slice(0,10)+'.png';
+  cv.toBlob(function(blob){
+    var file = (typeof File!=='undefined') ? new File([blob],fname,{type:'image/png'}) : null;
+    if(file && navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:TH.t.title}).then(function(){toast(TH.t.toastDone);}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();});
+    } else { dl(); }
+    function dl(){
+      var u=URL.createObjectURL(blob);
+      var a=document.createElement('a');a.href=u;a.download=fname;
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(u);},1500);
+      toast(TH.t.toastDone);
+    }
+  },'image/png');
+}
+function adminZone(m){
+  var z=document.createElement('div');z.className='admin-zone';
+  var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='النتيجة الرسمية';z.appendChild(lbl);
+  var r=result(m);
+  var ko=m.stage!=='group';
+  var t=teamsOf(m);
+  var rd={h:r?Number(r.h):0,a:r?Number(r.a):0,pw:r&&r.pw?r.pw:null};
+  var pen=null;
+  var row=document.createElement('div');row.className='pred-row';
+  row.appendChild(adminStepper(rd,'h',function(){if(pen)pen.refresh();}));
+  var dash=document.createElement('div');dash.className='vs';dash.textContent='-';row.appendChild(dash);
+  row.appendChild(adminStepper(rd,'a',function(){if(pen)pen.refresh();}));
+  z.appendChild(row);
+  if(ko){ pen=penRow(rd,t.home,t.away); z.appendChild(pen.el); }
+  var save=document.createElement('button');save.className='btn btn-gold';save.style.padding='10px';
+  save.textContent=r?'حدّث النتيجة':'احفظ النتيجة';
+  save.addEventListener('click',function(){
+    var data={h:rd.h,a:rd.a};
+    if(ko&&Number(rd.h)===Number(rd.a)){ // knockout draw -> penalties winner required
+      if(!rd.pw){toast('حدّد الفائز بالبلنتيات');return;}
+      data.pw=rd.pw;
+    }
+    ROOT.child('results/'+m.id).set(data).then(function(){toast('تم حفظ النتيجة ✅');});
+  });
+  z.appendChild(save);
+  var acts=document.createElement('div');acts.className='admin-actions';
+  var bt=document.createElement('button');bt.className='a-edit';bt.textContent='عيّن الفرق';
+  bt.addEventListener('click',function(){openTeamModal(m);});
+  if(r){
+    var bx=document.createElement('button');bx.className='a-del';bx.textContent='امسح النتيجة';
+    bx.addEventListener('click',function(){ROOT.child('results/'+m.id).remove().then(function(){toast('تم مسح النتيجة');});});
+    acts.appendChild(bt);acts.appendChild(bx);
+  }else{
+    acts.appendChild(bt);
+  }
+  z.appendChild(acts);
+  return z;
+}
+function adminStepper(rd,k,onChange){
+  var wrap=document.createElement('div');wrap.className='score-in';
+  var minus=document.createElement('button');minus.className='stp';minus.textContent='−';
+  var val=document.createElement('div');val.className='sval';val.textContent=rd[k];
+  var plus=document.createElement('button');plus.className='stp';plus.textContent='+';
+  minus.addEventListener('click',function(){if(rd[k]>0){rd[k]--;val.textContent=rd[k];if(onChange)onChange();}});
+  plus.addEventListener('click',function(){if(rd[k]<20){rd[k]++;val.textContent=rd[k];if(onChange)onChange();}});
+  wrap.appendChild(minus);wrap.appendChild(val);wrap.appendChild(plus);
+  return wrap;
+}
+function isAdminUser(){return !!myName && myName.trim().toLowerCase()===ADMIN_NAME.toLowerCase();}
+function applyAdminUI(){
+  var au=isAdminUser();
+  if(!au && isAdmin){isAdmin=false;try{localStorage.removeItem('saff_admin');}catch(e){}}
+  ['btnSettings','btnSettings2','btnSettings3','btnSettings4'].forEach(function(id){
+    var b=document.getElementById(id);
+    b.style.display=au?'':'none';
+    b.classList.toggle('admin-on',isAdmin);
+  });
+}
+function openSettings(){
+  if(isAdmin){
+    if(confirm('أنت في وضع الإدارة.\nموافق للخروج، أو إلغاء للبقاء.')){
+      isAdmin=false;try{localStorage.removeItem('saff_admin');}catch(e){}
+      applyAdminUI();renderMatches();renderLeader();toast('تم الخروج من وضع الإدارة');
+    }
+    return;
+  }
+  var code=prompt('أدخل رمز الإدارة');
+  if(code===null)return;
+  if(code===ADMIN_CODE){isAdmin=true;try{localStorage.setItem('saff_admin','1');}catch(e){}applyAdminUI();renderMatches();renderLeader();toast('تم تفعيل وضع الإدارة 🔐');}
+  else{toast('رمز خاطئ ❌');}
+}
+document.getElementById('btnSettings').addEventListener('click',openSettings);
+document.getElementById('btnSettings2').addEventListener('click',openSettings);
+document.getElementById('btnSettings3').addEventListener('click',openSettings);
+document.getElementById('btnSettings4').addEventListener('click',openSettings);
+
+// ===== TEAMS MODAL =====
+function openTeamModal(m){
+  editingMatch=m.id;
+  var t=teamsOf(m);
+  document.getElementById('teamModalCtx').textContent='مباراة '+m.n+' — الافتراضي: '+m.home+' ضد '+m.away;
+  document.getElementById('tHome').value=t.home;
+  document.getElementById('tAway').value=t.away;
+  document.getElementById('tHF').value=(t.hf==='⚽'?'':t.hf);
+  document.getElementById('tAF').value=(t.af==='⚽'?'':t.af);
+  document.getElementById('teamModalMsg').textContent='';
+  document.getElementById('teamOverlay').classList.add('show');
+}
+document.getElementById('teamModalClose').addEventListener('click',function(){document.getElementById('teamOverlay').classList.remove('show');});
+document.getElementById('teamOverlay').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+document.getElementById('btnSaveTeams').addEventListener('click',function(){
+  if(!editingMatch)return;
+  var home=document.getElementById('tHome').value.trim();
+  var away=document.getElementById('tAway').value.trim();
+  if(!home||!away){document.getElementById('teamModalMsg').style.color='#fca5a5';document.getElementById('teamModalMsg').textContent='اكتب اسمي الفريقين';return;}
+  ROOT.child('teams/'+editingMatch).set({home:home,away:away,
+    hf:document.getElementById('tHF').value.trim()||'⚽',
+    af:document.getElementById('tAF').value.trim()||'⚽'}).then(function(){
+    document.getElementById('teamModalMsg').style.color='#fff';
+    document.getElementById('teamModalMsg').textContent='✅ تم حفظ الفرق';
+    toast('تم حفظ الفرق ✅');
+    setTimeout(function(){document.getElementById('teamOverlay').classList.remove('show');},800);
+  });
+});
+document.getElementById('btnResetTeams').addEventListener('click',function(){
+  if(!editingMatch)return;
+  ROOT.child('teams/'+editingMatch).remove().then(function(){
+    toast('تم الإرجاع للافتراضي');
+    document.getElementById('teamOverlay').classList.remove('show');
+  });
+});
+
+// ===== المجموعات + الهدافون =====
+function renderStandings(){
+  var v=document.getElementById('standingsView');if(!v)return;
+  v.innerHTML='';
+  var st=computeStandings();
+  Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){
+    var card=document.createElement('div');card.className='gr-card';
+    var h=document.createElement('h4');h.textContent='المجموعة '+g;card.appendChild(h);
+    var tbl=document.createElement('table');tbl.className='gr-tbl';
+    tbl.innerHTML='<thead><tr><th>#</th><th>المنتخب</th><th>ل</th><th>ف</th><th>ت</th><th>خ</th><th>ف.أ</th><th>ن</th></tr></thead>';
+    var tb=document.createElement('tbody');
+    (st[g]||[]).forEach(function(r,i){
+      var tr=document.createElement('tr');
+      if(i<2)tr.className='gr-q';
+      else if(i===2)tr.className='gr-q3';
+      tr.innerHTML='<td>'+(i+1)+'</td>'+
+        '<td class="gr-team">'+flagImg(r.team,28)+esc(r.team)+'</td>'+
+        '<td>'+r.p+'</td><td>'+r.w+'</td><td>'+r.d+'</td><td>'+r.l+'</td>'+
+        '<td>'+(r.gd>0?'+':'')+r.gd+'</td><td><b>'+r.pts+'</b></td>';
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);card.appendChild(tbl);
+    var lg=document.createElement('div');lg.className='gr-legend';
+    lg.innerHTML='<span class="lg-q"></span>يتأهل بشكل مباشر<br><span class="lg-q3"></span>قد يتأهل كأفضل ثالث';
+    card.appendChild(lg);
+    v.appendChild(card);
+  });
+}
+function renderScorers(){
+  var v=document.getElementById('scorersView');if(!v)return;
+  v.innerHTML='';
+  var loader=document.createElement('div');loader.className='empty';loader.textContent='جاري تحميل الهدافين…';v.appendChild(loader);
+  function render(data){
+    v.innerHTML='';
+    if(!data){
+      var er=document.createElement('div');er.className='empty';er.textContent='تعذّر تحميل قائمة الهدافين — جرّب لاحقًا.';v.appendChild(er);return;
+    }
+    var counts={};
+    var matches=(data&&data.matches)||[];
+    function bumpFor(team,g){
+      if(!g||!g.name||g.owngoal===true) return;
+      var nm=g.name;
+      if(!counts[nm]) counts[nm]={goals:0,team:team};
+      counts[nm].goals++;
+    }
+    matches.forEach(function(m){
+      var t1=SCORER_TEAM_ALIAS[m.team1]||m.team1, t2=SCORER_TEAM_ALIAS[m.team2]||m.team2;
+      (m.goals1||[]).forEach(function(g){bumpFor(t1,g);});
+      (m.goals2||[]).forEach(function(g){bumpFor(t2,g);});
+    });
+    var rows=Object.keys(counts).map(function(n){return {name:n,team:counts[n].team,goals:counts[n].goals};}).filter(function(r){return r.goals>=1;});
+    rows.sort(function(a,b){return b.goals-a.goals||a.name.localeCompare(b.name);});
+    if(!rows.length){
+      var em=document.createElement('div');em.className='empty';em.textContent='لم تُسجَّل أهداف بعد — البطولة لم تبدأ بعد.';v.appendChild(em);return;
+    }
+    rows.forEach(function(r,i){
+      var row=document.createElement('div');row.className='sc-row';
+      row.innerHTML='<div class="sc-rank">'+(i+1)+'</div>'+
+        '<div class="sc-name"><div class="sc-name-main">'+esc(r.name)+'</div>'+
+        '<div class="sc-team">'+flagImg(r.team,20)+' '+esc(r.team)+'</div></div>'+
+        '<div class="sc-goals">'+r.goals+'<span>⚽</span></div>';
+      v.appendChild(row);
+    });
+  }
+  var cache=window.__wc26goals;
+  if(cache && cache.ts && (Date.now()-cache.ts < 5*60*1000)){ render(cache.data); return; }
+  fetch('https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json')
+    .then(function(r){return r.json();})
+    .then(function(j){window.__wc26goals={ts:Date.now(),data:j};render(j);})
+    .catch(function(){render(null);});
+}
+function renderGroups(){renderStandings();renderScorers();}
+
+// ===== LEADERBOARD =====
+function renderLeader(){
+  var list=document.getElementById('leaderList');
+  if(!list)return;
+  list.innerHTML='';
+  var keys=Object.keys(usersData).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
+  if(!keys.length){list.innerHTML='<div class="empty">لا يوجد لاعبون بعد 🏟️</div>';return;}
+  var truth=tournamentTruth();
+  var locked=tournamentLocked();
+  var rows=keys.map(function(k){
+    var total=0,exact=0;
+    MATCHES.forEach(function(m){
+      var r=result(m);if(!r)return;
+      var pred=predsData[m.id]&&predsData[m.id][k];if(!pred)return;
+      total+=scoreOf(pred,r);
+      if(Number(pred.h)===Number(r.h)&&Number(pred.a)===Number(r.a))exact++;
+    });
+    var picks=tournamentPicksOf(k);
+    total+=tournamentPointsFor(picks,truth);
+    var u=usersData[k];
+    return {key:k,name:(u&&u.name)?u.name:k,total:total,exact:exact,picks:picks};
+  });
+  rows.sort(function(a,b){return b.total-a.total||b.exact-a.exact;});
+  rows.forEach(function(r,i){
+    var rank=i+1;
+    var el=document.createElement('div');
+    el.className='lb-row'+(r.key===myKey?' me':'')+(rank<=3?(' top'+rank):'');
+    var medal=rank===1?'🥇':(rank===2?'🥈':(rank===3?'🥉':rank));
+    var picksLine='';
+    if(locked){
+      var parts=[];
+      if(r.picks.champion){
+        parts.push((COUNTRY_FLAG[r.picks.champion]?flagImg(r.picks.champion,16)+' ':'')+'🏆 '+esc(r.picks.champion));
+      }
+      if(r.picks.scorer){
+        var st=scorerTeam(r.picks.scorer);
+        parts.push((st&&COUNTRY_FLAG[st]?flagImg(st,16)+' ':'')+'⚽ '+esc(r.picks.scorer));
+      }
+      if(parts.length) picksLine='<div class="lb-sub lb-picks">'+parts.join(' &nbsp;·&nbsp; ')+'</div>';
+    }
+    el.innerHTML='<div class="lb-rank">'+medal+'</div>'+
+      '<div class="lb-name">'+esc(r.name)+(r.key===myKey?' <span class="lb-sub">(أنت)</span>':'')+
+      '<div class="lb-sub">'+r.exact+' نتيجة مطابقة</div>'+picksLine+'</div>'+
+      '<div class="lb-pts">'+r.total+' <span>'+ptsWord(r.total)+'</span></div>';
+    if(isAdmin){
+      var del=document.createElement('button');del.className='lb-del';del.textContent='🗑';del.title='حذف اللاعب';
+      del.addEventListener('click',function(){deletePlayer(r.key,r.name);});
+      el.appendChild(del);
+    }
+    list.appendChild(el);
+  });
+}
+
+// Admin: remove a player and all their predictions
+function deletePlayer(key,name){
+  if(!confirm('حذف اللاعب "'+name+'" وكل توقعاته؟ لا يمكن التراجع.'))return;
+  var jobs=[];
+  Object.keys(predsData).forEach(function(mid){
+    if(predsData[mid]&&predsData[mid][key]) jobs.push(ROOT.child('predictions/'+mid+'/'+key).remove().catch(function(){}));
+  });
+  Promise.all(jobs).then(function(){
+    return ROOT.child('users/'+key).remove().catch(function(){return ROOT.child('users/'+key).update({removed:true});});
+  }).then(function(){toast('تم حذف اللاعب');});
+}
+
+// ===== TABS =====
+document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){show(t.dataset.tab);});});
+document.querySelectorAll('.sub-tab').forEach(function(b){b.addEventListener('click',function(){
+  var s=b.dataset.sub;
+  document.querySelectorAll('.sub-tab').forEach(function(x){x.classList.toggle('active',x.dataset.sub===s);});
+  document.getElementById('standingsView').style.display=s==='standings'?'flex':'none';
+  document.getElementById('scorersView').style.display=s==='scorers'?'flex':'none';
+});});
+
+// ===== PWA: تسجيل service worker للتثبيت والعمل بدون شبكة =====
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(e){console.log('SW register failed',e);});
+  });
+}
+
+// ===== زر تثبيت التطبيق (طلب النظام أو تعليمات حسب الجهاز) =====
+(function(){
+  var btn=document.getElementById('btnInstall');
+  var iosModal=document.getElementById('iosInstall');
+  var andModal=document.getElementById('androidInstall');
+  if(!btn||!iosModal||!andModal) return;
+  var deferred=null;
+  function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}
+  function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;}
+  function android(){return /Android/.test(navigator.userAgent);}
+  function showIfMobile(){ if(!standalone()&&(ios()||android())) btn.style.display='block'; }
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;showIfMobile();});
+  showIfMobile();
+  window.addEventListener('appinstalled',function(){btn.style.display='none';deferred=null;});
+  btn.addEventListener('click',function(){
+    if(deferred){ deferred.prompt(); deferred.userChoice.then(function(){deferred=null;btn.style.display='none';}); }
+    else if(ios()){ iosModal.style.display='flex'; }
+    else if(android()){ andModal.style.display='flex'; }
+  });
+  [iosModal,andModal].forEach(function(m){ m.addEventListener('click',function(e){if(e.target===m)m.style.display='none';}); });
+  document.querySelectorAll('.ios-close').forEach(function(b){b.addEventListener('click',function(){iosModal.style.display='none';});});
+  document.querySelectorAll('.and-close').forEach(function(b){b.addEventListener('click',function(){andModal.style.display='none';});});
+})();
+</script>
+</body>
+</html>
