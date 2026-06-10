@@ -246,6 +246,24 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .ptable th{color:#fff;font-weight:700;background:rgba(225,29,72,.30);text-align:center;vertical-align:middle;}
 .ptable .pcell{font-weight:800;color:#fff;text-align:center;vertical-align:middle;white-space:nowrap;}
 .ptable td .ex{color:var(--muted);}
+
+/* ===== ROOMS (private leagues) ===== */
+.room-banner{width:100%;background:linear-gradient(155deg,rgba(225,29,72,.16),rgba(225,29,72,.04) 55%,rgba(255,255,255,.03));border:1px solid rgba(225,29,72,.40);border-radius:14px;padding:11px 13px;display:flex;flex-direction:column;gap:8px;}
+.room-banner.room-room{border-color:rgba(225,29,72,.55);}
+.rb-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.rb-title{display:flex;align-items:center;gap:8px;font-size:.88rem;font-weight:700;color:#fff;flex:1;min-width:0;}
+.rb-title b{font-weight:800;}
+.rb-title .rb-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rb-count{font-size:.74rem;color:var(--muted);font-weight:600;white-space:nowrap;}
+.rb-actions{display:flex;flex-wrap:wrap;gap:6px;}
+.rb-btn{background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:6px 10px;font-family:'Poppins',sans-serif;font-size:.74rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+.rb-btn:hover{border-color:var(--accent1);}
+.rb-btn.primary{background:rgba(225,29,72,.18);border-color:rgba(225,29,72,.45);color:#fff;}
+.rb-btn.primary:hover{background:rgba(225,29,72,.30);}
+.rb-btn.danger{color:#fca5a5;}
+.rb-switch-wrap{position:relative;display:inline-block;}
+.rb-switch-wrap select{appearance:none;-webkit-appearance:none;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:6px 24px 6px 10px;font-family:'Poppins',sans-serif;font-size:.74rem;font-weight:700;cursor:pointer;}
+.rb-switch-wrap::after{content:'\25BE';position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.7rem;pointer-events:none;}
 </style>
 </head>
 <body>
@@ -285,6 +303,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
     <div class="me-chip">👤 <b id="meName">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">Sign out</span></div>
     <button class="icon-btn" id="btnSettings">⚙️</button>
   </div>
+  <div class="room-banner" id="roomBannerMatches"></div>
   <div class="section-title">⚽ Matches</div>
   <div class="chips" id="chips"></div>
   <div class="hint" id="matchHint">Predictions open 24h before kickoff and lock when the match starts.</div>
@@ -297,6 +316,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
     <div class="me-chip">👤 <b id="meName2">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">Sign out</span></div>
     <button class="icon-btn" id="btnSettings2">⚙️</button>
   </div>
+  <div class="room-banner" id="roomBannerLeader"></div>
   <div class="section-title">🏅 Leaderboard</div>
   <div id="leaderList" style="width:100%;display:flex;flex-direction:column;gap:10px;"></div>
 </div>
@@ -462,6 +482,21 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
   </div>
 </div>
 
+<!-- CREATE LEAGUE MODAL -->
+<div class="overlay" id="createRoomOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🏟️ Create a private league</div>
+      <button class="modal-close" id="createRoomClose">✕</button>
+    </div>
+    <div class="hint" style="margin-bottom:4px">Give your league a name. You'll get a share link to send to friends — they sign up with their own name + PIN, and you'll all see a leaderboard just among yourselves.</div>
+    <label>League name</label>
+    <input class="field" id="newRoomName" placeholder="e.g. The Family" maxlength="40" autocomplete="off">
+    <button class="btn btn-grad" id="btnCreateRoom" style="margin-top:14px">Create league 🏟️</button>
+    <div class="modal-msg" id="createRoomMsg"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -606,6 +641,198 @@ var apiResults={}, apiTeams={};
 var currentFilter='upcoming'; // selected chip: 'upcoming' | 'g:X' | 'r:R'
 var editingMatch=null;
 var draft={}; // matchId -> {h,a}
+
+// ===== ROOMS (private leagues) =====
+var currentRoomId   = null;    // null = "Global" view
+var currentRoomInfo = null;    // {name, owner, created} or null
+var roomMembers     = {};      // {userKey:true} for currentRoomId, or {} for global
+var myRooms         = {};      // {roomId:true} from users/<myKey>/rooms
+var _roomMembersRef = null;    // active rooms/<id>/members listener ref
+var _roomMembersCb  = null;
+var _roomInfoRef    = null;    // active rooms/<id>/info listener ref
+var _roomInfoCb     = null;
+var ROOM_LS_KEY     = 'wc_room';
+function readUrlRoom(){
+  try{
+    var qs=(window.location.search||'').replace(/^\?/,'');
+    var parts=qs.split('&');
+    for(var i=0;i<parts.length;i++){
+      var kv=parts[i].split('=');
+      if(kv[0]==='room' && kv[1]) return decodeURIComponent(kv[1]).slice(0,12).replace(/[^a-z0-9_-]/gi,'');
+    }
+  }catch(e){}
+  return null;
+}
+function genRoomId(){return Math.random().toString(36).substr(2,6);}
+function updateRoomUrl(rid){
+  try{
+    var u=new URL(window.location.href);
+    if(rid) u.searchParams.set('room',rid); else u.searchParams.delete('room');
+    history.replaceState(null,'',u.pathname+(u.search||'')+u.hash);
+  }catch(e){}
+}
+function persistRoom(rid){
+  try{if(rid) localStorage.setItem(ROOM_LS_KEY,rid); else localStorage.removeItem(ROOM_LS_KEY);}catch(e){}
+}
+function detachRoomListeners(){
+  if(_roomMembersRef && _roomMembersCb){_roomMembersRef.off('value',_roomMembersCb);}
+  if(_roomInfoRef && _roomInfoCb){_roomInfoRef.off('value',_roomInfoCb);}
+  _roomMembersRef=null;_roomMembersCb=null;_roomInfoRef=null;_roomInfoCb=null;
+}
+function attachRoomListeners(rid){
+  detachRoomListeners();
+  if(!rid) return;
+  _roomMembersRef = ROOT.child('rooms/'+rid+'/members');
+  _roomMembersCb  = function(s){roomMembers=s.val()||{};renderRoomBanner();renderLeader();};
+  _roomMembersRef.on('value',_roomMembersCb);
+  _roomInfoRef = ROOT.child('rooms/'+rid+'/info');
+  _roomInfoCb  = function(s){currentRoomInfo=s.val()||null;renderRoomBanner();renderLeader();};
+  _roomInfoRef.on('value',_roomInfoCb);
+}
+function switchToRoom(rid, opts){
+  opts=opts||{};
+  if(rid===currentRoomId) return;
+  currentRoomId = rid;
+  currentRoomInfo = null;
+  roomMembers = {};
+  if(ROOT) attachRoomListeners(rid);
+  updateRoomUrl(rid);
+  persistRoom(rid);
+  renderRoomBanner();
+  renderMatches();
+  renderLeader();
+  if(opts.toast) toast(opts.toast);
+}
+function joinRoomMembership(rid, cb){
+  if(!ROOT || !rid || !myKey) return;
+  var jobs=[
+    ROOT.child('rooms/'+rid+'/members/'+myKey).set(true),
+    ROOT.child('users/'+myKey+'/rooms/'+rid).set(true)
+  ];
+  Promise.all(jobs).then(function(){if(cb)cb(null);}).catch(function(e){if(cb)cb(e);});
+}
+function createLeague(name, cb){
+  if(!ROOT || !myKey){if(cb)cb(new Error('not ready'));return;}
+  var nm=(name||'').trim().slice(0,40);
+  if(!nm){if(cb)cb(new Error('Pick a name for the league'));return;}
+  function attempt(left){
+    var rid=genRoomId();
+    ROOT.child('rooms/'+rid+'/info').once('value').then(function(snap){
+      if(snap.exists()){
+        if(left<=0){if(cb)cb(new Error('Could not generate a unique league code. Try again.'));return;}
+        attempt(left-1);return;
+      }
+      var info={name:nm,owner:myKey,created:Date.now()};
+      Promise.all([
+        ROOT.child('rooms/'+rid+'/info').set(info),
+        ROOT.child('rooms/'+rid+'/members/'+myKey).set(true),
+        ROOT.child('users/'+myKey+'/rooms/'+rid).set(true)
+      ]).then(function(){
+        switchToRoom(rid, {toast:'League "'+nm+'" created 🏟️'});
+        if(cb)cb(null,rid);
+      }).catch(function(e){if(cb)cb(e);});
+    }).catch(function(e){if(cb)cb(e);});
+  }
+  attempt(5);
+}
+function leaveCurrentRoom(){
+  if(!currentRoomId) return;
+  var rid=currentRoomId, nm=(currentRoomInfo&&currentRoomInfo.name)||rid;
+  if(!confirm('Leave league "'+nm+'"? You can rejoin later via the invite link.'))return;
+  var jobs=[
+    ROOT.child('rooms/'+rid+'/members/'+myKey).remove(),
+    ROOT.child('users/'+myKey+'/rooms/'+rid).remove()
+  ];
+  Promise.all(jobs).then(function(){
+    switchToRoom(null,{toast:'Left "'+nm+'"'});
+  }).catch(function(e){toast('Failed to leave: '+((e&&e.code)||e));});
+}
+function inviteUrl(){
+  if(!currentRoomId) return '';
+  return location.origin + location.pathname + '?room=' + currentRoomId;
+}
+function copyInvite(){
+  var url=inviteUrl();
+  if(!url){toast('Create a league first');return;}
+  function fallback(){try{prompt('Copy this invite link:',url);}catch(e){}}
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(function(){toast('Invite link copied 🔗');}).catch(fallback);
+  } else { fallback(); }
+}
+function openCreateRoom(){
+  var ov=document.getElementById('createRoomOverlay');
+  document.getElementById('newRoomName').value='';
+  document.getElementById('createRoomMsg').textContent='';
+  ov.classList.add('show');
+  setTimeout(function(){document.getElementById('newRoomName').focus();},80);
+}
+function closeCreateRoom(){document.getElementById('createRoomOverlay').classList.remove('show');}
+function renderRoomBanner(){
+  var els=[document.getElementById('roomBannerMatches'),document.getElementById('roomBannerLeader')];
+  els.forEach(function(el){
+    if(!el)return;
+    el.innerHTML='';
+    el.classList.toggle('room-room', !!currentRoomId);
+    var head=document.createElement('div');head.className='rb-head';
+    var title=document.createElement('div');title.className='rb-title';
+    var actions=document.createElement('div');actions.className='rb-actions';
+    if(currentRoomId){
+      var n=(currentRoomInfo&&currentRoomInfo.name)||currentRoomId;
+      var count=Object.keys(roomMembers||{}).length;
+      title.innerHTML='🏟️ <b class="rb-name">'+esc(n)+'</b> <span class="rb-count">· '+count+' player'+(count===1?'':'s')+'</span>';
+      var bInv=document.createElement('button');bInv.className='rb-btn primary';bInv.textContent='Invite';
+      bInv.addEventListener('click',copyInvite);
+      actions.appendChild(bInv);
+      // Switch dropdown (Global + my rooms)
+      var sw=document.createElement('div');sw.className='rb-switch-wrap';
+      var sel=document.createElement('select');
+      var optG=document.createElement('option');optG.value='';optG.textContent='🌐 Global';
+      sel.appendChild(optG);
+      var roomIds=Object.keys(myRooms||{});
+      roomIds.forEach(function(rid){
+        var o=document.createElement('option');o.value=rid;
+        var nm=(rid===currentRoomId && currentRoomInfo && currentRoomInfo.name)?currentRoomInfo.name:rid;
+        o.textContent='🏟️ '+nm;
+        if(rid===currentRoomId){o.selected=true;}
+        sel.appendChild(o);
+      });
+      sel.addEventListener('change',function(){
+        var v=sel.value||null;
+        switchToRoom(v, {toast:v?('Switched leagues'):('Switched to Global')});
+      });
+      sw.appendChild(sel);
+      actions.appendChild(sw);
+      var bLeave=document.createElement('button');bLeave.className='rb-btn danger';bLeave.textContent='Leave';
+      bLeave.addEventListener('click',leaveCurrentRoom);
+      actions.appendChild(bLeave);
+    } else {
+      var globalCount=Object.keys(usersData||{}).filter(function(k){return !(usersData[k]&&usersData[k].removed);}).length;
+      title.innerHTML='🌐 <b>Global league</b> <span class="rb-count">· '+globalCount+' player'+(globalCount===1?'':'s')+'</span>';
+      var bCreate=document.createElement('button');bCreate.className='rb-btn primary';bCreate.textContent='Create a private league';
+      bCreate.addEventListener('click',openCreateRoom);
+      actions.appendChild(bCreate);
+      var roomIds2=Object.keys(myRooms||{});
+      if(roomIds2.length){
+        var sw2=document.createElement('div');sw2.className='rb-switch-wrap';
+        var sel2=document.createElement('select');
+        var og=document.createElement('option');og.value='';og.textContent='🌐 Global';og.selected=true;
+        sel2.appendChild(og);
+        roomIds2.forEach(function(rid){
+          var o=document.createElement('option');o.value=rid;o.textContent='🏟️ '+rid;
+          sel2.appendChild(o);
+        });
+        sel2.addEventListener('change',function(){
+          var v=sel2.value||null;
+          if(v) switchToRoom(v, {toast:'Switched leagues'});
+        });
+        sw2.appendChild(sel2);
+        actions.appendChild(sw2);
+      }
+    }
+    head.appendChild(title);head.appendChild(actions);
+    el.appendChild(head);
+  });
+}
 
 // ===== HELPERS =====
 function show(id){
@@ -786,13 +1013,57 @@ function enter(){
   document.getElementById('tabbar').style.display='flex';
   applyAdminUI();
   show('sMatches');
-  if(booted){renderMatches();renderLeader();renderGroups();return;}  // re-login: don't re-attach listeners/timers
+  if(booted){renderMatches();renderLeader();renderGroups();renderRoomBanner();bootstrapRoom();return;}  // re-login: don't re-attach listeners/timers
   booted=true;
   buildChips();
   listen();
+  bootstrapRoom();
+  renderRoomBanner();
   setInterval(function(){renderMatches();},30000);   // refresh locks over time
   loadOpenfootball();                                 // initial auto data pull
   setInterval(loadOpenfootball,300000);               // refresh teams/results every 5 min
+}
+
+// Decide which room (if any) to land in: URL > localStorage > Global.
+// Joins membership automatically when the URL invite is the source.
+function bootstrapRoom(){
+  if(!ROOT||!myKey)return;
+  if(_myRoomsKey!==myKey) attachMyRoomsListener();
+  var urlRid = readUrlRoom();
+  var saved=null; try{saved=localStorage.getItem(ROOM_LS_KEY)||null;}catch(e){}
+  var rid = urlRid || saved || null;
+  if(!rid){
+    currentRoomId=null;currentRoomInfo=null;roomMembers={};
+    detachRoomListeners();
+    renderRoomBanner();renderLeader();
+    return;
+  }
+  // Validate room exists; if not, drop to global
+  ROOT.child('rooms/'+rid+'/info').once('value').then(function(snap){
+    if(!snap.exists()){
+      persistRoom(null);updateRoomUrl(null);
+      currentRoomId=null;currentRoomInfo=null;roomMembers={};
+      detachRoomListeners();
+      renderRoomBanner();renderLeader();
+      return;
+    }
+    var info=snap.val();
+    currentRoomId=rid;currentRoomInfo=info;
+    attachRoomListeners(rid);
+    updateRoomUrl(rid);persistRoom(rid);
+    // auto-join if visiting via invite URL and not yet a member
+    ROOT.child('rooms/'+rid+'/members/'+myKey).once('value').then(function(ms){
+      if(!ms.val()){
+        joinRoomMembership(rid,function(err){
+          if(!err && urlRid) toast('Joined '+(info.name||rid)+' 🏟️');
+        });
+      }
+    });
+    renderRoomBanner();renderLeader();
+  }).catch(function(){
+    currentRoomId=null;currentRoomInfo=null;roomMembers={};
+    renderRoomBanner();renderLeader();
+  });
 }
 
 // Sign out / switch name — triggered by tapping your name chip
@@ -801,6 +1072,9 @@ function logout(){
   if(!confirm('Sign out and use a different name?'))return;
   try{localStorage.removeItem('wc_name');localStorage.removeItem('wc_pin');}catch(e){}
   myName=''; myKey=''; draft={};   // clear the previous user's unsaved inputs
+  // Reset room context so the next sign-in re-bootstraps from URL/localStorage
+  detachRoomListeners();
+  currentRoomId=null;currentRoomInfo=null;roomMembers={};myRooms={};
   document.getElementById('nameInput').value='';
   document.getElementById('pinInput').value='';
   document.getElementById('loginErr').textContent='';
@@ -820,10 +1094,24 @@ function listen(){
   ROOT.child('users').on('value',function(s){
     usersData=s.val()||{};
     renderLeader();
+    renderRoomBanner();
     var u=usersData[myKey];
     var d=u?(u.champion||'')+'/'+(u.scorer||''):'/';
     if(d!==__myPicksDigest){__myPicksDigest=d;renderMatches();}
   });
+  attachMyRoomsListener();
+}
+
+// Reverse-index of which rooms the current user belongs to.
+// Detaches/reattaches whenever myKey changes (e.g. switching accounts).
+var _myRoomsRef=null, _myRoomsCb=null, _myRoomsKey=null;
+function attachMyRoomsListener(){
+  if(_myRoomsRef && _myRoomsCb){_myRoomsRef.off('value',_myRoomsCb);_myRoomsRef=null;_myRoomsCb=null;}
+  if(!ROOT || !myKey){myRooms={};return;}
+  _myRoomsKey=myKey;
+  _myRoomsRef=ROOT.child('users/'+myKey+'/rooms');
+  _myRoomsCb=function(s){myRooms=s.val()||{};renderRoomBanner();};
+  _myRoomsRef.on('value',_myRoomsCb);
 }
 
 // ===== FILTER CHIPS ===== (Upcoming first, then groups A-L, then knockout rounds)
@@ -1229,17 +1517,20 @@ function genDailySummary(){
   var todayM=MATCHES.filter(function(m){var k=kickoffMs(m);return k>=t0&&k<t1;});
   var tomorrowM=MATCHES.filter(function(m){var k=kickoffMs(m);return k>=t1&&k<t2;}).slice(0,8);
   var todayR=todayM.filter(function(m){return !!result(m);});
+  var _inRoom = !!currentRoomId;
+  var _roomFilter = function(k){return _inRoom ? !!roomMembers[k] : true;};
   var up={};
   todayR.forEach(function(m){
     var r=result(m), o=predsData[m.id]||{};
     Object.keys(o).forEach(function(k){
+      if(!_roomFilter(k))return;
       var p=scoreOf(o[k],r);
       if(p){if(!up[k])up[k]={name:(usersData[k]&&usersData[k].name)||k,pts:0};up[k].pts+=p;}
     });
   });
   var topT=Object.keys(up).map(function(k){return up[k];}).sort(function(a,b){return b.pts-a.pts;}).slice(0,1);
   var ttruth=tournamentTruth();
-  var totals=Object.keys(usersData||{}).map(function(k){
+  var totals=Object.keys(usersData||{}).filter(_roomFilter).map(function(k){
     var t=0;MATCHES.forEach(function(m){var r=result(m);var p=predsData[m.id]&&predsData[m.id][k];if(p&&r)t+=scoreOf(p,r);});
     t+=tournamentPointsFor(tournamentPicksOf(k),ttruth);
     return {name:(usersData[k]&&usersData[k].name)||k,pts:t};
@@ -1413,6 +1704,12 @@ function genDailySummary(){
   }
   // small accent dot under title — designed punctuation, not a slab
   c.fillStyle=TH.accent;c.beginPath();c.arc(W/2,titleY+22,4,0,Math.PI*2);c.fill();
+  // room name subtitle (when scoped to a private league)
+  if(_inRoom){
+    var _rn=(currentRoomInfo&&currentRoomInfo.name)||currentRoomId;
+    c.font='700 22px '+TH.font;c.fillStyle='#e6ecff';c.textAlign='center';c.textBaseline='alphabetic';
+    c.fillText('· '+_rn+' ·', W/2, titleY+48);
+  }
   var y=HEAD;
   // tiny tracked label utility (used by both eyebrow + winners-band header)
   function trackedLabel(text,x,baseY,col,size,track){
@@ -1816,7 +2113,11 @@ function renderLeader(){
   if(!list)return;
   list.innerHTML='';
   var keys=Object.keys(usersData).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
-  if(!keys.length){list.innerHTML='<div class="empty">No players yet 🏟️</div>';return;}
+  if(currentRoomId){ keys=keys.filter(function(k){return !!roomMembers[k];}); }
+  if(!keys.length){
+    list.innerHTML='<div class="empty">'+(currentRoomId?'No players in this league yet — send the invite link! 🏟️':'No players yet 🏟️')+'</div>';
+    return;
+  }
   var truth=tournamentTruth();
   var locked=tournamentLocked();
   var rows=keys.map(function(k){
@@ -1883,6 +2184,26 @@ document.querySelectorAll('.sub-tab').forEach(function(b){b.addEventListener('cl
   document.getElementById('standingsView').style.display=s==='standings'?'flex':'none';
   document.getElementById('scorersView').style.display=s==='scorers'?'flex':'none';
 });});
+
+// ===== ROOMS: wire create-room modal =====
+(function(){
+  var ov=document.getElementById('createRoomOverlay');
+  if(!ov) return;
+  var input=document.getElementById('newRoomName');
+  function submit(){
+    var msg=document.getElementById('createRoomMsg');msg.textContent='';
+    var nm=(input.value||'').trim();
+    if(!nm){msg.textContent='Pick a name for the league';return;}
+    createLeague(nm,function(err){
+      if(err){msg.textContent='Failed: '+(err.message||err.code||err);return;}
+      closeCreateRoom();
+    });
+  }
+  document.getElementById('btnCreateRoom').addEventListener('click',submit);
+  document.getElementById('createRoomClose').addEventListener('click',closeCreateRoom);
+  ov.addEventListener('click',function(e){if(e.target===ov)closeCreateRoom();});
+  input.addEventListener('keydown',function(e){if(e.key==='Enter')submit();});
+})();
 
 // ===== PWA: register service worker for installability + offline cache =====
 if('serviceWorker' in navigator){
