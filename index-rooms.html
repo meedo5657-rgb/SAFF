@@ -497,6 +497,30 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
   </div>
 </div>
 
+<!-- MANAGE LEAGUE MODAL (owner only) -->
+<div class="overlay" id="manageRoomOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">⚙️ Manage league</div>
+      <button class="modal-close" id="manageRoomClose">✕</button>
+    </div>
+    <div class="hint" style="margin-bottom:4px">Only you (the owner) can see this. Rename the league, kick members, or delete it entirely.</div>
+    <label>League name</label>
+    <input class="field" id="renameRoomName" maxlength="40" autocomplete="off">
+    <button class="btn btn-grad" id="btnRenameRoom" style="margin-top:14px">Save name ✅</button>
+    <div class="modal-msg" id="renameRoomMsg"></div>
+    <div style="height:1px;background:var(--line);margin:18px 0 6px"></div>
+    <div style="font-size:.86rem;font-weight:700;color:#fff;margin-bottom:6px">Members</div>
+    <div class="hint" style="margin-bottom:6px">Kick someone to remove them from this league. They keep their global account.</div>
+    <div id="manageMembersList" style="display:flex;flex-direction:column;gap:6px"></div>
+    <div style="height:1px;background:rgba(225,29,72,.45);margin:18px 0 6px"></div>
+    <div style="font-size:.86rem;font-weight:700;color:#fca5a5;margin-bottom:6px">Danger zone</div>
+    <div class="hint" style="margin-bottom:6px">Deleting the league removes it for everyone. This cannot be undone.</div>
+    <button class="btn" id="btnDeleteRoom" style="background:rgba(225,29,72,.20);border:1px solid rgba(225,29,72,.55);color:#fca5a5;width:100%">Delete room 🗑️</button>
+    <div class="modal-msg" id="manageRoomMsg"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -767,6 +791,82 @@ function openCreateRoom(){
   setTimeout(function(){document.getElementById('newRoomName').focus();},80);
 }
 function closeCreateRoom(){document.getElementById('createRoomOverlay').classList.remove('show');}
+
+// ===== ROOMS: owner controls (rename / kick / delete) =====
+// All checks are UI-only (owner === myKey); no Firebase-rules enforcement.
+function isRoomOwner(){return !!(currentRoomInfo && currentRoomInfo.owner===myKey);}
+function openManageRoom(){
+  if(!isRoomOwner())return;
+  var ov=document.getElementById('manageRoomOverlay');
+  document.getElementById('renameRoomName').value=(currentRoomInfo&&currentRoomInfo.name)||'';
+  document.getElementById('renameRoomMsg').textContent='';
+  document.getElementById('manageRoomMsg').textContent='';
+  renderManageMembers();
+  ov.classList.add('show');
+}
+function closeManageRoom(){document.getElementById('manageRoomOverlay').classList.remove('show');}
+function renderManageMembers(){
+  var box=document.getElementById('manageMembersList');
+  if(!box)return;
+  box.innerHTML='';
+  var ownerKey=currentRoomInfo&&currentRoomInfo.owner;
+  var keys=Object.keys(roomMembers||{}).filter(function(k){return k!==ownerKey;});
+  if(!keys.length){
+    var em=document.createElement('div');em.className='hint';em.style.fontStyle='italic';
+    em.textContent='No other members yet — share the invite link to bring people in.';
+    box.appendChild(em);return;
+  }
+  keys.forEach(function(k){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;';
+    var nm=document.createElement('div');
+    nm.style.cssText='font-size:.86rem;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    nm.textContent=(usersData[k]&&usersData[k].name)||k;
+    var btn=document.createElement('button');btn.className='rb-btn danger';btn.textContent='Kick';
+    btn.addEventListener('click',function(){kickMember(k);});
+    row.appendChild(nm);row.appendChild(btn);
+    box.appendChild(row);
+  });
+}
+function renameRoom(newName, cb){
+  if(!isRoomOwner()){if(cb)cb(new Error('Not the owner'));return;}
+  if(!currentRoomId){if(cb)cb(new Error('No room'));return;}
+  var nm=(newName||'').trim();
+  if(nm.length<1||nm.length>40){if(cb)cb(new Error('Name must be 1-40 characters'));return;}
+  ROOT.child('rooms/'+currentRoomId+'/info/name').set(nm).then(function(){
+    toast('Renamed to "'+nm+'" ✏️');
+    if(cb)cb(null);
+  }).catch(function(e){if(cb)cb(e);});
+}
+function kickMember(kickedKey){
+  if(!isRoomOwner())return;
+  if(!currentRoomId||!kickedKey)return;
+  if(kickedKey===currentRoomInfo.owner)return; // can't kick the owner
+  var nm=(usersData[kickedKey]&&usersData[kickedKey].name)||kickedKey;
+  var patch={};
+  patch['rooms/'+currentRoomId+'/members/'+kickedKey]=null;
+  patch['users/'+kickedKey+'/rooms/'+currentRoomId]=null;
+  ROOT.update(patch).then(function(){
+    toast('Kicked '+nm+' from the league');
+    renderManageMembers();
+  }).catch(function(e){toast('Failed to kick: '+((e&&e.code)||e));});
+}
+function deleteCurrentRoom(){
+  if(!isRoomOwner())return;
+  if(!currentRoomId)return;
+  var rid=currentRoomId, nm=(currentRoomInfo&&currentRoomInfo.name)||rid;
+  if(!confirm('Delete league "'+nm+'"? Everyone will be dropped back to the global league. This cannot be undone.'))return;
+  ROOT.child('rooms/'+rid+'/members').once('value').then(function(snap){
+    var members=snap.val()||{};
+    var patch={};
+    Object.keys(members).forEach(function(m){patch['users/'+m+'/rooms/'+rid]=null;});
+    patch['rooms/'+rid]=null;
+    return ROOT.update(patch);
+  }).then(function(){
+    closeManageRoom();
+    switchToRoom(null,{toast:'League "'+nm+'" deleted'});
+  }).catch(function(e){toast('Failed to delete: '+((e&&e.code)||e));});
+}
 function renderRoomBanner(){
   var els=[document.getElementById('roomBannerMatches'),document.getElementById('roomBannerLeader')];
   els.forEach(function(el){
@@ -783,6 +883,12 @@ function renderRoomBanner(){
       var bInv=document.createElement('button');bInv.className='rb-btn primary';bInv.textContent='Invite';
       bInv.addEventListener('click',copyInvite);
       actions.appendChild(bInv);
+      // Owner-only Manage button (UI-enforced)
+      if(currentRoomInfo && currentRoomInfo.owner===myKey){
+        var bMan=document.createElement('button');bMan.className='rb-btn';bMan.textContent='Manage';
+        bMan.addEventListener('click',openManageRoom);
+        actions.appendChild(bMan);
+      }
       // Switch dropdown (Global + my rooms)
       var sw=document.createElement('div');sw.className='rb-switch-wrap';
       var sel=document.createElement('select');
@@ -1110,7 +1216,15 @@ function attachMyRoomsListener(){
   if(!ROOT || !myKey){myRooms={};return;}
   _myRoomsKey=myKey;
   _myRoomsRef=ROOT.child('users/'+myKey+'/rooms');
-  _myRoomsCb=function(s){myRooms=s.val()||{};renderRoomBanner();};
+  _myRoomsCb=function(s){
+    myRooms=s.val()||{};
+    // If we were in a room but it's no longer in our reverse-index, we got
+    // kicked (or the room was deleted) — drop back to Global.
+    if(currentRoomId && !myRooms[currentRoomId]){
+      switchToRoom(null,{toast:"You've been removed from the room"});
+    }
+    renderRoomBanner();
+  };
   _myRoomsRef.on('value',_myRoomsCb);
 }
 
@@ -2202,6 +2316,27 @@ document.querySelectorAll('.sub-tab').forEach(function(b){b.addEventListener('cl
   document.getElementById('btnCreateRoom').addEventListener('click',submit);
   document.getElementById('createRoomClose').addEventListener('click',closeCreateRoom);
   ov.addEventListener('click',function(e){if(e.target===ov)closeCreateRoom();});
+  input.addEventListener('keydown',function(e){if(e.key==='Enter')submit();});
+})();
+
+// ===== ROOMS: wire manage-room modal (owner only) =====
+(function(){
+  var ov=document.getElementById('manageRoomOverlay');
+  if(!ov) return;
+  var input=document.getElementById('renameRoomName');
+  function submit(){
+    var msg=document.getElementById('renameRoomMsg');msg.textContent='';
+    var nm=(input.value||'').trim();
+    if(nm.length<1||nm.length>40){msg.textContent='Name must be 1-40 characters';return;}
+    renameRoom(nm,function(err){
+      if(err){msg.textContent='Failed: '+(err.message||err.code||err);return;}
+      msg.textContent='Saved.';
+    });
+  }
+  document.getElementById('btnRenameRoom').addEventListener('click',submit);
+  document.getElementById('manageRoomClose').addEventListener('click',closeManageRoom);
+  document.getElementById('btnDeleteRoom').addEventListener('click',deleteCurrentRoom);
+  ov.addEventListener('click',function(e){if(e.target===ov)closeManageRoom();});
   input.addEventListener('keydown',function(e){if(e.key==='Enter')submit();});
 })();
 
