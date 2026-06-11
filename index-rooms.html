@@ -2521,7 +2521,7 @@ function renderScorers(){
     });
   }
   var cache=window.__wc26goals;
-  if(cache && cache.ts && (Date.now()-cache.ts < 5*60*1000)){ render(cache.data); return; }
+  if(cache && cache.ts && (Date.now()-cache.ts < 60*1000)){ render(cache.data); return; }
   fetch('https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json')
     .then(function(r){return r.json();})
     .then(function(j){window.__wc26goals={ts:Date.now(),data:j};render(j);})
