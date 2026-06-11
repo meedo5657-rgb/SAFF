@@ -2139,6 +2139,7 @@ function renderLeader(){
   var list=document.getElementById('leaderList');
   if(!list)return;
   list.innerHTML='';
+  var hint=document.createElement('div');hint.style.cssText='font-size:.72rem;color:var(--muted);text-align:center;padding:4px 0 10px;';hint.textContent='👆 Tap any player to view their predictions';list.appendChild(hint);
   var keys=Object.keys(usersData).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
   if(!keys.length){list.innerHTML='<div class="empty">No players yet 🏟️</div>';return;}
   var truth=tournamentTruth();
