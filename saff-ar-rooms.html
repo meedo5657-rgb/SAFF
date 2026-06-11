@@ -745,16 +745,22 @@ function loadOpenfootball(){
 // In-play status ticks score.fullTime as goals are scored, so this drives the
 // live leaderboard updates during matches. Falls back silently if no token is
 // configured (openfootball still runs as the baseline source).
-function loadFootballData(){
-  if(!FD_TOKEN)return;
+function loadFootballData(verbose){
+  if(!FD_TOKEN){if(verbose)toast('لا يوجد رمز محفوظ');return;}
   if(typeof fetch!=='function')return;
   fetch(FD_URL,{headers:{'X-Auth-Token':FD_TOKEN},cache:'no-store'})
-    .then(function(r){return r.ok?r.json():null;})
+    .then(function(r){
+      if(!r.ok){var st=r.status;if(verbose)toast('خطأ FD: '+st+(st===403?' (رمز خطأ أو منتهي)':st===429?' (تجاوزت الحد)':''));window.__fdLast={ok:false,status:st,ts:Date.now()};return null;}
+      return r.json();
+    })
     .then(function(d){
-      if(!d||!d.matches)return;
-      var nr={}, nt={};
+      if(!d)return;
+      if(!d.matches){if(verbose)toast('استجابة FD بدون مباريات');return;}
+      var nr={}, nt={}, matchedCount=0, liveCount=0;
       d.matches.forEach(function(m){
         var st=matchFD(m); if(!st)return;
+        matchedCount++;
+        if(m.status==='IN_PLAY'||m.status==='PAUSED')liveCount++;
         var hn=m.homeTeam&&m.homeTeam.name, an=m.awayTeam&&m.awayTeam.name;
         if(st.stage!=='group' && (isRealTeam(hn)||isRealTeam(an))){
           nt[st.id]={home:isRealTeam(hn)?canon(hn):null, away:isRealTeam(an)?canon(an):null};
@@ -762,8 +768,6 @@ function loadFootballData(){
         var sc=m.score||{};
         var fin=(sc.extraTime && sc.extraTime.home!=null && sc.extraTime.away!=null) ? sc.extraTime : sc.fullTime;
         if(fin && typeof fin.home==='number' && typeof fin.away==='number'){
-          // groups: swap if FD's order is flipped relative to our static home/away.
-          // knockouts: our static home/away is a placeholder, so trust FD's order verbatim.
           var swapped = (st.stage==='group') && (canon(hn)!==st.home);
           var res = swapped ? {h:fin.away, a:fin.home} : {h:fin.home, a:fin.away};
           var p=sc.penalties;
@@ -776,9 +780,11 @@ function loadFootballData(){
       });
       Object.keys(nr).forEach(function(id){apiResults[id]=nr[id];});
       Object.keys(nt).forEach(function(id){apiTeams[id]=nt[id];});
+      window.__fdLast={ok:true,total:d.matches.length,matched:matchedCount,live:liveCount,scored:Object.keys(nr).length,ts:Date.now()};
+      if(verbose)toast(function(){return 'FD ✓ '+d.matches.length+' مباراة, '+liveCount+' مباشر, '+Object.keys(nr).length+' بنتيجة';}());
       renderMatches(); renderLeader();
     })
-    .catch(function(){ /* network or CORS — openfootball remains the fallback */ });
+    .catch(function(e){if(verbose)toast('فشل الاتصال: '+(e&&e.message||e));window.__fdLast={ok:false,err:String(e),ts:Date.now()};});
 }
 function matchFD(m){
   var t1=canon(m.homeTeam&&m.homeTeam.name), t2=canon(m.awayTeam&&m.awayTeam.name);
@@ -1838,10 +1844,11 @@ function fdTokenRow(){
     try{if(v)localStorage.setItem('saff_fdToken',v); else localStorage.removeItem('saff_fdToken');}catch(e){}
     FD_TOKEN=v;
     updateFdState();
-    if(v){ loadFootballData(); toast('انحفظ الرمز · النتائج الحيّة شغّالة'); }
+    if(v){ loadFootballData(true); }
     else  { toast('انمسح الرمز'); }
   });
-  grp.appendChild(inp);grp.appendChild(save);
+  var test=document.createElement('button');test.textContent='اختبار';test.style.cssText='padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;';test.addEventListener('click',function(){loadFootballData(true);});
+  grp.appendChild(inp);grp.appendChild(save);grp.appendChild(test);
   row.appendChild(grp);
   setTimeout(updateFdState,0);
   return row;

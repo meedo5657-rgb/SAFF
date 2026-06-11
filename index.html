@@ -582,28 +582,29 @@ function loadOpenfootball(){
 // In-play status ticks score.fullTime as goals are scored, so this drives the
 // live leaderboard updates during matches. Falls back silently if no token is
 // configured (openfootball still runs as the baseline source).
-function loadFootballData(){
-  if(!FD_TOKEN)return;
+function loadFootballData(verbose){
+  if(!FD_TOKEN){if(verbose)toast('No token saved');return;}
   if(typeof fetch!=='function')return;
   fetch(FD_URL,{headers:{'X-Auth-Token':FD_TOKEN},cache:'no-store'})
-    .then(function(r){return r.ok?r.json():null;})
+    .then(function(r){
+      if(!r.ok){var st=r.status;if(verbose)toast('FD error: '+st+(st===403?' (invalid or expired token)':st===429?' (rate limit exceeded)':''));window.__fdLast={ok:false,status:st,ts:Date.now()};return null;}
+      return r.json();
+    })
     .then(function(d){
-      if(!d||!d.matches)return;
-      var nr={}, nt={};
+      if(!d)return;
+      if(!d.matches){if(verbose)toast('FD response had no matches');return;}
+      var nr={}, nt={}, matchedCount=0, liveCount=0;
       d.matches.forEach(function(m){
         var st=matchFD(m); if(!st)return;
-        // auto-fill knockout teams once football-data resolves them to real names
+        matchedCount++;
+        if(m.status==='IN_PLAY'||m.status==='PAUSED')liveCount++;
         var hn=m.homeTeam&&m.homeTeam.name, an=m.awayTeam&&m.awayTeam.name;
         if(st.stage!=='group' && (isRealTeam(hn)||isRealTeam(an))){
           nt[st.id]={home:isRealTeam(hn)?canon(hn):null, away:isRealTeam(an)?canon(an):null};
         }
         var sc=m.score||{};
-        // prefer extra-time score in knockouts when both legs are non-null
         var fin=(sc.extraTime && sc.extraTime.home!=null && sc.extraTime.away!=null) ? sc.extraTime : sc.fullTime;
         if(fin && typeof fin.home==='number' && typeof fin.away==='number'){
-          // For groups we have a known home/away pair, so swap if FD's order is reversed.
-          // For knockouts our static home/away is a placeholder ("Winner Match N"), so we just
-          // trust FD's order — pw reflects whoever was 'home' in the FD payload.
           var swapped = (st.stage==='group') && (canon(hn)!==st.home);
           var res = swapped ? {h:fin.away, a:fin.home} : {h:fin.home, a:fin.away};
           var p=sc.penalties;
@@ -614,12 +615,13 @@ function loadFootballData(){
           nr[st.id]=res;
         }
       });
-      // FD scores take priority over openfootball for any match present in nr
       Object.keys(nr).forEach(function(id){apiResults[id]=nr[id];});
       Object.keys(nt).forEach(function(id){apiTeams[id]=nt[id];});
+      window.__fdLast={ok:true,total:d.matches.length,matched:matchedCount,live:liveCount,scored:Object.keys(nr).length,ts:Date.now()};
+      if(verbose)toast(function(){return 'FD OK · '+d.matches.length+' fixtures, '+liveCount+' live, '+Object.keys(nr).length+' with score';}());
       renderMatches(); renderLeader();
     })
-    .catch(function(){ /* network or CORS — openfootball remains the fallback */ });
+    .catch(function(e){if(verbose)toast('Connection failed: '+(e&&e.message||e));window.__fdLast={ok:false,err:String(e),ts:Date.now()};});
 }
 // Resolve a football-data.org match payload to one of our static MATCHES entries.
 function matchFD(m){
@@ -1344,10 +1346,11 @@ function fdTokenRow(){
     try{if(v)localStorage.setItem('fdToken',v); else localStorage.removeItem('fdToken');}catch(e){}
     FD_TOKEN=v;
     updateFdState();
-    if(v){ loadFootballData(); toast('Token saved · live results active'); }
+    if(v){ loadFootballData(true); }
     else  { toast('Token cleared'); }
   });
-  grp.appendChild(inp);grp.appendChild(save);
+  var test=document.createElement('button');test.textContent='test';test.style.cssText='padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;';test.addEventListener('click',function(){loadFootballData(true);});
+  grp.appendChild(inp);grp.appendChild(save);grp.appendChild(test);
   row.appendChild(grp);
   setTimeout(updateFdState,0);
   return row;
