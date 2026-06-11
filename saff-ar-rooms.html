@@ -2436,7 +2436,8 @@ function openUserPreds(userKey){
   list.innerHTML='';
   var pending=[], finished=[];
   MATCHES.forEach(function(m){
-    if(result(m)) finished.push(m); else pending.push(m);
+    if(result(m)) finished.push(m);
+    else if(Date.now()>=kickoffMs(m)) pending.push(m);
   });
   pending.sort(function(a,b){return kickoffMs(a)-kickoffMs(b);});
   finished.sort(function(a,b){return kickoffMs(b)-kickoffMs(a);});
@@ -2490,7 +2491,7 @@ function openUserPreds(userKey){
     var eb=document.createElement('div');eb.className='up-eyebrow';eb.textContent=text;list.appendChild(eb);
   }
   if(pending.length){
-    addEyebrow('حيّ وقريباً');
+    addEyebrow('جارية الآن');
     pending.forEach(function(m){list.appendChild(rowFor(m));});
   }
   if(finished.length){
