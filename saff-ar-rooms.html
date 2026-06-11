@@ -1233,7 +1233,16 @@ function enter(){
   renderRoomBanner();
   setInterval(function(){renderMatches();},30000);   // refresh locks over time
   loadOpenfootball();                                 // initial auto data pull
-  setInterval(loadOpenfootball,300000);               // refresh teams/results every 5 min
+  setInterval(function(){
+    var now=Date.now(), live=false;
+    for(var i=0;i<MATCHES.length;i++){
+      var k=kickoffMs(MATCHES[i]);
+      if(!isFinite(k))continue;
+      if(now>=k && now<k+150*60*1000 && !result(MATCHES[i])){live=true;break;}
+    }
+    if(live) loadOpenfootball();
+  },45000);
+  setInterval(loadOpenfootball,300000);               // baseline refresh every 5 min
 }
 
 function bootstrapRoom(){
