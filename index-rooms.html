@@ -1658,7 +1658,7 @@ function genDailySummary(){
   function resH(n){return EYE+(n?n*ITEM:60)+GAP+8;}
   function tomH(n){return EYE+(n?n*TOMITEM:60)+GAP+8;}
   var HEAD=270;
-  var H=HEAD+winnersBandH+28+resH(todayR.length)+60;
+  var H=HEAD+winnersBandH+28+resH(todayR.length)+tomH(tomorrowM.length)+60;
   H=Math.max(1200,H);
   var cv=document.createElement('canvas');cv.width=W;cv.height=H;
   var c=cv.getContext('2d');
@@ -2021,6 +2021,12 @@ function genDailySummary(){
   if(todayR.length){
     todayR.forEach(function(m,i){ rRes(m,i,y); y+=ITEM; });
   } else { emptyRow(TH.t.noResults); }
+  // 3) TOMORROW — slim calendar list
+  y += 28;
+  eyebrow(TH.t.tomorrowHdr);
+  if(tomorrowM.length){
+    tomorrowM.forEach(function(m,i){ rTom(m,i,y); y+=TOMITEM; });
+  } else { emptyRow(TH.t.noTomorrow); }
   var fname='wc2026-summary-'+new Date(now).toISOString().slice(0,10)+'.png';
   cv.toBlob(function(blob){
     var file = (typeof File!=='undefined') ? new File([blob],fname,{type:'image/png'}) : null;
