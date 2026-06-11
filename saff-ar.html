@@ -211,7 +211,8 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .a-edit{color:#fff;}
 .a-del{color:#fca5a5;}
 
-.lb-row{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+.lb-row{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;min-height:44px;transition:background .15s ease;}
+.lb-row:hover{background:rgba(255,255,255,.04);}
 .lb-row.me{border-color:rgba(46,169,106,.5);background:rgba(46,169,106,.05);}
 .lb-rank{font-size:1.1rem;font-weight:800;width:34px;text-align:center;color:var(--muted);}
 .lb-row.top1 .lb-rank{color:var(--gold);}
@@ -235,6 +236,44 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .modal .row2{display:flex;gap:10px;}
 .modal .row2>div{flex:1;}
 .modal-msg{font-size:.78rem;color:#fff;text-align:center;margin-top:12px;min-height:18px;}
+
+/* ===== USER PREDICTIONS MODAL (.up-*) ===== */
+.up-modal{background:#0d2417;border:1px solid var(--line);border-radius:22px 22px 0 0;padding:0;width:100%;max-width:520px;animation:slideUp .3s ease;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}
+@media (max-width:480px){.up-modal{max-height:100vh;border-radius:0;}}
+.up-head{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 12px;border-bottom:1px solid var(--line);flex-shrink:0;}
+.up-title{font-size:1.15rem;font-weight:800;color:#fff;flex:1;padding-inline-end:10px;line-height:1.25;}
+.up-close{background:none;border:none;color:var(--muted);font-size:1.5rem;cursor:pointer;padding:6px 10px;line-height:1;min-width:44px;min-height:44px;flex-shrink:0;}
+.up-summary{padding:12px 18px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--line);flex-shrink:0;display:flex;flex-direction:column;gap:6px;}
+.up-stats{display:flex;gap:14px;flex-wrap:wrap;font-size:.84rem;color:#cbd5e1;font-weight:600;}
+.up-stats b{color:#fff;font-weight:800;font-size:1rem;}
+.up-picks{font-size:.78rem;color:#cbd5e1;font-weight:600;}
+.up-picks img.flag{width:1.35em;height:.9em;object-fit:cover;vertical-align:-2px;}
+.up-list{overflow-y:auto;flex:1;padding:10px 14px 24px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch;}
+.up-eyebrow{font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.6px;padding:10px 4px 4px;}
+.up-row{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 11px;display:flex;flex-direction:column;gap:7px;}
+.up-row.exact{border-color:rgba(230,204,120,.55);background:rgba(230,204,120,.05);}
+.up-row.correct{border-color:rgba(52,211,153,.45);background:rgba(52,211,153,.05);}
+.up-row.wrong{border-color:rgba(225,29,72,.45);background:rgba(225,29,72,.05);}
+.up-main{display:flex;align-items:center;gap:8px;}
+.up-team{flex:1;display:flex;align-items:center;gap:6px;font-size:.86rem;font-weight:700;color:#fff;min-width:0;}
+.up-team.away{justify-content:flex-end;text-align:end;}
+.up-team img.flag{width:1.5em;height:1em;object-fit:cover;flex-shrink:0;}
+.up-team .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.up-pill{background:#04130b;border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-weight:800;font-size:.95rem;color:#fff;flex-shrink:0;min-width:54px;text-align:center;letter-spacing:.5px;}
+.up-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.76rem;color:var(--muted);}
+.up-actual{font-weight:700;}
+.up-actual.exact{color:var(--gold);}
+.up-actual.correct{color:#34d399;}
+.up-actual.wrong{color:#fb7185;}
+.up-actual.none{color:var(--muted);}
+.up-badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:8px;font-size:.74rem;font-weight:800;}
+.up-badge.hi{background:rgba(230,204,120,.18);color:var(--gold);border:1px solid rgba(230,204,120,.4);}
+.up-badge.mid{background:rgba(52,211,153,.18);color:#34d399;border:1px solid rgba(52,211,153,.4);}
+.up-badge.zero{background:rgba(148,163,184,.18);color:var(--muted);border:1px solid rgba(148,163,184,.3);}
+.up-badge.open{background:transparent;color:var(--muted);border:1px dashed rgba(148,163,184,.3);font-weight:600;}
+.up-x2{color:var(--gold);font-weight:800;}
+.up-pw{font-size:.74rem;color:#cbd5e1;font-weight:600;padding-top:2px;}
+.up-empty{color:var(--muted);font-size:.85rem;text-align:center;padding:30px 10px;}
 
 .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:#102a1c;border:1px solid rgba(46,169,106,.3);border-radius:12px;padding:11px 20px;font-size:.88rem;font-weight:600;opacity:0;transition:opacity .3s;z-index:200;white-space:nowrap;pointer-events:none;}
 .toast.show{opacity:1;}
@@ -564,6 +603,18 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
     <button class="btn btn-grad" id="btnSaveTeams" style="margin-top:16px">احفظ الفرق ✅</button>
     <button class="btn btn-ghost" id="btnResetTeams" style="margin-top:10px;background:var(--surface);color:var(--muted);border:1px solid var(--line)">ارجع للافتراضي</button>
     <div class="modal-msg" id="teamModalMsg"></div>
+  </div>
+</div>
+
+<!-- USER PREDICTIONS MODAL -->
+<div class="overlay" id="userPredsOverlay">
+  <div class="up-modal">
+    <div class="up-head">
+      <div class="up-title" id="upTitle">توقّعات</div>
+      <button class="up-close" id="upClose" aria-label="إغلاق">×</button>
+    </div>
+    <div class="up-summary" id="upSummary"></div>
+    <div class="up-list" id="upList"></div>
   </div>
 </div>
 
@@ -1931,14 +1982,136 @@ function renderLeader(){
       '<div class="lb-name">'+esc(r.name)+(r.key===myKey?' <span class="lb-sub">(أنت)</span>':'')+
       '<div class="lb-sub">'+r.exact+' نتيجة مطابقة</div>'+picksLine+'</div>'+
       '<div class="lb-pts">'+r.total+' <span>'+ptsWord(r.total)+'</span></div>';
+    (function(rowKey){
+      el.addEventListener('click',function(){ openUserPreds(rowKey); });
+    })(r.key);
     if(isAdmin){
       var del=document.createElement('button');del.className='lb-del';del.textContent='🗑';del.title='حذف اللاعب';
-      del.addEventListener('click',function(){deletePlayer(r.key,r.name);});
+      del.addEventListener('click',function(ev){ev.stopPropagation();deletePlayer(r.key,r.name);});
       el.appendChild(del);
     }
     list.appendChild(el);
   });
 }
+
+// ===== USER PREDICTIONS MODAL =====
+function openUserPreds(userKey){
+  var ov=document.getElementById('userPredsOverlay');
+  if(!ov) return;
+  var u=usersData[userKey]||{};
+  var nm=(u&&u.name)?u.name:userKey;
+  document.getElementById('upTitle').textContent='توقّعات '+nm;
+  // summary stats
+  var total=0, exact=0;
+  MATCHES.forEach(function(m){
+    var r=result(m);if(!r)return;
+    var p=predsData[m.id]&&predsData[m.id][userKey];if(!p)return;
+    total+=scoreOf(p,r);
+    if(Number(p.h)===Number(r.h)&&Number(p.a)===Number(r.a))exact++;
+  });
+  var truth=tournamentTruth(), locked=tournamentLocked();
+  var picks=tournamentPicksOf(userKey);
+  total += tournamentPointsFor(picks, truth);
+  var sum=document.getElementById('upSummary');
+  var statsHtml='<div class="up-stats">'+
+    '<span><b>'+total+'</b> '+ptsWord(total)+'</span>'+
+    '<span><b>'+exact+'</b> نتيجة مطابقة</span>'+
+    '</div>';
+  var picksHtml='';
+  if(locked){
+    var parts=[];
+    if(picks.champion){
+      parts.push((COUNTRY_FLAG[picks.champion]?flagImg(picks.champion,16)+' ':'')+'🏆 '+esc(picks.champion));
+    }
+    if(picks.scorer){
+      var st=scorerTeam(picks.scorer);
+      parts.push((st&&COUNTRY_FLAG[st]?flagImg(st,16)+' ':'')+'⚽ '+esc(picks.scorer));
+    }
+    if(parts.length) picksHtml='<div class="up-picks">'+parts.join(' &nbsp;·&nbsp; ')+'</div>';
+  }
+  sum.innerHTML=statsHtml+picksHtml;
+  // list of every match
+  var list=document.getElementById('upList');
+  list.innerHTML='';
+  var pending=[], finished=[];
+  MATCHES.forEach(function(m){
+    if(result(m)) finished.push(m); else pending.push(m);
+  });
+  pending.sort(function(a,b){return kickoffMs(a)-kickoffMs(b);});
+  finished.sort(function(a,b){return kickoffMs(b)-kickoffMs(a);});
+  function rowFor(m){
+    var t=teamsOf(m);
+    var p=predsData[m.id]&&predsData[m.id][userKey];
+    var r=result(m);
+    var row=document.createElement('div');
+    var predTxt = p ? (p.h+' - '+p.a) : '— : —';
+    var actualTxt='—', actualCls='none', badgeHtml='', rowCls='';
+    if(r){
+      actualTxt=r.h+' - '+r.a;
+      if(p){
+        var base=pointsFor(p,r), pts=base*((p&&p.x2)?2:1);
+        var exactMatch=(Number(p.h)===Number(r.h)&&Number(p.a)===Number(r.a));
+        var correctRes=(sign(p.h-p.a)===sign(r.h-r.a));
+        if(exactMatch){ actualCls='exact'; rowCls=' exact'; }
+        else if(correctRes){ actualCls='correct'; rowCls=' correct'; }
+        else{ actualCls='wrong'; rowCls=' wrong'; }
+        var badgeCls = pts>=5?'hi':(pts>=3?'mid':'zero');
+        badgeHtml='<span class="up-badge '+badgeCls+'">+'+pts+'</span>';
+      }else{
+        actualCls='none';
+        badgeHtml='<span class="up-badge zero">+0</span>';
+      }
+    }else{
+      badgeHtml='<span class="up-badge open">مفتوح</span>';
+    }
+    row.className='up-row'+rowCls;
+    var hf=flagImg(t.home,20)||('<span class="flag">'+esc(t.hf||'⚽')+'</span>');
+    var af=flagImg(t.away,20)||('<span class="flag">'+esc(t.af||'⚽')+'</span>');
+    var main='<div class="up-main">'+
+      '<div class="up-team"><span class="flag-wrap">'+hf+'</span><span class="nm">'+esc(t.home)+'</span></div>'+
+      '<div class="up-pill">'+esc(predTxt)+'</div>'+
+      '<div class="up-team away"><span class="nm">'+esc(t.away)+'</span><span class="flag-wrap">'+af+'</span></div>'+
+      '</div>';
+    var foot='<div class="up-foot">'+
+      '<span class="up-actual '+actualCls+'">'+(r?('النتيجة '+esc(actualTxt)):'—')+'</span>'+
+      badgeHtml+
+      (p&&p.x2?'<span class="up-x2">⚡ x2</span>':'')+
+      '</div>';
+    var pw='';
+    if(m.stage!=='group' && p && p.pw){
+      var pwTeam = p.pw==='h' ? t.home : t.away;
+      pw='<div class="up-pw">🥅 '+esc(pwTeam)+'</div>';
+    }
+    row.innerHTML=main+foot+pw;
+    return row;
+  }
+  function addEyebrow(text){
+    var eb=document.createElement('div');eb.className='up-eyebrow';eb.textContent=text;list.appendChild(eb);
+  }
+  if(pending.length){
+    addEyebrow('حيّ وقريباً');
+    pending.forEach(function(m){list.appendChild(rowFor(m));});
+  }
+  if(finished.length){
+    addEyebrow('منتهية');
+    finished.forEach(function(m){list.appendChild(rowFor(m));});
+  }
+  ov.classList.add('show');
+}
+function closeUserPreds(){
+  var ov=document.getElementById('userPredsOverlay');
+  if(ov) ov.classList.remove('show');
+}
+(function(){
+  var ov=document.getElementById('userPredsOverlay');
+  if(!ov) return;
+  var btn=document.getElementById('upClose');
+  if(btn) btn.addEventListener('click', closeUserPreds);
+  ov.addEventListener('click',function(e){ if(e.target===ov) closeUserPreds(); });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape' && ov.classList.contains('show')) closeUserPreds();
+  });
+})();
 
 // Admin: remove a player and all their predictions
 function deletePlayer(key,name){
