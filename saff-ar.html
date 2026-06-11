@@ -609,6 +609,7 @@ var apiResults={}, apiTeams={};
 var currentFilter='upcoming'; // selected chip: 'upcoming' | 'g:X' | 'r:R'
 var editingMatch=null;
 var draft={}; // matchId -> {h,a}
+var draftEdited={}; // matchId -> true once the user has touched the draft this session
 
 // ===== HELPERS =====
 function show(id){
@@ -805,7 +806,7 @@ function logout(){
   if(!myKey)return;
   if(!confirm('تسجيل الخروج واستخدام اسم آخر؟'))return;
   try{localStorage.removeItem('saff_name');localStorage.removeItem('saff_pin');}catch(e){}
-  myName=''; myKey=''; draft={};   // clear the previous user's unsaved inputs
+  myName=''; myKey=''; draft={}; draftEdited={};   // clear the previous user's unsaved inputs
   document.getElementById('nameInput').value='';
   document.getElementById('pinInput').value='';
   document.getElementById('loginErr').textContent='';
@@ -1042,7 +1043,15 @@ function matchCard(m){
   var st=statusOf(m);
   var t=teamsOf(m);
   var myPred=(predsData[m.id]&&predsData[m.id][myKey])?predsData[m.id][myKey]:null;
-  if(draft[m.id]===undefined) draft[m.id]=myPred?{h:Number(myPred.h),a:Number(myPred.a),pw:myPred.pw||null,x2:!!myPred.x2}:{h:0,a:0,pw:null,x2:false};
+  if(draft[m.id]===undefined){
+    draft[m.id]=myPred?{h:Number(myPred.h),a:Number(myPred.a),pw:myPred.pw||null,x2:!!myPred.x2}:{h:0,a:0,pw:null,x2:false};
+  } else if(myPred && !draftEdited[m.id]){
+    // late predsData arrival — user hasn't touched the draft, sync from saved value
+    draft[m.id].h=Number(myPred.h);
+    draft[m.id].a=Number(myPred.a);
+    draft[m.id].pw=myPred.pw||null;
+    draft[m.id].x2=!!myPred.x2;
+  }
 
   var el=document.createElement('div');
   el.className='match'+(st==='locked'?' live':'')+(st==='finished'?' finished':'');
@@ -1099,11 +1108,11 @@ function matchCard(m){
   }else{
     var pen=null;
     var pr=document.createElement('div');pr.className='pred-row';
-    pr.appendChild(stepper(m.id,'h',function(){if(pen)pen.refresh();}));
+    pr.appendChild(stepper(m.id,'h',function(){draftEdited[m.id]=true;if(pen)pen.refresh();}));
     var dash=document.createElement('div');dash.className='vs';dash.textContent='-';pr.appendChild(dash);
-    pr.appendChild(stepper(m.id,'a',function(){if(pen)pen.refresh();}));
+    pr.appendChild(stepper(m.id,'a',function(){draftEdited[m.id]=true;if(pen)pen.refresh();}));
     el.appendChild(pr);
-    if(ko){ pen=penRow(draft[m.id],t.home,t.away); el.appendChild(pen.el); }
+    if(ko){ pen=penRow(draft[m.id],t.home,t.away,function(){draftEdited[m.id]=true;}); el.appendChild(pen.el); }
     var x2btn=document.createElement('button');
     function x2lbl(){var left=MAX_BOOST-boostsUsed(myKey,m.id)-(draft[m.id].x2?1:0);return draft[m.id].x2?'×2 ✓':'×2 ('+left+')';}
     function x2cls(){x2btn.className='x2-btn'+(draft[m.id].x2?' on':'');x2btn.innerHTML='<span class="x2-ic">⚡</span><span class="x2-tx">'+x2lbl()+'</span>';}
@@ -1112,6 +1121,7 @@ function matchCard(m){
     x2btn.addEventListener('click',function(){
       if(!draft[m.id].x2){ if(boostsUsed(myKey,m.id)>=MAX_BOOST){toast("استخدمت كل بطاقات ×2 ("+MAX_BOOST+")");return;} draft[m.id].x2=true; }
       else draft[m.id].x2=false;
+      draftEdited[m.id]=true;
       x2cls();
     });
     var sb=document.createElement('button');sb.className='btn btn-green save-pred';
@@ -1168,7 +1178,7 @@ function stepper(id,k,onChange){
 }
 
 // penalty-shootout winner picker; enabled only when the score is a draw
-function penRow(obj,homeName,awayName){
+function penRow(obj,homeName,awayName,onTouch){
   var box=document.createElement('div');box.className='pen-box';
   var lbl=document.createElement('div');lbl.className='pen-lbl';lbl.textContent='🥅 If it goes to penalties, who wins?';
   var btns=document.createElement('div');btns.className='pen-btns';
@@ -1183,8 +1193,8 @@ function penRow(obj,homeName,awayName){
     ba.classList.toggle('sel',obj.pw==='a');
     lbl.textContent=draw?'🥅 لو راحت بلنتيات، مين يفوز؟':'🥅 اختر تعادل لتحديد الفائز بالبلنتيات';
   }
-  bh.addEventListener('click',function(){if(bh.disabled)return;obj.pw='h';refresh();});
-  ba.addEventListener('click',function(){if(ba.disabled)return;obj.pw='a';refresh();});
+  bh.addEventListener('click',function(){if(bh.disabled)return;obj.pw='h';if(onTouch)onTouch();refresh();});
+  ba.addEventListener('click',function(){if(ba.disabled)return;obj.pw='a';if(onTouch)onTouch();refresh();});
   btns.appendChild(bh);btns.appendChild(ba);box.appendChild(lbl);box.appendChild(btns);
   refresh();
   return {el:box,refresh:refresh};
@@ -1200,7 +1210,7 @@ function savePred(id){
     data.pw=d.pw;
   }
   if(d.x2) data.x2=true; // 2x boost card
-  ROOT.child('predictions/'+id+'/'+myKey).set(data).then(function(){toast('تم حفظ التوقّع ✅');});
+  ROOT.child('predictions/'+id+'/'+myKey).set(data).then(function(){toast('تم حفظ التوقّع ✅');draftEdited[id]=false;});
 }
 
 // ===== ADMIN =====
