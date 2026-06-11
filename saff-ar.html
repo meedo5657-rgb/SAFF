@@ -15,7 +15,9 @@
 <meta name="apple-mobile-web-app-title" content="كأس العالم 2026">
 <link rel="apple-touch-icon" href="icon-saff-192.png">
 <link rel="icon" type="image/png" href="icon-saff-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Cairo:wght@500;700;800;900&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Cairo:wght@500;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -1231,13 +1233,38 @@ function adminBar(){
   bar.appendChild(b);
   return bar;
 }
+// Arabic-Indic digit helper used throughout the daily-summary poster
+function arNum(n){return String(n).replace(/[0-9]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];});}
+// Arabic names for the 48 qualified WC2026 teams. Knockout placeholders fall back to the English label.
+var TEAM_AR={
+ 'Algeria':'الجزائر','Argentina':'الأرجنتين','Australia':'أستراليا','Austria':'النمسا','Belgium':'بلجيكا',
+ 'Bosnia and Herzegovina':'البوسنة والهرسك','Brazil':'البرازيل','Canada':'كندا','Cape Verde':'الرأس الأخضر','Colombia':'كولومبيا',
+ 'Croatia':'كرواتيا','Curacao':'كوراساو','Czechia':'تشيكيا','DR Congo':'الكونغو الديمقراطية','Ecuador':'الإكوادور','Egypt':'مصر',
+ 'England':'إنجلترا','France':'فرنسا','Germany':'ألمانيا','Ghana':'غانا','Haiti':'هايتي','Iran':'إيران',
+ 'Iraq':'العراق','Ivory Coast':'ساحل العاج','Japan':'اليابان','Jordan':'الأردن','Mexico':'المكسيك','Morocco':'المغرب',
+ 'Netherlands':'هولندا','New Zealand':'نيوزيلندا','Norway':'النرويج','Panama':'بنما','Paraguay':'باراغواي',
+ 'Portugal':'البرتغال','Qatar':'قطر','Saudi Arabia':'السعودية','Scotland':'إسكتلندا','Senegal':'السنغال',
+ 'South Africa':'جنوب أفريقيا','South Korea':'كوريا الجنوبية','Spain':'إسبانيا','Sweden':'السويد','Switzerland':'سويسرا',
+ 'Tunisia':'تونس','Turkiye':'تركيا','United States':'الولايات المتحدة','Uruguay':'الأوروغواي','Uzbekistan':'أوزبكستان'
+};
+function arTeam(n){return TEAM_AR[n]||n;}
+// Arabic weekday + month names so we can localise kick-off labels without depending on the device locale.
+var AR_WEEKDAY=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+var AR_MONTH=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+function arDateLong(d){return AR_WEEKDAY[d.getDay()]+'، '+arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' '+arNum(d.getFullYear());}
+function arKick(m){
+  var t=Date.parse(m.utc); if(isNaN(t)) return localKick(m);
+  var d=new Date(t);
+  var hh=d.getHours(), suf=(hh>=12?'م':'ص'); var h12=hh%12; if(h12===0) h12=12;
+  var mm=d.getMinutes(); var mmS=(mm<10?'0':'')+mm;
+  return AR_WEEKDAY[d.getDay()]+' '+arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' • '+arNum(h12+':'+mmS)+' '+suf;
+}
 function genDailySummary(){
-  var TH = {bg1:'#06140d',bg2:'#0e2719',gold:'#d4af37',goldBright:'#f0cb55',goldSoft:'rgba(212,175,55,.18)',goldGlow:'rgba(212,175,55,.32)',accent:'#34d399',accentSoft:'rgba(52,211,153,.16)',accentGlow:'rgba(52,211,153,.22)',tomAccent:'#7dd3fc',tomAccentSoft:'rgba(125,211,252,.20)',leaf:'rgba(60,140,90,1)',muted:'#9bc1ad',eyebrow:'#cfe6d8',font:'"Tajawal",sans-serif',rtl:true,locale:'ar',
-    t:{brand:'دوري توقّعات كأس العالم 2026',title:'ملخّص اليوم',resultsHdr:'نتائج اليوم',topHdr:'أفضل متوقّع اليوم',lbHdr:'أعلى 5 لاعبين',tomorrowHdr:'مباريات بكرة',resIcon:'⚽',topIcon:'🏆',lbIcon:'🏅',tomIcon:'📅',pts:'نقطة',vs:'×',noResults:'ما فيه نتائج اليوم.',noPts:'ما فيه نقاط اليوم.',noLb:'ما فيه لاعبين بعد.',noTomorrow:'ما فيه مباريات بكرة.',toastDone:'ملخص اليوم جاهز 📸'}};
-  var W=1080, PAD=50, CARD_X=PAD, CARD_W=W-2*PAD;
-  var RAIL=W-(PAD-20); // vertical accent rail x (RTL → on the right edge)
-  var ITEM=72, GAP=24, SH=46, HERO=200;
-  var TOMITEM=48; // slimmer rhythm for tomorrow list
+  var TH = {bg1:'#06140d',bg2:'#0e2719',gold:'#d4af37',goldBright:'#f0cb55',goldDark:'#8a6a1f',goldSoft:'rgba(212,175,55,.10)',goldGlow:'rgba(212,175,55,.28)',accent:'#34d399',accentSoft:'rgba(52,211,153,.16)',ink:'#f7f4ea',muted:'#9bc1ad',eyebrow:'#cfe6d8',font:"'Tajawal','Cairo','Noto Naskh Arabic',sans-serif",rtl:true,locale:'ar',
+    t:{brand1:'دوري التوقّعات',brand2:'كأس العالم 2026',title:'ملخّص اليوم',heroHdr:'الفائزون اليوم',bestLabel:'أفضل لاعب اليوم',resultsHdr:'نتائج اليوم',tomorrowHdr:'المباريات القادمة',vs:'×',noResults:'ما فيه نتائج اليوم.',noPts:'ما فيه نقاط اليوم.',noLb:'ما فيه لاعبين بعد.',noTomorrow:'ما فيه مباريات بكرة.',toastDone:'ملخص اليوم جاهز 📸'}};
+  var W=1080, PAD=56, CARD_X=PAD, CARD_W=W-2*PAD;
+  var ITEM=96, HERO=280, MED_R=120; // gold medallion radius — drives the bigger-number spec
+  var TOMITEM=74;
   var now=Date.now();
   function dayStart(off){var d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return d.getTime();}
   var t0=dayStart(0), t1=dayStart(1), t2=dayStart(2);
@@ -1259,16 +1286,15 @@ function genDailySummary(){
     t+=tournamentPointsFor(tournamentPicksOf(k),ttruth);
     return {name:(usersData[k]&&usersData[k].name)||k,pts:t};
   }).sort(function(a,b){return b.pts-a.pts;}).slice(0,5);
-  // composition: WINNERS band groups hero+top5 onto one tinted panel with a single eyebrow
-  var EYE=30;
-  var BAND_PAD_TOP=50, BAND_PAD_BOT=34, BAND_INNER_GAP=18;
-  var winnersBodyH = (topT.length>0 ? HERO : 60) + BAND_INNER_GAP + (totals.length ? totals.length*ITEM : 60);
-  var winnersBandH = EYE + winnersBodyH + BAND_PAD_TOP + BAND_PAD_BOT;
-  function resH(n){return EYE+(n?n*ITEM:60)+GAP+8;}
-  function tomH(n){return EYE+(n?n*TOMITEM:60)+GAP+8;}
-  var HEAD=250;
-  var H=HEAD+winnersBandH+28+resH(todayR.length)+tomH(tomorrowM.length)+60;
-  H=Math.max(1200,H);
+  // layout sums — header strip, hero, top-5, results, tomorrow
+  var HEAD=300;                         // brand strip + title block
+  var SECTION_GAP=36, EYE=40;           // gap between major sections, eyebrow strip height
+  var heroSection = topT.length ? HERO : 88;
+  var lbSection   = (totals.length ? totals.length*ITEM : 88);
+  var resSection  = EYE + (todayR.length ? todayR.length*ITEM : 88);
+  var tomSection  = EYE + (tomorrowM.length ? tomorrowM.length*TOMITEM : 88);
+  var H = HEAD + heroSection + 28 + lbSection + SECTION_GAP + resSection + SECTION_GAP + tomSection + 60;
+  H = Math.max(1400, H);
   var cv=document.createElement('canvas');cv.width=W;cv.height=H;
   var c=cv.getContext('2d');
   // ----- helpers -----
@@ -1282,403 +1308,306 @@ function genDailySummary(){
   }
   function fillRR(x,y,w,h,r,fill){rr(x,y,w,h,r);c.fillStyle=fill;c.fill();}
   function strokeRR(x,y,w,h,r,col,lw){rr(x,y,w,h,r);c.strokeStyle=col;c.lineWidth=lw||1;c.stroke();}
-  function card(x,y,w,h){
-    // broadcast scoreboard capsule — top-light to bottom-deep, thin accent rule on leading edge
+  // dark-green capsule used for the top-5, results, and tomorrow rows
+  function greenCard(x,y,w,h){
     var grd=c.createLinearGradient(x,y,x,y+h);
-    grd.addColorStop(0,'rgba(56,118,82,.38)');
-    grd.addColorStop(0.55,'rgba(40,90,60,.34)');
-    grd.addColorStop(1,'rgba(28,66,46,.46)');
-    fillRR(x,y,w,h,16,grd);
-    strokeRR(x,y,w,h,16,'rgba(120,200,160,.18)',1);
-    c.save();
-    rr(x,y,w,h,16);c.clip();
-    // soft top-sheen — gives the card a finished, broadcast quality
-    var sheen=c.createLinearGradient(x,y,x,y+10);
-    sheen.addColorStop(0,'rgba(255,255,255,.07)');sheen.addColorStop(1,'rgba(255,255,255,0)');
-    c.fillStyle=sheen;c.fillRect(x,y,w,10);
-    // leading-edge accent stripe (right edge in RTL, left in LTR)
-    var sx = TH.rtl ? x+w-4 : x;
-    c.fillStyle=TH.accent;c.fillRect(sx,y,4,h);
+    grd.addColorStop(0,'rgba(28,68,44,.65)');
+    grd.addColorStop(1,'rgba(18,48,32,.78)');
+    fillRR(x,y,w,h,18,grd);
+    strokeRR(x,y,w,h,18,'rgba(212,175,55,.32)',1);
+    // soft inner shadow band along the top
+    c.save();rr(x,y,w,h,18);c.clip();
+    var sheen=c.createLinearGradient(x,y,x,y+12);
+    sheen.addColorStop(0,'rgba(255,255,255,.05)');sheen.addColorStop(1,'rgba(255,255,255,0)');
+    c.fillStyle=sheen;c.fillRect(x,y,w,12);
     c.restore();
   }
+  // hero capsule — same green palette as the rows but with a fuller gold outline and inner glow
   function heroCard(x,y,w,h){
-    // hero card uses antique GOLD accent against deep green — a finished trophy plaque.
-    // outer warm halo behind the card
-    var rg=c.createRadialGradient(x+w/2,y+h/2,10,x+w/2,y+h/2,w/1.4);
-    rg.addColorStop(0,TH.goldGlow);rg.addColorStop(1,'rgba(0,0,0,0)');
-    c.fillStyle=rg;c.fillRect(x-50,y-50,w+100,h+100);
-    // body — richer top-light/bottom-deep gradient (broadcast trophy plate)
     var grd=c.createLinearGradient(x,y,x,y+h);
-    grd.addColorStop(0,'rgba(60,128,88,.42)');
-    grd.addColorStop(0.55,'rgba(40,92,64,.42)');
-    grd.addColorStop(1,'rgba(24,60,42,.50)');
-    fillRR(x,y,w,h,22,grd);
-    // double gold rule — main border + inset halo for depth
-    strokeRR(x,y,w,h,22,TH.gold,2);
-    strokeRR(x+6,y+6,w-12,h-12,17,'rgba(240,203,85,.28)',1);
-    // soft top sheen — premium light catch
-    var sheen=c.createLinearGradient(x,y,x,y+44);
-    sheen.addColorStop(0,'rgba(255,255,255,.10)');
-    sheen.addColorStop(1,'rgba(255,255,255,0)');
-    c.save();rr(x,y,w,h,22);c.clip();
-    c.fillStyle=sheen;c.fillRect(x,y,w,44);
+    grd.addColorStop(0,'rgba(34,82,54,.78)');
+    grd.addColorStop(1,'rgba(18,50,34,.85)');
+    fillRR(x,y,w,h,26,grd);
+    strokeRR(x,y,w,h,26,TH.gold,1.5);
+    strokeRR(x+8,y+8,w-16,h-16,20,'rgba(212,175,55,.18)',1);
+    c.save();rr(x,y,w,h,26);c.clip();
+    var sheen=c.createLinearGradient(x,y,x,y+22);
+    sheen.addColorStop(0,'rgba(255,255,255,.06)');sheen.addColorStop(1,'rgba(255,255,255,0)');
+    c.fillStyle=sheen;c.fillRect(x,y,w,22);
     c.restore();
   }
-  function hexagon(cx,cy,r,fill,stroke,lw){
-    c.beginPath();
-    for(var i=0;i<6;i++){
-      var a=Math.PI/3*i-Math.PI/2;
-      var xx=cx+r*Math.cos(a), yy=cy+r*Math.sin(a);
-      if(i===0)c.moveTo(xx,yy);else c.lineTo(xx,yy);
-    }
-    c.closePath();
-    if(fill){c.fillStyle=fill;c.fill();}
-    if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||1.5;c.stroke();}
+  // rank chip — gold/silver/bronze for top 3, muted dark green for 4 and 5
+  function rankChip(cx,cy,r,rank){
+    var styles={1:{bg:'#d4af37',ring:'#f0cb55',tx:'#1a1206'},
+                2:{bg:'#c0c4cc',ring:'#e2e8f0',tx:'#0f172a'},
+                3:{bg:'#b8722a',ring:'#e6a866',tx:'#1c0f02'}};
+    var s=styles[rank]||{bg:'#1a3d28',ring:'rgba(212,175,55,.45)',tx:'#f7f4ea'};
+    c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);c.fillStyle=s.bg;c.fill();
+    c.lineWidth=2;c.strokeStyle=s.ring;c.stroke();
+    c.fillStyle=s.tx;c.font='900 26px '+TH.font;c.textAlign='center';c.textBaseline='middle';
+    c.fillText(arNum(rank),cx,cy+1);
   }
-  function rankBadge(x,y,d,rank){
-    var styles={1:{bg:'#facc15',tx:'#1a1206',ring:'#fde68a'},
-                2:{bg:'#cbd5e1',tx:'#0f172a',ring:'#e2e8f0'},
-                3:{bg:'#f59e0b',tx:'#1c0f02',ring:'#fcd34d'}};
-    var s=styles[rank];
+  // dark-green pill with gold hairline (60% alpha border), used for points + score chips
+  function goldPill(cx,cy,w,h,text,opts){
+    opts=opts||{};
+    fillRR(cx-w/2,cy-h/2,w,h,h/2,opts.fill||'rgba(212,175,55,.10)');
+    strokeRR(cx-w/2,cy-h/2,w,h,h/2,opts.border||'rgba(212,175,55,.60)',1);
+    c.fillStyle=opts.color||TH.gold;
+    c.font=opts.font||('800 24px '+TH.font);
+    c.textAlign='center';c.textBaseline='middle';
+    c.fillText(text,cx,cy+1);
+  }
+  // tiny laurel-wrapped medal icon, drawn purely on canvas (no external assets)
+  function medalIcon(cx,cy,size){
     c.save();
-    if(s){
-      var rg=c.createRadialGradient(x+d/2,y+d/2,2,x+d/2,y+d/2,d);
-      rg.addColorStop(0,s.bg+'aa');rg.addColorStop(1,'rgba(0,0,0,0)');
-      c.fillStyle=rg;c.fillRect(x-8,y-8,d+16,d+16);
-      c.beginPath();c.arc(x+d/2,y+d/2,d/2,0,Math.PI*2);c.fillStyle=s.bg;c.fill();
-      c.lineWidth=2;c.strokeStyle=s.ring;c.stroke();
-      c.fillStyle=s.tx;c.font='800 26px '+TH.font;c.textAlign='center';c.textBaseline='middle';
-      c.fillText(String(rank),x+d/2,y+d/2+1);
-    } else {
-      c.beginPath();c.arc(x+d/2,y+d/2,d/2,0,Math.PI*2);
-      c.fillStyle='rgba(255,255,255,.10)';c.fill();
-      c.lineWidth=1;c.strokeStyle='rgba(255,255,255,.18)';c.stroke();
-      c.fillStyle='#cbd5e1';c.font='700 22px '+TH.font;c.textAlign='center';c.textBaseline='middle';
-      c.fillText(String(rank),x+d/2,y+d/2+1);
+    c.translate(cx,cy);
+    // ribbon
+    c.fillStyle='#1f6038';
+    c.beginPath();c.moveTo(-size*0.55,-size*0.05);c.lineTo(-size*0.25,size*0.7);c.lineTo(-size*0.05,size*0.4);c.lineTo(0,size*0.05);c.closePath();c.fill();
+    c.beginPath();c.moveTo( size*0.55,-size*0.05);c.lineTo( size*0.25,size*0.7);c.lineTo( size*0.05,size*0.4);c.lineTo(0,size*0.05);c.closePath();c.fill();
+    // gold disc
+    var rg=c.createRadialGradient(-size*0.15,-size*0.15,2,0,0,size*0.5);
+    rg.addColorStop(0,'#fef3c7');rg.addColorStop(0.55,'#f0cb55');rg.addColorStop(1,'#a47815');
+    c.beginPath();c.arc(0,0,size*0.5,0,Math.PI*2);c.fillStyle=rg;c.fill();
+    c.lineWidth=1.5;c.strokeStyle='#7a4a02';c.stroke();
+    // star
+    c.beginPath();
+    for(var i=0;i<10;i++){
+      var rr2=(i%2===0)?size*0.22:size*0.10, a=Math.PI/5*i-Math.PI/2;
+      var px=rr2*Math.cos(a), py=rr2*Math.sin(a);
+      if(i===0)c.moveTo(px,py);else c.lineTo(px,py);
     }
+    c.closePath();c.fillStyle='#7a4a02';c.fill();
     c.restore();
   }
-  function star(cx,cy,r1,r2,n,fill,stroke){
+  // small "logo marks" beside the brand: a green dome silhouette + a SAFF-style crest disc
+  function brandMarks(cx,cy){
+    // SAFF-style crest disc (left of the two)
+    c.save();
+    c.translate(cx-22,cy);
+    var rg=c.createRadialGradient(-5,-5,1,0,0,18);
+    rg.addColorStop(0,'#1f6038');rg.addColorStop(1,'#0a3a22');
+    c.fillStyle=rg;c.beginPath();c.arc(0,0,16,0,Math.PI*2);c.fill();
+    c.strokeStyle=TH.gold;c.lineWidth=1.5;c.stroke();
+    // tiny gold ball mark inside the crest
+    c.fillStyle=TH.gold;c.beginPath();c.arc(0,-2,4,0,Math.PI*2);c.fill();
+    c.fillStyle='#0a3a22';c.beginPath();c.arc(0,-2,1.5,0,Math.PI*2);c.fill();
+    c.restore();
+    // green dome silhouette (right of the two)
+    c.save();
+    c.translate(cx+18,cy);
+    c.fillStyle='#1f6038';
     c.beginPath();
-    for(var i=0;i<2*n;i++){
-      var rr2=(i%2===0)?r1:r2, a=Math.PI/n*i-Math.PI/2;
-      var x=cx+rr2*Math.cos(a), y=cy+rr2*Math.sin(a);
-      if(i===0)c.moveTo(x,y);else c.lineTo(x,y);
-    }
-    c.closePath();
-    if(fill){c.fillStyle=fill;c.fill();}
-    if(stroke){c.strokeStyle=stroke;c.lineWidth=2;c.stroke();}
+    c.moveTo(-14,8);c.lineTo(-14,2);
+    c.bezierCurveTo(-14,-12,14,-12,14,2);
+    c.lineTo(14,8);c.closePath();c.fill();
+    c.strokeStyle=TH.gold;c.lineWidth=1.2;c.stroke();
+    // little gold finial
+    c.fillStyle=TH.gold;c.beginPath();c.arc(0,-10,2.4,0,Math.PI*2);c.fill();
+    c.fillRect(-0.6,-14,1.2,4);
+    c.restore();
   }
   // ----- background -----
   var g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,TH.bg1);g.addColorStop(0.55,'#0a1f14');g.addColorStop(1,TH.bg2);
   c.fillStyle=g;c.fillRect(0,0,W,H);
-  // soft botanical leaf brushstrokes behind hero/title area
-  // draw multiple overlapping tilted ellipses with very low alpha to look like organic foliage
+  // concentric gold quarter-arcs in the top-left corner — the strongest brand cue
   c.save();
-  c.beginPath();c.rect(0,0,W,HEAD+220);c.clip();
-  function leaf(cx,cy,rx,ry,rot,alpha){
-    c.save();
-    c.translate(cx,cy);c.rotate(rot);
-    var rg=c.createRadialGradient(0,0,4,0,0,rx);
-    rg.addColorStop(0,'rgba(80,160,110,'+alpha+')');
-    rg.addColorStop(1,'rgba(80,160,110,0)');
-    c.fillStyle=rg;
-    c.beginPath();c.ellipse(0,0,rx,ry,0,0,Math.PI*2);c.fill();
-    c.restore();
+  c.beginPath();c.rect(0,0,W*0.55,420);c.clip();
+  c.strokeStyle=TH.gold;
+  for(var sr=240;sr<=920;sr+=70){
+    var sa = 0.16 - sr/9000;
+    if(sa<0.04) sa=0.04;
+    c.globalAlpha=sa;
+    c.lineWidth = sr<420 ? 1.6 : 1.1;
+    c.beginPath();c.arc(0,0,sr,0,Math.PI/2);c.stroke();
   }
-  // upper-left organic leaf cluster
-  leaf( 100,  60, 380, 120, -0.55, 0.30);
-  leaf( 220, 150, 340, 100, -0.40, 0.24);
-  leaf( -40, 200, 300, 100, -0.30, 0.20);
-  // lower-right cluster behind hero band
-  leaf( 980, 100, 360, 110,  0.60, 0.28);
-  leaf( 880, 210, 320,  90,  0.40, 0.20);
-  leaf(1100, 310, 380, 110,  0.55, 0.16);
-  // diagonal middle sweep behind title
-  leaf( 540, 170, 560, 140,  0.25, 0.14);
-  leaf( 540, 280, 500, 110, -0.20, 0.10);
+  c.globalAlpha=1;
   c.restore();
-  // mid-poster leaf echo — extends brand language down the page
-  c.save();
-  c.beginPath();c.rect(0,HEAD+winnersBandH-60,W,420);c.clip();
-  var midY=HEAD+winnersBandH+80;
-  leaf(  60, midY,      360, 100, -0.45, 0.22);
-  leaf(1000, midY+90,   330, 100,  0.55, 0.18);
-  leaf( 540, midY+170,  520, 110,  0.18, 0.10);
-  c.restore();
-  // lower-right leaf cluster behind tomorrow section
-  c.save();
-  c.beginPath();c.rect(0,H-380,W,380);c.clip();
-  leaf(1020, H-180, 360, 110,  0.55, 0.20);
-  leaf( 920, H-90,  300, 90,   0.40, 0.14);
-  leaf(  80, H-220, 320, 90,  -0.45, 0.16);
-  c.restore();
-  // subtle bloom at top
-  var bloom=c.createRadialGradient(W/2,-60,30,W/2,-60,W*0.65);
-  bloom.addColorStop(0,TH.goldSoft);bloom.addColorStop(1,'rgba(0,0,0,0)');
-  c.fillStyle=bloom;c.fillRect(0,0,W,360);
-  // thin gold top strip (premium hairline) over an accent base
-  c.fillStyle=TH.accent;c.fillRect(0,0,W,5);
-  c.fillStyle=TH.gold;c.fillRect(0,5,W,1);
-  // vertical gold rail down the RIGHT edge (RTL spine)
-  c.fillStyle='rgba(212,175,55,.32)';c.fillRect(RAIL, HEAD+10, 1, H-HEAD-70);
+  // soft gold bloom under the brand strip
+  var bloom=c.createRadialGradient(W/2,-40,30,W/2,-40,W*0.55);
+  bloom.addColorStop(0,'rgba(212,175,55,.07)');bloom.addColorStop(1,'rgba(0,0,0,0)');
+  c.fillStyle=bloom;c.fillRect(0,0,W,300);
+
+  // ----- header strip -----
   c.direction=TH.rtl?'rtl':'ltr';
-  // ----- header -----
-  c.textAlign='center';c.textBaseline='alphabetic';
-  c.font='800 26px '+TH.font;c.fillStyle=TH.accent;
-  c.fillText(TH.t.brand,W/2,58);
-  c.fillStyle=TH.gold;c.fillRect(W/2-30,68,60,2);
-  c.font='500 22px '+TH.font;c.fillStyle=TH.muted;
-  c.fillText(new Date(now).toLocaleDateString(TH.locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),W/2,100);
-  // big title — heavier and in white, with a tiny gold dot as designed punctuation
-  c.font='900 72px '+TH.font;c.fillStyle='#fff';
-  c.fillText(TH.t.title,W/2,180);
-  c.fillStyle=TH.gold;c.beginPath();c.arc(W/2,202,4,0,Math.PI*2);c.fill();
+  // top-right brand block: two lines stacked, with the two small marks immediately to the LEFT (start of the line in RTL)
+  c.textBaseline='alphabetic';
+  c.textAlign='right';
+  // line 2 (bolder) — أكبر weight
+  c.font='900 36px '+TH.font;c.fillStyle=TH.ink;
+  c.fillText(TH.t.brand2, W-PAD, 86);
+  // line 1 (lighter)
+  c.font='600 22px '+TH.font;c.fillStyle=TH.muted;
+  c.fillText(TH.t.brand1, W-PAD, 56);
+  // two small round marks sit to the LEFT of the brand text (since the text is right-aligned)
+  // measure brand2 width to anchor them just past it
+  c.font='900 36px '+TH.font;
+  var brandTW=c.measureText(TH.t.brand2).width;
+  brandMarks(W-PAD-brandTW-50, 76);
+
+  // top-left date strip — Arabic-Indic numerals
+  c.textAlign='left';
+  c.font='600 22px '+TH.font;c.fillStyle=TH.muted;
+  c.fillText(arDateLong(new Date(now)), PAD, 76);
+
+  // big centered title with the kashida diacritic on the first ل preserved
+  c.textAlign='center';
+  c.font='900 80px '+TH.font;c.fillStyle=TH.ink;
+  c.fillText(TH.t.title, W/2, 200);
+  // thin gold rule under the title
+  var rg3=c.createLinearGradient(W/2-110,0,W/2+110,0);
+  rg3.addColorStop(0,'rgba(212,175,55,0)');
+  rg3.addColorStop(0.5,'rgba(212,175,55,.85)');
+  rg3.addColorStop(1,'rgba(212,175,55,0)');
+  c.fillStyle=rg3;c.fillRect(W/2-110,222,220,1.5);
+
   var y=HEAD;
-  // quiet section eyebrow: small tracked label + thin gold hairline beside it.
-  // Identifiable but never shouts — keeps the breathing room the earlier removal asked for.
-  function eyebrow(text,opts){
-    var ey=y+EYE-10;
-    c.font='700 14px '+TH.font;
-    c.fillStyle=TH.eyebrow;
-    c.textBaseline='alphabetic';
+  // section eyebrow — small label on the right, faded gold hairline to the left
+  function eyebrow(text){
+    var ey=y+EYE-12;
+    c.font='800 18px '+TH.font;c.fillStyle=TH.eyebrow;c.textBaseline='alphabetic';
     var tw=c.measureText(text).width;
     if(TH.rtl){
-      c.textAlign='right';
-      c.fillText(text, W-PAD, ey);
-      // gold hairline rule sits to the LEFT of the label (RTL leading-edge gap)
-      var rx=PAD, rw=W-PAD-tw-PAD-14;
+      c.textAlign='right';c.fillText(text, W-PAD, ey);
+      var rx=PAD, rw=W-PAD-tw-PAD-18;
       if(rw>20){
-        var grd=c.createLinearGradient(rx,ey-4,rx+rw,ey-4);
+        var grd=c.createLinearGradient(rx,0,rx+rw,0);
         grd.addColorStop(0,'rgba(212,175,55,0)');
         grd.addColorStop(1,'rgba(212,175,55,.55)');
-        c.fillStyle=grd;c.fillRect(rx,ey-5,rw,1);
+        c.fillStyle=grd;c.fillRect(rx,ey-6,rw,1);
       }
     } else {
-      c.textAlign='left';
-      c.fillText(text, PAD, ey);
-      var rx2=PAD+tw+14, rw2=W-PAD-rx2;
-      if(rw2>20){
-        var grd2=c.createLinearGradient(rx2,ey-4,rx2+rw2,ey-4);
-        grd2.addColorStop(0,'rgba(212,175,55,.55)');
-        grd2.addColorStop(1,'rgba(212,175,55,0)');
-        c.fillStyle=grd2;c.fillRect(rx2,ey-5,rw2,1);
-      }
+      c.textAlign='left';c.fillText(text, PAD, ey);
     }
     y += EYE;
   }
   function emptyRow(text){
-    fillRR(CARD_X,y,CARD_W,56,16,'rgba(255,255,255,.04)');
-    strokeRR(CARD_X,y,CARD_W,56,16,'rgba(255,255,255,.08)',1);
+    fillRR(CARD_X,y,CARD_W,72,18,'rgba(255,255,255,.04)');
+    strokeRR(CARD_X,y,CARD_W,72,18,'rgba(255,255,255,.08)',1);
     c.font='500 22px '+TH.font;c.fillStyle=TH.muted;
     c.textAlign='center';c.textBaseline='middle';
-    c.fillText(text,W/2,y+30);
-    y+=60;
+    c.fillText(text,W/2,y+38);
+    y+=88;
   }
-  function rRes(m,_,yy){
-    card(CARD_X,yy,CARD_W,ITEM-8);
-    var t=teamsOf(m),r=result(m);
-    var cy=yy+(ITEM-8)/2;
-    // solid accent green score pill, white score
-    c.font='900 28px '+TH.font;
-    var scoreText=r.h+' – '+r.a;
-    var sw=c.measureText(scoreText).width+30;
-    var sh=42;
-    var sx=W/2-sw/2;
-    // thin gold hairlines between team names and the score pill — broadcast feel
-    var ruleH=22;
-    var ruleY=cy-ruleH/2;
-    var lg=c.createLinearGradient(sx-50,cy,sx-4,cy);
-    lg.addColorStop(0,'rgba(212,175,55,0)');
-    lg.addColorStop(1,'rgba(212,175,55,.55)');
-    c.fillStyle=lg;c.fillRect(sx-50,cy-0.5,46,1);
-    var rg2=c.createLinearGradient(sx+sw+4,cy,sx+sw+50,cy);
-    rg2.addColorStop(0,'rgba(212,175,55,.55)');
-    rg2.addColorStop(1,'rgba(212,175,55,0)');
-    c.fillStyle=rg2;c.fillRect(sx+sw+4,cy-0.5,46,1);
-    fillRR(sx,cy-sh/2,sw,sh,6,TH.accent);
-    c.fillStyle='#06180f';c.textAlign='center';c.textBaseline='middle';
-    c.fillText(scoreText,W/2,cy+1);
-    c.font='600 26px '+TH.font;c.fillStyle='#fff';c.textBaseline='middle';
-    var hx = TH.rtl ? W-PAD-22 : PAD+22;
-    var ax = TH.rtl ? PAD+22   : W-PAD-22;
-    c.textAlign=TH.rtl?'right':'left';
-    c.fillText((t.hf||'')+' '+t.home,hx,cy);
-    c.textAlign=TH.rtl?'left':'right';
-    c.fillText(t.away+' '+(t.af||''),ax,cy);
-  }
-  function rUsr(u,i,yy){
-    card(CARD_X,yy,CARD_W,ITEM-8);
-    var cy=yy+(ITEM-8)/2;
-    var rank=i+1;
-    var bd=44;
-    // rank pinned at the LEADING edge of the row (right in RTL — where reading starts)
-    var bx = TH.rtl ? W-PAD-18-bd : PAD+18;
-    rankBadge(bx,cy-bd/2,bd,rank);
-    // name sits next to rank, flowing toward the trailing edge
-    c.font='700 26px '+TH.font;c.fillStyle='#fff';c.textBaseline='middle';
-    c.textAlign=TH.rtl?'right':'left';
-    var nx = TH.rtl ? bx-14 : bx+bd+14;
-    c.fillText(u.name,nx,cy);
-    // points pill at the TRAILING edge (left in RTL, right in LTR)
-    c.font='800 24px '+TH.font;
-    var ptsText=u.pts+' '+ptsWord(u.pts);
-    var pw=c.measureText(ptsText).width+24;
-    var ph=36;
-    var px = TH.rtl ? PAD+18 : W-PAD-18-pw;
-    fillRR(px,cy-ph/2,pw,ph,ph/2,u.pts>0?TH.accentSoft:'rgba(255,255,255,.06)');
-    strokeRR(px,cy-ph/2,pw,ph,ph/2,u.pts>0?TH.accent:'rgba(255,255,255,.14)',1);
-    c.fillStyle=u.pts>0?TH.accent:TH.muted;
-    c.textAlign='center';c.textBaseline='middle';
-    c.fillText(ptsText,px+pw/2,cy+1);
-  }
-  function rHero(u,_,yy){
-    var ch=HERO-10;
+  // ----- hero row -----
+  function rHero(u,yy){
+    var ch=HERO-12;
     heroCard(CARD_X,yy,CARD_W,ch);
-    var mcx=W/2, mcy=yy+54, mr=34;
-    // hexagon backdrop behind medallion (subtle gold ornament)
-    hexagon(mcx,mcy,mr+22,'rgba(212,175,55,.10)','rgba(212,175,55,.40)',1.5);
-    hexagon(mcx,mcy,mr+12,null,'rgba(240,203,85,.55)',1);
-    // tiny laurel sprigs flanking the medallion — quiet trophy motif
-    function sprig(side){
-      c.save();
-      c.translate(mcx+side*(mr+34), mcy);
-      c.rotate(side*0.18);
-      c.strokeStyle='rgba(240,203,85,.55)';
-      c.lineWidth=1.4;
-      // arching stem
-      c.beginPath();c.moveTo(0,-18);c.quadraticCurveTo(side*8,0,0,18);c.stroke();
-      // 3 little leaves
-      for(var i=-1;i<=1;i++){
-        c.save();
-        c.translate(side*4, i*9);
-        c.rotate(side*0.5);
-        c.beginPath();c.ellipse(0,0,5,2,0,0,Math.PI*2);c.fillStyle='rgba(240,203,85,.45)';c.fill();
-        c.restore();
-      }
-      c.restore();
-    }
-    sprig(-1); sprig(+1);
-    // gold "winner" medallion — richer gradient plate
-    var halo=c.createRadialGradient(mcx,mcy,2,mcx,mcy,mr*2.2);
-    halo.addColorStop(0,'rgba(250,204,21,.62)');halo.addColorStop(1,'rgba(250,204,21,0)');
-    c.fillStyle=halo;c.fillRect(mcx-mr*2.2,mcy-mr*2.2,mr*4.4,mr*4.4);
-    var plate=c.createRadialGradient(mcx-mr*0.35,mcy-mr*0.35,2,mcx,mcy,mr);
-    plate.addColorStop(0,'#fef3c7');
-    plate.addColorStop(0.45,'#facc15');
-    plate.addColorStop(1,'#b8860b');
-    c.beginPath();c.arc(mcx,mcy,mr,0,Math.PI*2);c.fillStyle=plate;c.fill();
-    c.lineWidth=2.5;c.strokeStyle='#fde68a';c.stroke();
-    // inner ring
-    c.beginPath();c.arc(mcx,mcy,mr-6,0,Math.PI*2);c.lineWidth=1;c.strokeStyle='rgba(120,72,8,.5)';c.stroke();
-    star(mcx,mcy,17,8,5,'#7a4a02',null);
-    // name in GOLD against deep green — pops with brand authority
-    c.font='900 46px '+TH.font;c.fillStyle=TH.gold;c.textBaseline='alphabetic';c.textAlign='center';
-    c.fillText(u.name,W/2,yy+125);
-    // points pill below name — solid gold rectangle with dark text + thin halo ring
-    c.font='800 22px '+TH.font;
-    var ptsText=u.pts+' '+ptsWord(u.pts);
-    var pw=c.measureText(ptsText).width+44;
-    var ph=40;
-    var py=yy+142;
-    // outer halo ring around the points plaque
-    fillRR(W/2-pw/2-3,py-3,pw+6,ph+6,(ph+6)/2,'rgba(240,203,85,.18)');
-    // gold plate with subtle vertical gradient
-    var plateG=c.createLinearGradient(W/2-pw/2,py,W/2-pw/2,py+ph);
-    plateG.addColorStop(0,TH.goldBright);
-    plateG.addColorStop(1,TH.gold);
-    fillRR(W/2-pw/2,py,pw,ph,ph/2,plateG);
-    strokeRR(W/2-pw/2,py,pw,ph,ph/2,'rgba(120,72,8,.45)',1);
-    c.fillStyle='#1a1206';c.textAlign='center';c.textBaseline='middle';
-    c.fillText(ptsText,W/2,py+ph/2+1);
-    // tiny gold stars flanking the points pill (winner sparkle)
-    star(W/2-pw/2-16,py+ph/2,5,2.2,5,TH.gold,null);
-    star(W/2+pw/2+16,py+ph/2,5,2.2,5,TH.gold,null);
+    // medallion on the LEFT side of the card (trailing edge in RTL)
+    var medCx = CARD_X + MED_R + 24;
+    var medCy = yy + ch/2;
+    // outer glow
+    var halo=c.createRadialGradient(medCx,medCy,4,medCx,medCy,MED_R*1.5);
+    halo.addColorStop(0,'rgba(212,175,55,.40)');halo.addColorStop(1,'rgba(212,175,55,0)');
+    c.fillStyle=halo;c.fillRect(medCx-MED_R*1.5,medCy-MED_R*1.5,MED_R*3,MED_R*3);
+    // gold disc
+    var rg=c.createRadialGradient(medCx-MED_R*0.35,medCy-MED_R*0.35,4,medCx,medCy,MED_R);
+    rg.addColorStop(0,'#fef3c7');
+    rg.addColorStop(0.45,'#f0cb55');
+    rg.addColorStop(1,'#a47815');
+    c.beginPath();c.arc(medCx,medCy,MED_R,0,Math.PI*2);c.fillStyle=rg;c.fill();
+    c.lineWidth=3;c.strokeStyle='#fde68a';c.stroke();
+    c.beginPath();c.arc(medCx,medCy,MED_R-9,0,Math.PI*2);c.lineWidth=1;c.strokeStyle='rgba(120,72,8,.6)';c.stroke();
+    // big number, Arabic-Indic, ≥80px
+    c.fillStyle='#1a1206';c.textBaseline='alphabetic';c.textAlign='center';
+    c.font='900 90px '+TH.font;
+    c.fillText(arNum(u.pts), medCx, medCy+12);
+    // pts word (نقطة/نقاط) under the number
+    c.font='700 30px '+TH.font;c.fillStyle='#3a2402';
+    c.fillText(ptsWord(u.pts), medCx, medCy+50);
+
+    // right side: name (big), "أفضل لاعب اليوم" subtitle, tiny medal icon to the right of the name
+    var rightX = W - PAD - 30;
+    c.textBaseline='alphabetic';c.textAlign='right';
+    c.font='900 58px '+TH.font;c.fillStyle=TH.ink;
+    c.fillText(u.name, rightX, yy+105);
+    c.font='600 24px '+TH.font;c.fillStyle=TH.muted;
+    c.fillText(TH.t.bestLabel, rightX, yy+145);
+    // little medal icon to the LEFT of the right-aligned name (i.e. trailing in reading order)
+    c.font='900 58px '+TH.font;
+    var nameW=c.measureText(u.name).width;
+    medalIcon(rightX-nameW-30, yy+88, 36);
   }
-  function rTom(m,_,yy){
-    // slim calendar row — quiet but no longer invisible.
-    // Leading-edge accent dot + short colored bar give the row presence.
-    // Kickoff time in a cool forward-looking accent (sky), not gold — reads as upcoming.
-    var t=teamsOf(m);
-    var rowH=TOMITEM-6;
+  // ----- top-5 row -----
+  function rUsr(u,i,yy){
+    var rowH=ITEM-12;
+    greenCard(CARD_X,yy,CARD_W,rowH);
     var cy=yy+rowH/2;
-    // hairline divider under the row, faded toward the trailing edge
-    var lg = c.createLinearGradient(W-PAD,yy+rowH,PAD,yy+rowH);
-    lg.addColorStop(0,'rgba(212,175,55,.20)');
-    lg.addColorStop(1,'rgba(212,175,55,0)');
-    c.fillStyle=lg;c.fillRect(PAD,yy+rowH,W-2*PAD,1);
-    // leading-edge accent: small dot + short vertical bar (right side in RTL)
-    var ledgeX = TH.rtl ? W-PAD+10 : PAD-10;
-    c.fillStyle=TH.accent;
-    c.beginPath();c.arc(ledgeX, cy, 3.5, 0, Math.PI*2);c.fill();
-    c.fillStyle='rgba(52,211,153,.45)';
-    c.fillRect(ledgeX-1, cy-9, 2, 18);
-    c.font='600 22px '+TH.font;c.fillStyle='#dff0e6';c.textBaseline='middle';
-    var hx = W-PAD;
+    var rank=i+1;
+    // rank chip pinned at the RIGHT (leading edge in RTL)
+    var chipR=28;
+    rankChip(W-PAD-22-chipR, cy, chipR, rank);
+    // name flows toward the trailing edge (left)
+    c.font='800 32px '+TH.font;c.fillStyle='#ffffff';c.textBaseline='middle';
     c.textAlign='right';
-    var label=(t.hf||'')+' '+t.home+'   '+TH.t.vs+'   '+t.away+' '+(t.af||'');
-    c.fillText(label,hx,cy);
-    // kickoff time at trailing edge (left in RTL) — small sky-blue chip-less label reads as "upcoming"
-    c.font='800 18px '+TH.font;
-    var kText=localKick(m);
-    c.fillStyle=TH.tomAccent;c.textAlign='left';c.textBaseline='middle';
-    c.fillText(kText,PAD,cy);
+    c.fillText(u.name, W-PAD-22-2*chipR-18, cy);
+    // points pill at the LEFT (trailing edge)
+    c.font='800 24px '+TH.font;
+    var ptsText=arNum(u.pts)+' '+ptsWord(u.pts);
+    var pw=c.measureText(ptsText).width+30;
+    var ph=44;
+    goldPill(PAD+22+pw/2, cy, pw, ph, ptsText, {color:TH.gold});
+  }
+  // ----- result row -----
+  function rRes(m,yy){
+    var rowH=ITEM-12;
+    greenCard(CARD_X,yy,CARD_W,rowH);
+    var t=teamsOf(m),r=result(m);
+    var cy=yy+rowH/2;
+    // central score pill — gold-tinted, Arabic-Indic
+    c.font='900 30px '+TH.font;
+    var scoreText=arNum(r.h)+' – '+arNum(r.a);
+    var sw=c.measureText(scoreText).width+40;
+    var sh=50;
+    goldPill(W/2, cy, sw, sh, scoreText, {fill:'rgba(212,175,55,.16)',border:'rgba(212,175,55,.70)',color:TH.gold,font:'900 30px '+TH.font});
+    // home (right): Arabic name + flag emoji at the trailing edge
+    c.font='800 28px '+TH.font;c.fillStyle=TH.ink;c.textBaseline='middle';
+    c.textAlign='right';
+    c.fillText(arTeam(t.home)+' '+(t.hf||''), W-PAD-22, cy);
+    // away (left): flag + Arabic name
+    c.textAlign='left';
+    c.fillText((t.af||'')+' '+arTeam(t.away), PAD+22, cy);
+  }
+  // ----- tomorrow row -----
+  function rTom(m,yy){
+    var rowH=TOMITEM-10;
+    greenCard(CARD_X,yy,CARD_W,rowH);
+    var t=teamsOf(m);
+    var cy=yy+rowH/2;
+    // right: home flag emoji + Arabic name
+    c.font='700 22px '+TH.font;c.fillStyle=TH.ink;c.textBaseline='middle';
+    c.textAlign='right';
+    var rightLabel = arTeam(t.home)+' '+(t.hf||'')+'  '+TH.t.vs+'  '+(t.af||'')+' '+arTeam(t.away);
+    c.fillText(rightLabel, W-PAD-22, cy);
+    // left: date + time in Arabic, gold-tinted
+    c.font='800 20px '+TH.font;c.fillStyle=TH.gold;c.textAlign='left';
+    c.fillText(arKick(m), PAD+22, cy);
   }
 
   // ===== composed flow =====
-  // 1) WINNERS band — hero + Top-5 share one tinted gold-edged panel with a single eyebrow
-  var bandY = y;
-  var bandGrd = c.createLinearGradient(0,bandY,0,bandY+winnersBandH);
-  bandGrd.addColorStop(0,'rgba(212,175,55,.10)');
-  bandGrd.addColorStop(0.55,'rgba(212,175,55,.05)');
-  bandGrd.addColorStop(1,'rgba(212,175,55,.00)');
-  fillRR(PAD-16,bandY,W-2*(PAD-16),winnersBandH,28,bandGrd);
-  // faint stadium-arc motif behind the band — concentric thin arcs (very low alpha) suggest a stadium curve.
-  // Clipped to the band so it never competes with the surrounding content.
-  c.save();
-  rr(PAD-16,bandY,W-2*(PAD-16),winnersBandH,28);c.clip();
-  c.strokeStyle=TH.gold;
-  var stCx=W/2, stCy=bandY-40;
-  for(var sr=240;sr<=900;sr+=60){
-    var sa=0.12 - sr/12000;
-    if(sa<0.04) sa=0.04;
-    c.globalAlpha=sa;
-    c.lineWidth = sr<420 ? 1.4 : 1.0;
-    c.beginPath();c.arc(stCx,stCy,sr,Math.PI*0.18,Math.PI*0.82);c.stroke();
-  }
-  c.globalAlpha=1;
-  c.restore();
-  // soft gold hairlines top + bottom of the band — frames it as a held panel
-  var bandHairlineG=c.createLinearGradient(PAD-16,bandY,W-(PAD-16),bandY);
-  bandHairlineG.addColorStop(0,'rgba(212,175,55,0)');
-  bandHairlineG.addColorStop(0.5,'rgba(212,175,55,.60)');
-  bandHairlineG.addColorStop(1,'rgba(212,175,55,0)');
-  c.fillStyle=bandHairlineG;c.fillRect(PAD-16,bandY,W-2*(PAD-16),1);
-  c.fillStyle=bandHairlineG;c.fillRect(PAD-16,bandY+winnersBandH-1,W-2*(PAD-16),1);
-  y = bandY + BAND_PAD_TOP;
-  eyebrow('الفائزون اليوم');
-  // hero
-  if(topT.length){ rHero(topT[0],0,y); y+=HERO; }
-  else { emptyRow(TH.t.noPts); y-=4; }
-  y += BAND_INNER_GAP;
+  // 1) HERO + Top-5 (no enclosing band — just an eyebrow and the cards)
+  eyebrow(TH.t.heroHdr);
+  if(topT.length){ rHero(topT[0],y); y+=HERO; }
+  else { emptyRow(TH.t.noPts); }
+  y += 18;
   if(totals.length){
     totals.forEach(function(u,i){ rUsr(u,i,y); y+=ITEM; });
-  } else {
-    emptyRow(TH.t.noLb);
-  }
-  y = bandY + winnersBandH + 28;
+  } else { emptyRow(TH.t.noLb); }
+  y += SECTION_GAP - EYE;
 
-  // 2) RESULTS — quiet eyebrow + cards
-  eyebrow('نتائج اليوم');
+  // 2) RESULTS
+  eyebrow(TH.t.resultsHdr);
   if(todayR.length){
-    todayR.forEach(function(m,i){ rRes(m,i,y); y+=ITEM; });
+    todayR.forEach(function(m){ rRes(m,y); y+=ITEM; });
   } else { emptyRow(TH.t.noResults); }
-  // 3) TOMORROW — slim calendar list
-  y += 28;
+  y += SECTION_GAP - EYE;
+
+  // 3) TOMORROW
   eyebrow(TH.t.tomorrowHdr);
   if(tomorrowM.length){
-    tomorrowM.forEach(function(m,i){ rTom(m,i,y); y+=TOMITEM; });
+    tomorrowM.forEach(function(m){ rTom(m,y); y+=TOMITEM; });
   } else { emptyRow(TH.t.noTomorrow); }
+
   var fname='wc2026-summary-'+new Date(now).toISOString().slice(0,10)+'.png';
   cv.toBlob(function(blob){
     var file = (typeof File!=='undefined') ? new File([blob],fname,{type:'image/png'}) : null;
