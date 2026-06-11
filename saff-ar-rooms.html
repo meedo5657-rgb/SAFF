@@ -676,8 +676,24 @@ function openKick(m){var t=Date.parse(m.utc);if(isNaN(t))return '';return new Da
 // are published. Admin entries always override this. Updates are community-
 // maintained so they can lag a little behind the live broadcast.
 var OF_URL='https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
-var OF_ALIAS={'Bosnia & Herzegovina':'Bosnia and Herzegovina','Curaçao':'Curacao','Czech Republic':'Czechia','Turkey':'Turkiye','USA':'United States','Korea Republic':'South Korea','IR Iran':'Iran','Côte d’Ivoire':'Ivory Coast'};
+var FD_URL='https://api.football-data.org/v4/competitions/WC/matches';
+// Merged openfootball + football-data.org aliases. canon() folds either feed's
+// team labels onto the static fixture names so live updates line up regardless of source.
+var OF_ALIAS={
+  'Bosnia & Herzegovina':'Bosnia and Herzegovina','Bosnia and Herzegovina':'Bosnia and Herzegovina',
+  'Curaçao':'Curacao','Curacao':'Curacao',
+  'Czech Republic':'Czechia','Czechia':'Czechia',
+  'Turkey':'Turkiye','Türkiye':'Turkiye','Turkiye':'Turkiye',
+  'USA':'United States','United States':'United States',
+  'Korea Republic':'South Korea','Republic of Korea':'South Korea','South Korea':'South Korea',
+  'IR Iran':'Iran','Iran':'Iran',
+  'Côte d’Ivoire':'Ivory Coast','Côte d\'Ivoire':'Ivory Coast','Ivory Coast':'Ivory Coast',
+  'DR Congo':'DR Congo','Democratic Republic of Congo':'DR Congo','Congo DR':'DR Congo',
+  'Cabo Verde':'Cape Verde','Cape Verde':'Cape Verde'
+};
 function canon(n){return OF_ALIAS[n]||n;}
+// football-data.org token: live in-play scores. Stored only in localStorage; sent only to api.football-data.org.
+var FD_TOKEN=''; try{FD_TOKEN=localStorage.getItem('saff_fdToken')||'';}catch(e){}
 function isRealTeam(n){return !!(n&&FLAG_CODE[canon(n)]);}
 // group matches are matched by their (unordered) team pair, not by position
 function pairKey(a,b){return [a,b].sort().join(' :: ');}
@@ -723,6 +739,64 @@ function loadOpenfootball(){
     apiResults=nr; apiTeams=nt;
     renderMatches(); renderLeader();
   }).catch(function(){ /* offline or not yet updated -> admin entries still work */ });
+}
+
+// ===== LIVE DATA (football-data.org: free tier, requires a personal token) =====
+// In-play status ticks score.fullTime as goals are scored, so this drives the
+// live leaderboard updates during matches. Falls back silently if no token is
+// configured (openfootball still runs as the baseline source).
+function loadFootballData(){
+  if(!FD_TOKEN)return;
+  if(typeof fetch!=='function')return;
+  fetch(FD_URL,{headers:{'X-Auth-Token':FD_TOKEN},cache:'no-store'})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(d){
+      if(!d||!d.matches)return;
+      var nr={}, nt={};
+      d.matches.forEach(function(m){
+        var st=matchFD(m); if(!st)return;
+        var hn=m.homeTeam&&m.homeTeam.name, an=m.awayTeam&&m.awayTeam.name;
+        if(st.stage!=='group' && (isRealTeam(hn)||isRealTeam(an))){
+          nt[st.id]={home:isRealTeam(hn)?canon(hn):null, away:isRealTeam(an)?canon(an):null};
+        }
+        var sc=m.score||{};
+        var fin=(sc.extraTime && sc.extraTime.home!=null && sc.extraTime.away!=null) ? sc.extraTime : sc.fullTime;
+        if(fin && typeof fin.home==='number' && typeof fin.away==='number'){
+          // groups: swap if FD's order is flipped relative to our static home/away.
+          // knockouts: our static home/away is a placeholder, so trust FD's order verbatim.
+          var swapped = (st.stage==='group') && (canon(hn)!==st.home);
+          var res = swapped ? {h:fin.away, a:fin.home} : {h:fin.home, a:fin.away};
+          var p=sc.penalties;
+          if(p && p.home!=null && p.away!=null && p.home!==p.away){
+            var homeWon = swapped ? (p.away>p.home) : (p.home>p.away);
+            res.pw = homeWon?'h':'a';
+          }
+          nr[st.id]=res;
+        }
+      });
+      Object.keys(nr).forEach(function(id){apiResults[id]=nr[id];});
+      Object.keys(nt).forEach(function(id){apiTeams[id]=nt[id];});
+      renderMatches(); renderLeader();
+    })
+    .catch(function(){ /* network or CORS — openfootball remains the fallback */ });
+}
+function matchFD(m){
+  var t1=canon(m.homeTeam&&m.homeTeam.name), t2=canon(m.awayTeam&&m.awayTeam.name);
+  if(m.stage==='GROUP_STAGE'){
+    return GROUP_BY_PAIR[pairKey(t1,t2)]||null;
+  }
+  if(m.utcDate){
+    var fd=Date.parse(m.utcDate);
+    if(isNaN(fd))return null;
+    var best=null, bestDelta=Infinity;
+    for(var i=0;i<MATCHES.length;i++){
+      var x=MATCHES[i]; if(x.stage==='group')continue;
+      var d=Math.abs(kickoffMs(x)-fd);
+      if(d<bestDelta && d<24*60*60*1000){bestDelta=d; best=x;}
+    }
+    return best;
+  }
+  return null;
 }
 
 // ===== FIREBASE =====
@@ -1233,6 +1307,11 @@ function enter(){
   renderRoomBanner();
   setInterval(function(){renderMatches();},30000);   // refresh locks over time
   loadOpenfootball();                                 // initial auto data pull
+  loadFootballData();                                 // football-data.org primary (live), needs a token
+  // adaptive polling:
+  //   - while any match is live AND a football-data.org token is set: FD every 15s (running scores)
+  //   - while any match is live without a token: openfootball every 45s (lag is unavoidable)
+  //   - always: openfootball every 5 min as the baseline + knockout team auto-fill
   setInterval(function(){
     var now=Date.now(), live=false;
     for(var i=0;i<MATCHES.length;i++){
@@ -1240,8 +1319,10 @@ function enter(){
       if(!isFinite(k))continue;
       if(now>=k && now<k+150*60*1000 && !result(MATCHES[i])){live=true;break;}
     }
-    if(live) loadOpenfootball();
-  },45000);
+    if(!live)return;
+    if(FD_TOKEN) loadFootballData();
+    else         loadOpenfootball();
+  },15000);
   setInterval(loadOpenfootball,300000);               // baseline refresh every 5 min
 }
 
@@ -1723,6 +1804,7 @@ function adminBar(){
   var sb=document.createElement('button');sb.className='btn-summary';sb.textContent='📸 ملخّص اليوم';
   sb.addEventListener('click',genDailySummary);
   bar.appendChild(sb);
+  bar.appendChild(fdTokenRow());
   var n=Object.keys(resultsData||{}).length;
   var b=document.createElement('button');b.className='btn-clear-all';
   b.textContent='🗑 امسح كل النتائج ('+n+')';
@@ -1734,6 +1816,40 @@ function adminBar(){
   });
   bar.appendChild(b);
   return bar;
+}
+// صف داخل لوحة الأدمن: ألصق رمز football-data.org عشان النتائج الحيّة تجي مباشرة
+function fdTokenRow(){
+  var row=document.createElement('div');
+  row.style.cssText='display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-bottom:8px;';
+  var lab=document.createElement('label');
+  lab.style.cssText='font-size:.72rem;color:var(--muted);font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px;';
+  lab.innerHTML='رمز football-data.org <span id="fdState"></span>';
+  row.appendChild(lab);
+  var grp=document.createElement('div');grp.style.cssText='display:flex;gap:6px;';
+  var inp=document.createElement('input');
+  inp.type='password';inp.id='fdToken';inp.placeholder='ألصق رمزك المجاني هنا';inp.autocomplete='off';
+  inp.value=FD_TOKEN||'';
+  inp.style.cssText='flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#0f1a3d;color:var(--text);font-family:inherit;font-size:.8rem;';
+  var save=document.createElement('button');
+  save.id='fdSave';save.textContent='حفظ';
+  save.style.cssText='padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;';
+  save.addEventListener('click',function(){
+    var v=(inp.value||'').trim();
+    try{if(v)localStorage.setItem('saff_fdToken',v); else localStorage.removeItem('saff_fdToken');}catch(e){}
+    FD_TOKEN=v;
+    updateFdState();
+    if(v){ loadFootballData(); toast('انحفظ الرمز · النتائج الحيّة شغّالة'); }
+    else  { toast('انمسح الرمز'); }
+  });
+  grp.appendChild(inp);grp.appendChild(save);
+  row.appendChild(grp);
+  setTimeout(updateFdState,0);
+  return row;
+}
+function updateFdState(){
+  var el=document.getElementById('fdState'); if(!el)return;
+  if(FD_TOKEN){ el.textContent='مفعّل'; el.style.color='#22c55e'; }
+  else        { el.textContent='مطفأ · openfootball فقط'; el.style.color='var(--muted)'; }
 }
 // Arabic-Indic digit helper used throughout the daily-summary poster
 function arNum(n){return String(n).replace(/[0-9]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];});}
