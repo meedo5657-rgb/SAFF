@@ -1897,29 +1897,10 @@ function renderScorers(){
   var v=document.getElementById('scorersView');if(!v)return;
   v.innerHTML='';
   var loader=document.createElement('div');loader.className='empty';loader.textContent='جاري تحميل الهدافين…';v.appendChild(loader);
-  function render(data){
+  function paint(rows){
     v.innerHTML='';
-    if(!data){
-      var er=document.createElement('div');er.className='empty';er.textContent='تعذّر تحميل قائمة الهدافين — جرّب لاحقًا.';v.appendChild(er);return;
-    }
-    var counts={};
-    var matches=(data&&data.matches)||[];
-    function bumpFor(team,g){
-      if(!g||!g.name||g.owngoal===true) return;
-      var nm=g.name;
-      if(!counts[nm]) counts[nm]={goals:0,team:team};
-      counts[nm].goals++;
-    }
-    matches.forEach(function(m){
-      var t1=SCORER_TEAM_ALIAS[m.team1]||m.team1, t2=SCORER_TEAM_ALIAS[m.team2]||m.team2;
-      (m.goals1||[]).forEach(function(g){bumpFor(t1,g);});
-      (m.goals2||[]).forEach(function(g){bumpFor(t2,g);});
-    });
-    var rows=Object.keys(counts).map(function(n){return {name:n,team:counts[n].team,goals:counts[n].goals};}).filter(function(r){return r.goals>=1;});
-    rows.sort(function(a,b){return b.goals-a.goals||a.name.localeCompare(b.name);});
-    if(!rows.length){
-      var em=document.createElement('div');em.className='empty';em.textContent='لم تُسجَّل أهداف بعد — البطولة لم تبدأ بعد.';v.appendChild(em);return;
-    }
+    if(!rows){var er=document.createElement('div');er.className='empty';er.textContent='تعذّر تحميل قائمة الهدافين — جرّب لاحقًا.';v.appendChild(er);return;}
+    if(!rows.length){var em=document.createElement('div');em.className='empty';em.textContent='لم تُسجَّل أهداف بعد.';v.appendChild(em);return;}
     rows.forEach(function(r,i){
       var row=document.createElement('div');row.className='sc-row';
       row.innerHTML='<div class="sc-rank">'+(i+1)+'</div>'+
@@ -1929,12 +1910,48 @@ function renderScorers(){
       v.appendChild(row);
     });
   }
-  var cache=window.__wc26goals;
-  if(cache && cache.ts && (Date.now()-cache.ts < 60*1000)){ render(cache.data); return; }
-  fetch('https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json')
-    .then(function(r){return r.json();})
-    .then(function(j){window.__wc26goals={ts:Date.now(),data:j};render(j);})
-    .catch(function(){render(null);});
+  function parseFD(d){
+    if(!d||!d.scorers) return null;
+    return d.scorers.map(function(s){
+      var tn=s.team&&s.team.name||'';
+      return {name:(s.player&&s.player.name)||'',team:SCORER_TEAM_ALIAS[tn]||tn,goals:s.goals||s.numberOfGoals||0};
+    }).filter(function(r){return r.name&&r.goals>=1;})
+     .sort(function(a,b){return b.goals-a.goals||a.name.localeCompare(b.name);});
+  }
+  function parseOF(d){
+    if(!d) return null;
+    var counts={}, matches=(d.matches)||[];
+    matches.forEach(function(m){
+      var t1=SCORER_TEAM_ALIAS[m.team1]||m.team1, t2=SCORER_TEAM_ALIAS[m.team2]||m.team2;
+      (m.goals1||[]).forEach(function(g){if(g&&g.name&&g.owngoal!==true){if(!counts[g.name])counts[g.name]={goals:0,team:t1};counts[g.name].goals++;}});
+      (m.goals2||[]).forEach(function(g){if(g&&g.name&&g.owngoal!==true){if(!counts[g.name])counts[g.name]={goals:0,team:t2};counts[g.name].goals++;}});
+    });
+    return Object.keys(counts).map(function(n){return {name:n,team:counts[n].team,goals:counts[n].goals};})
+      .filter(function(r){return r.goals>=1;})
+      .sort(function(a,b){return b.goals-a.goals||a.name.localeCompare(b.name);});
+  }
+  function loadOF(){
+    var cache=window.__wc26goals;
+    if(cache && cache.ts && (Date.now()-cache.ts < 60*1000)){ paint(parseOF(cache.data)); return; }
+    fetch('https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json')
+      .then(function(r){return r.json();})
+      .then(function(j){window.__wc26goals={ts:Date.now(),data:j};paint(parseOF(j));})
+      .catch(function(){paint(null);});
+  }
+  // Prefer FD via Worker URL (live) when set, else openfootball
+  var isUrl=/^https?:\/\//i.test(FD_TOKEN);
+  if(isUrl){
+    fetch(FD_TOKEN.replace(/\/+$/,'')+'/scorers',{cache:'no-store'})
+      .then(function(r){return r.ok ? r.json() : null;})
+      .then(function(d){
+        var rows=parseFD(d);
+        if(rows && rows.length){ paint(rows); }
+        else { loadOF(); }
+      })
+      .catch(function(){loadOF();});
+  } else {
+    loadOF();
+  }
 }
 function renderGroups(){renderStandings();renderScorers();}
 
