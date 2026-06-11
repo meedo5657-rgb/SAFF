@@ -585,7 +585,7 @@ function loadOpenfootball(){
 function loadFootballData(verbose){
   if(!FD_TOKEN){if(verbose)toast('No token saved');return;}
   if(typeof fetch!=='function')return;
-  fetch(FD_URL,{headers:{'X-Auth-Token':FD_TOKEN},cache:'no-store'})
+  fetch((/^https?:\/\//i.test(FD_TOKEN)?FD_TOKEN:FD_URL),(/^https?:\/\//i.test(FD_TOKEN)?{cache:'no-store'}:{headers:{'X-Auth-Token':FD_TOKEN},cache:'no-store'}))
     .then(function(r){
       if(!r.ok){var st=r.status;if(verbose)toast('FD error: '+st+(st===403?' (invalid or expired token)':st===429?' (rate limit exceeded)':''));window.__fdLast={ok:false,status:st,ts:Date.now()};return null;}
       return r.json();
