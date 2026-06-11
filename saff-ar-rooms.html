@@ -18,6 +18,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Cairo:wght@500;700;800;900&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Cairo:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -274,6 +276,103 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 </style>
 </head>
 <body>
+
+<!-- ===== HIDDEN DAILY-SUMMARY POSTER TEMPLATE ===== -->
+<!-- rasterised by html2canvas when the user taps "ملخّص اليوم" -->
+<style>
+#posterRoot{position:fixed;left:-9999px;top:0;pointer-events:none;}
+#posterRoot .poster{
+  --green-deep:#06231B; --green:#0A3528; --green-glow:#0F4636; --green-mid:#10654F;
+  --gold:#E6CC78; --gold-deep:#C9A24A;
+  --silver:#CFD8DE; --bronze:#D79B63;
+  --white:#ffffff; --mute:rgba(255,255,255,.62); --faint:rgba(255,255,255,.40);
+  --line:rgba(255,255,255,.14);
+  --row:rgba(255,255,255,.045); --row-edge:rgba(255,255,255,.10);
+  width:1080px;height:2180px;position:relative;overflow:hidden;
+  background:radial-gradient(120% 70% at 38% 4%, var(--green-glow) 0%, var(--green) 46%, var(--green-deep) 100%);
+  color:var(--white);
+  font-family:'Alexandria',sans-serif;-webkit-font-smoothing:antialiased;
+  direction:rtl;
+  box-sizing:border-box;
+}
+#posterRoot .poster *{box-sizing:border-box;margin:0;padding:0;}
+#posterRoot .poster .arcs{position:absolute;inset:0;pointer-events:none;z-index:0;}
+#posterRoot .poster .pad{position:absolute;inset:0;padding:74px 72px 64px;display:flex;flex-direction:column;z-index:2;}
+#posterRoot .poster .disp{font-weight:900;line-height:1.0;letter-spacing:-.01em;}
+#posterRoot .poster .kick{font-weight:800;letter-spacing:.02em;}
+#posterRoot .poster .shead{display:flex;align-items:center;gap:22px;margin-bottom:22px;}
+#posterRoot .poster .shead .lbl{font-weight:800;font-size:23px;color:var(--gold);white-space:nowrap;}
+#posterRoot .poster .shead .ln{flex:1;height:1px;background:var(--line);}
+#posterRoot .poster .spot{
+  position:relative;border-radius:16px;padding:34px 40px;
+  background:linear-gradient(150deg, rgba(230,204,120,.16), rgba(230,204,120,.04));
+  border:1.5px solid rgba(230,204,120,.55);
+  display:flex;align-items:center;gap:30px;
+  box-shadow:0 18px 50px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.07);
+}
+#posterRoot .poster .spot .medal{flex-shrink:0;}
+#posterRoot .poster .spot .name{font-weight:900;font-size:62px;line-height:1;color:#fff;letter-spacing:-.01em;}
+#posterRoot .poster .spot .sub{font-weight:700;font-size:20px;color:var(--gold);margin-top:8px;}
+#posterRoot .poster .spot .ptpill{
+  margin-right:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:184px;height:184px;border-radius:50%;flex-shrink:0;gap:0;
+  background:radial-gradient(circle at 38% 30%, #F4E2A6, var(--gold) 55%, var(--gold-deep));
+  color:#0A2C20;box-shadow:0 12px 30px rgba(0,0,0,.32);
+}
+#posterRoot .poster .spot .ptpill b{font-weight:900;font-size:104px;line-height:.9;letter-spacing:-.02em;white-space:nowrap;}
+#posterRoot .poster .spot .ptpill span{font-weight:800;font-size:25px;margin-top:2px;}
+#posterRoot .poster .lb{display:flex;flex-direction:column;gap:12px;}
+#posterRoot .poster .lrow{
+  display:flex;align-items:center;gap:22px;
+  background:var(--row);border:1px solid var(--row-edge);border-radius:12px;
+  padding:18px 26px;
+}
+#posterRoot .poster .lrow .rank{
+  width:50px;height:50px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:24px;color:#0A2C20;
+}
+#posterRoot .poster .lrow .pname{font-weight:800;font-size:34px;color:#fff;letter-spacing:-.005em;}
+#posterRoot .poster .lrow .pts{
+  margin-right:auto;display:flex;align-items:baseline;gap:7px;
+  background:rgba(230,204,120,.12);border:1px solid rgba(230,204,120,.34);
+  border-radius:999px;padding:9px 22px;color:var(--gold);
+}
+#posterRoot .poster .lrow .pts b{font-weight:900;font-size:30px;letter-spacing:-.02em;}
+#posterRoot .poster .lrow .pts span{font-weight:700;font-size:18px;}
+#posterRoot .poster .res{display:flex;flex-direction:column;gap:12px;}
+#posterRoot .poster .rrow{
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;
+  background:var(--row);border:1px solid var(--row-edge);border-radius:12px;
+  padding:16px 28px;
+}
+#posterRoot .poster .team{display:flex;align-items:center;gap:14px;font-weight:800;font-size:31px;color:#fff;}
+#posterRoot .poster .team .fl{width:48px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;box-shadow:0 1px 5px rgba(0,0,0,.45);}
+#posterRoot .poster .team.home{justify-content:flex-start;}
+#posterRoot .poster .team.away{justify-content:flex-end;}
+#posterRoot .poster .score{
+  display:flex;align-items:center;gap:12px;font-weight:900;font-size:34px;
+  letter-spacing:.04em;color:#0A2C20;background:var(--gold);
+  border-radius:9px;padding:8px 24px;min-width:118px;justify-content:center;
+}
+#posterRoot .poster .score .dash{opacity:.55;font-weight:700;margin:0 2px;}
+#posterRoot .poster .score .g{min-width:.7em;text-align:center;}
+#posterRoot .poster .fx{display:flex;flex-direction:column;gap:11px;}
+#posterRoot .poster .frow{
+  display:flex;align-items:center;justify-content:space-between;gap:22px;
+  border-bottom:1px solid var(--line);padding:15px 4px;
+}
+#posterRoot .poster .frow:last-child{border-bottom:none;}
+#posterRoot .poster .frow .when{font-weight:700;font-size:22px;color:var(--gold);direction:rtl;white-space:nowrap;}
+#posterRoot .poster .frow .vs{white-space:nowrap;display:flex;align-items:center;gap:14px;font-weight:800;font-size:28px;color:#fff;}
+#posterRoot .poster .frow .vs .fl{width:42px;height:28px;border-radius:3px;object-fit:cover;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.45);}
+#posterRoot .poster .frow .vs .x{color:var(--faint);font-weight:700;font-size:22px;margin:0 4px;}
+#posterRoot .poster .empty{
+  background:var(--row);border:1px solid var(--row-edge);border-radius:12px;
+  padding:24px;text-align:center;font-weight:600;font-size:26px;color:var(--mute);
+}
+</style>
+<div id="posterRoot" aria-hidden="true"></div>
 
 <!-- LOGIN -->
 <div class="screen active" id="sLogin">
@@ -1653,15 +1752,20 @@ function arKick(m){
   var mm=d.getMinutes(); var mmS=(mm<10?'0':'')+mm;
   return AR_WEEKDAY[d.getDay()]+' '+arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' • '+arNum(h12+':'+mmS)+' '+suf;
 }
+// ===== AR daily-summary poster (rooms edition) =====
+// We render the design as plain HTML/CSS inside the hidden #posterRoot div,
+// then ask html2canvas to rasterise it into a 1080×2180 PNG. Matches the
+// artifact the user designed in a Claude artifact. Top-5/topT are filtered
+// down to the current room's members when the user is inside a private league.
 function genDailySummary(){
-  var TH = {bg1:'#06140d',bg2:'#0e2719',gold:'#d4af37',goldBright:'#f0cb55',goldDark:'#8a6a1f',goldSoft:'rgba(212,175,55,.10)',goldGlow:'rgba(212,175,55,.28)',accent:'#34d399',accentSoft:'rgba(52,211,153,.16)',ink:'#f7f4ea',muted:'#9bc1ad',eyebrow:'#cfe6d8',font:"'Tajawal','Cairo','Noto Naskh Arabic',sans-serif",rtl:true,locale:'ar',
-    t:{brand1:'دوري التوقّعات',brand2:'كأس العالم 2026',title:'ملخّص اليوم',heroHdr:'الفائزون اليوم',bestLabel:'أفضل لاعب اليوم',resultsHdr:'نتائج اليوم',tomorrowHdr:'المباريات القادمة',vs:'×',noResults:'ما فيه نتائج اليوم.',noPts:'ما فيه نقاط اليوم.',noLb:'ما فيه لاعبين بعد.',noTomorrow:'ما فيه مباريات بكرة.',toastDone:'ملخص اليوم جاهز 📸'}};
-  // ---- canvas geometry — dimensions chosen for the dramatic-scale spec ----
-  var W=1080, PAD=56, CARD_X=PAD, CARD_W=W-2*PAD;
-  var ROW=100;            // top-5 / results rows
-  var HERO_H=350;         // hero card height
-  var MED_R=170;          // gold medallion radius → ~340px diameter, dominates the hero
-  var TOMITEM=86;         // tomorrow row height — a touch slimmer than the result rows
+  var TH = { title:'ملخّص اليوم', toastDone:'ملخص اليوم جاهز 📸' };
+  var L = {
+    brand1:'دوري التوقّعات', brand2:'كأس العالم 2026',
+    heroHdr:'الفائزون اليوم', bestLabel:'أفضل لاعب اليوم',
+    resultsHdr:'نتائج اليوم', tomorrowHdr:'المباريات القادمة',
+    noPts:'ما فيه نقاط اليوم.', noLb:'ما فيه لاعبين بعد.',
+    noResults:'ما فيه نتائج اليوم.', noTomorrow:'ما فيه مباريات بكرة.'
+  };
   var now=Date.now();
   function dayStart(off){var d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return d.getTime();}
   var t0=dayStart(0), t1=dayStart(1), t2=dayStart(2);
@@ -1686,324 +1790,180 @@ function genDailySummary(){
     t+=tournamentPointsFor(tournamentPicksOf(k),ttruth);
     return {name:(usersData[k]&&usersData[k].name)||k,pts:t};
   }).sort(function(a,b){return b.pts-a.pts;}).slice(0,5);
-  // ---- vertical rhythm (matches the dramatic-scale spec) ----
-  var HEAD_TITLE_Y = 270;
-  var HEAD = 320;
-  if(_inRoom) HEAD += 36;   // a little extra space for the room subtitle
-  var EYE = 36;
-  var SECTION_GAP = 50;
-  var heroSection = topT.length ? HERO_H : 96;
-  var lbSection   = (totals.length ? totals.length*ROW : 96);
-  var resSection  = EYE + (todayR.length ? todayR.length*ROW : 96);
-  var tomSection  = EYE + (tomorrowM.length ? tomorrowM.length*TOMITEM : 96);
-  var H = HEAD + EYE + heroSection + 40 + lbSection + SECTION_GAP + resSection + SECTION_GAP + tomSection + 60;
-  H = Math.max(2000, H);
-  var cv=document.createElement('canvas');cv.width=W;cv.height=H;
-  var c=cv.getContext('2d');
-  // ----- helpers -----
-  function rr(x,y,w,h,r){
-    if(c.roundRect){c.beginPath();c.roundRect(x,y,w,h,r);return;}
-    r=Math.min(r,w/2,h/2);
-    c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);
-    c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-    c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);
-    c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();
-  }
-  function fillRR(x,y,w,h,r,fill){rr(x,y,w,h,r);c.fillStyle=fill;c.fill();}
-  function strokeRR(x,y,w,h,r,col,lw){rr(x,y,w,h,r);c.strokeStyle=col;c.lineWidth=lw||1;c.stroke();}
-  function greenCard(x,y,w,h){
-    var grd=c.createLinearGradient(x,y,x,y+h);
-    grd.addColorStop(0,'rgba(28,68,44,.62)');
-    grd.addColorStop(1,'rgba(14,39,25,.85)');
-    fillRR(x,y,w,h,16,grd);
-    strokeRR(x,y,w,h,16,'rgba(212,175,55,.25)',1);
-    c.save();rr(x,y,w,h,16);c.clip();
-    var sheen=c.createLinearGradient(x,y,x,y+14);
-    sheen.addColorStop(0,'rgba(255,255,255,.05)');sheen.addColorStop(1,'rgba(255,255,255,0)');
-    c.fillStyle=sheen;c.fillRect(x,y,w,14);
-    c.restore();
-  }
-  function heroCard(x,y,w,h){
-    var grd=c.createLinearGradient(x,y,x,y+h);
-    grd.addColorStop(0,'rgba(20,58,38,.92)');
-    grd.addColorStop(1,'rgba(10,36,22,.96)');
-    fillRR(x,y,w,h,28,grd);
-    strokeRR(x,y,w,h,28,'rgba(212,175,55,.50)',1.5);
-    c.save();rr(x,y,w,h,28);c.clip();
-    var sheen=c.createLinearGradient(x,y,x,y+30);
-    sheen.addColorStop(0,'rgba(255,255,255,.06)');sheen.addColorStop(1,'rgba(255,255,255,0)');
-    c.fillStyle=sheen;c.fillRect(x,y,w,30);
-    c.restore();
-  }
-  function rankChip(cx,cy,r,rank){
-    var styles={1:{bg:'#d4af37',ring:'#f0cb55',tx:'#1a1206'},
-                2:{bg:'#c0c4cc',ring:'#e2e8f0',tx:'#0f172a'},
-                3:{bg:'#cd7f32',ring:'#e6a866',tx:'#ffffff'}};
-    var s=styles[rank]||{bg:'#1a3a26',ring:'rgba(212,175,55,.45)',tx:'#d4af37'};
-    c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);c.fillStyle=s.bg;c.fill();
-    c.lineWidth=2;c.strokeStyle=s.ring;c.stroke();
-    c.fillStyle=s.tx;c.font='900 30px '+TH.font;c.textAlign='center';c.textBaseline='middle';
-    c.fillText(arNum(rank),cx,cy+1);
-  }
-  function goldPill(cx,cy,w,h,text,opts){
-    opts=opts||{};
-    fillRR(cx-w/2,cy-h/2,w,h,h/2,opts.fill||'rgba(212,175,55,.10)');
-    strokeRR(cx-w/2,cy-h/2,w,h,h/2,opts.border||'rgba(212,175,55,.50)',1);
-    c.fillStyle=opts.color||TH.gold;
-    c.font=opts.font||('700 32px '+TH.font);
-    c.textAlign='center';c.textBaseline='middle';
-    c.fillText(text,cx,cy+1);
-  }
-  function medalIcon(cx,cy,size){
-    c.save();
-    c.translate(cx,cy);
-    c.fillStyle='#1f6038';
-    c.save();c.rotate(Math.PI/9);c.fillRect(-size*0.55,-2,size*0.20,size*0.95);c.restore();
-    c.save();c.rotate(-Math.PI/9);c.fillRect( size*0.35,-2,size*0.20,size*0.95);c.restore();
-    var rg=c.createRadialGradient(-size*0.18,-size*0.18,2,0,0,size*0.55);
-    rg.addColorStop(0,'#fef3c7');rg.addColorStop(0.55,'#f0cb55');rg.addColorStop(1,'#a47815');
-    c.beginPath();c.arc(0,0,size*0.55,0,Math.PI*2);c.fillStyle=rg;c.fill();
-    c.lineWidth=1.5;c.strokeStyle='#7a4a02';c.stroke();
-    c.beginPath();
-    for(var i=0;i<10;i++){
-      var rr2=(i%2===0)?size*0.24:size*0.11, a=Math.PI/5*i-Math.PI/2;
-      var px=rr2*Math.cos(a), py=rr2*Math.sin(a);
-      if(i===0)c.moveTo(px,py);else c.lineTo(px,py);
-    }
-    c.closePath();c.fillStyle='#7a4a02';c.fill();
-    c.restore();
-  }
-  function brandMarks(cx,cy){
-    c.save();
-    c.translate(cx+26,cy);
-    var rgD=c.createRadialGradient(-6,-6,2,0,0,24);
-    rgD.addColorStop(0,'rgba(34,108,68,.95)');rgD.addColorStop(1,'rgba(10,46,28,.95)');
-    c.fillStyle=rgD;c.beginPath();c.arc(0,0,24,0,Math.PI*2);c.fill();
-    c.strokeStyle=TH.gold;c.lineWidth=1.4;c.stroke();
-    c.fillStyle='#0a2e1c';
-    c.beginPath();
-    c.moveTo(-13,7);c.lineTo(-13,2);
-    c.bezierCurveTo(-13,-10,13,-10,13,2);
-    c.lineTo(13,7);c.closePath();c.fill();
-    c.fillStyle=TH.gold;c.beginPath();c.arc(0,-10,2.6,0,Math.PI*2);c.fill();
-    c.fillRect(-0.7,-14,1.4,4);
-    c.restore();
-    c.save();
-    c.translate(cx-26,cy);
-    var rgS=c.createRadialGradient(-5,-5,1,0,0,24);
-    rgS.addColorStop(0,'rgba(28,72,46,.95)');rgS.addColorStop(1,'rgba(8,32,20,.95)');
-    c.fillStyle=rgS;c.beginPath();c.arc(0,0,24,0,Math.PI*2);c.fill();
-    c.strokeStyle=TH.gold;c.lineWidth=1.4;c.stroke();
-    c.strokeStyle=TH.gold;c.lineWidth=1.2;
-    c.beginPath();
-    c.moveTo(-11,-10);c.lineTo(11,-10);c.lineTo(11,3);
-    c.bezierCurveTo(11,11,0,14,0,14);
-    c.bezierCurveTo(0,14,-11,11,-11,3);c.closePath();c.stroke();
-    c.fillStyle=TH.gold;c.font='900 9px '+TH.font;c.textAlign='center';c.textBaseline='middle';
-    c.fillText('SAFF',0,1);
-    c.restore();
-  }
-  // ----- background -----
-  var g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,TH.bg1);g.addColorStop(0.55,'#0a1f14');g.addColorStop(1,TH.bg2);
-  c.fillStyle=g;c.fillRect(0,0,W,H);
-  c.save();
-  c.beginPath();c.rect(0,0,W*0.55,460);c.clip();
-  c.strokeStyle=TH.gold;
-  for(var sr=260;sr<=960;sr+=70){
-    var sa = 0.16 - sr/9000;
-    if(sa<0.04) sa=0.04;
-    c.globalAlpha=sa;
-    c.lineWidth = sr<420 ? 1.6 : 1.1;
-    c.beginPath();c.arc(0,0,sr,0,Math.PI/2);c.stroke();
-  }
-  c.globalAlpha=1;
-  c.restore();
-  var bloom=c.createRadialGradient(W/2,-40,30,W/2,-40,W*0.55);
-  bloom.addColorStop(0,'rgba(212,175,55,.07)');bloom.addColorStop(1,'rgba(0,0,0,0)');
-  c.fillStyle=bloom;c.fillRect(0,0,W,320);
-  var vig=c.createRadialGradient(W/2,H*0.55,W*0.30,W/2,H*0.55,W*0.85);
-  vig.addColorStop(0,'rgba(0,0,0,0)');vig.addColorStop(1,'rgba(0,0,0,.45)');
-  c.fillStyle=vig;c.fillRect(0,0,W,H);
 
-  // ----- header strip -----
-  c.direction=TH.rtl?'rtl':'ltr';
-  c.textBaseline='alphabetic';
-  // brand mark on the right edge: two small round logos with text to their LEFT
-  var marksRight = W - PAD - 26;
-  var marksLeft  = marksRight - 52;
-  brandMarks((marksRight+marksLeft)/2, 80);
-  var brandTextX = marksLeft - 26 - 12;
-  c.textAlign='right';
-  c.font='800 26px '+TH.font;c.fillStyle=TH.ink;
-  c.fillText(TH.t.brand2, brandTextX, 95);
-  c.font='600 22px '+TH.font;c.fillStyle=TH.muted;
-  c.fillText(TH.t.brand1, brandTextX, 65);
+  // ----- rank chip colour mapping (1=gold,2=silver,3=bronze, then faint) -----
+  var rankStyle={
+    1:'background:var(--gold);color:#0A2C20;',
+    2:'background:var(--silver);color:#0A2C20;',
+    3:'background:var(--bronze);color:#0A2C20;'
+  };
+  function rankCss(rank){ return rankStyle[rank] || 'background:rgba(255,255,255,.16);color:#fff;'; }
 
-  c.textAlign='left';
-  c.font='600 28px '+TH.font;c.fillStyle='rgba(212,175,55,.85)';
-  c.fillText(arDateLong(new Date(now)), PAD, 88);
+  // ----- flag chunk: <img> when we know the ISO, otherwise nothing -----
+  function flagFor(team){
+    var iso = COUNTRY_ISO[team];
+    if(!iso) return '';
+    return '<img class="fl" src="https://flagcdn.com/'+iso+'.svg" alt="" crossorigin="anonymous">';
+  }
 
-  c.textAlign='center';
-  c.font='900 120px '+TH.font;c.fillStyle=TH.ink;
-  c.fillText(TH.t.title, W/2, HEAD_TITLE_Y);
-  c.fillStyle='rgba(212,175,55,.35)';
-  c.fillRect(W/2-140, HEAD_TITLE_Y+18, 280, 2);
-  // room name subtitle (when scoped to a private league)
+  // ----- concentric gold arcs anchored above the top-left corner -----
+  var arcRings=[
+    [300,7,.42],[372,4,.18],[446,9,.34],[520,4,.15],[598,8,.27],[690,4,.13],
+    [786,7,.20],[892,4,.10],[1004,6,.14],[1130,4,.08],[1270,6,.07]
+  ];
+  var arcsHtml='<svg class="arcs" viewBox="0 0 1080 2180" preserveAspectRatio="xMidYMid slice">';
+  arcRings.forEach(function(g){
+    arcsHtml += '<circle cx="-100" cy="-70" r="'+g[0]+'" fill="none" stroke="#E6CC78" stroke-width="'+g[1]+'" stroke-opacity="'+g[2]+'"/>';
+  });
+  arcsHtml += '</svg>';
+
+  // ----- medal SVG (gold disc + green ribbon tails + tiny star) -----
+  var medalHtml='\
+<svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true" style="display:block">\
+  <defs>\
+    <linearGradient id="psrib" x1="0" y1="0" x2="0" y2="1">\
+      <stop offset="0" stop-color="#1A6B52"/><stop offset="1" stop-color="#0C3A2C"/>\
+    </linearGradient>\
+    <radialGradient id="psmed" cx="38%" cy="32%" r="72%">\
+      <stop offset="0" stop-color="#F6E6AE"/><stop offset="55%" stop-color="#E6CC78"/><stop offset="1" stop-color="#C9A24A"/>\
+    </radialGradient>\
+  </defs>\
+  <path d="M30 6 L42 44 H30 L20 14 Z" fill="url(#psrib)"/>\
+  <path d="M66 6 L54 44 H66 L76 14 Z" fill="url(#psrib)"/>\
+  <circle cx="48" cy="60" r="30" fill="url(#psmed)" stroke="#B98F38" stroke-width="2"/>\
+  <circle cx="48" cy="60" r="22" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.5"/>\
+  <path d="M48 46 l4.6 9.3 10.3 1.5 -7.4 7.3 1.7 10.2 -9.2-4.8 -9.2 4.8 1.7-10.2 -7.4-7.3 10.3-1.5 Z" fill="#0A2C20" opacity=".9"/>\
+</svg>';
+
+  // ----- header strip: logo + divider + brand stack on right, date on left -----
+  var headerHtml = '\
+<div style="display:flex;justify-content:space-between;align-items:center;">\
+  <div style="display:flex;align-items:center;gap:20px;">\
+    <img src="saff-white.png" alt="" style="height:78px;width:auto;display:block;flex-shrink:0;filter:brightness(0) invert(1);">\
+    <div style="width:2px;height:56px;background:rgba(255,255,255,.28);"></div>\
+    <div style="text-align:right;line-height:1.25;">\
+      <div style="font-size:24px;font-weight:900;color:#fff;">'+esc(L.brand1)+'</div>\
+      <div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">'+esc(L.brand2)+'</div>\
+    </div>\
+  </div>\
+  <div class="kick" style="font-size:21px;color:var(--mute);">'+esc(arDateLong(new Date(now)))+'</div>\
+</div>';
+
+  // ----- title (+ optional room subtitle) -----
+  var titleHtml = '<h1 class="disp" style="font-size:92px;margin-top:46px;margin-bottom:'+(_inRoom?'18':'44')+'px;">'+esc(TH.title.split(' ')[0])+' <span style="color:var(--gold);">'+esc(TH.title.split(' ')[1]||'')+'</span></h1>';
   if(_inRoom){
     var _rn=(currentRoomInfo&&currentRoomInfo.name)||currentRoomId;
-    c.font='700 26px '+TH.font;c.fillStyle=TH.gold;c.textAlign='center';
-    c.fillText('· '+_rn+' ·', W/2, HEAD_TITLE_Y+58);
+    titleHtml += '<div style="font-weight:700;font-size:26px;color:var(--gold);text-align:center;margin-bottom:26px;">· '+esc(_rn)+' ·</div>';
   }
 
-  var y=HEAD;
-  function eyebrow(text){
-    var ey=y+EYE-8;
-    c.font='800 26px '+TH.font;c.fillStyle='rgba(212,175,55,.80)';c.textBaseline='alphabetic';
-    var tw=c.measureText(text).width;
-    if(TH.rtl){
-      c.textAlign='right';c.fillText(text, W-PAD, ey);
-      var rx=PAD, rw=W-PAD-tw-PAD-22;
-      if(rw>20){
-        var grd=c.createLinearGradient(rx,0,rx+rw,0);
-        grd.addColorStop(0,'rgba(212,175,55,0)');
-        grd.addColorStop(1,'rgba(212,175,55,.45)');
-        c.fillStyle=grd;c.fillRect(rx,ey-8,rw,1);
-      }
-    } else {
-      c.textAlign='left';c.fillText(text, PAD, ey);
-    }
-    y += EYE;
-  }
-  function emptyRow(text){
-    fillRR(CARD_X,y,CARD_W,84,16,'rgba(255,255,255,.04)');
-    strokeRR(CARD_X,y,CARD_W,84,16,'rgba(255,255,255,.08)',1);
-    c.font='500 26px '+TH.font;c.fillStyle=TH.muted;
-    c.textAlign='center';c.textBaseline='middle';
-    c.fillText(text,W/2,y+44);
-    y+=96;
-  }
-  function rHero(u,yy){
-    var ch=HERO_H;
-    heroCard(CARD_X,yy,CARD_W,ch);
-    var medCx = CARD_X + MED_R + 40;
-    var medCy = yy + ch/2;
-    var halo=c.createRadialGradient(medCx,medCy,4,medCx,medCy,MED_R*1.45);
-    halo.addColorStop(0,'rgba(212,175,55,.40)');halo.addColorStop(1,'rgba(212,175,55,0)');
-    c.fillStyle=halo;c.fillRect(medCx-MED_R*1.5,medCy-MED_R*1.5,MED_R*3,MED_R*3);
-    var rg=c.createRadialGradient(medCx-MED_R*0.30,medCy-MED_R*0.30,8,medCx,medCy,MED_R);
-    rg.addColorStop(0,'#f5d56b');
-    rg.addColorStop(0.55,'#e0b94a');
-    rg.addColorStop(1,'#b8911c');
-    c.beginPath();c.arc(medCx,medCy,MED_R,0,Math.PI*2);c.fillStyle=rg;c.fill();
-    c.globalAlpha=0.6;
-    c.lineWidth=1.5;c.strokeStyle='#7a5d10';c.stroke();
-    c.globalAlpha=1;
-    c.beginPath();c.arc(medCx,medCy,MED_R-10,0,Math.PI*2);
-    c.lineWidth=1;c.strokeStyle='rgba(255,240,180,.45)';c.stroke();
-    c.save();
-    c.beginPath();c.arc(medCx,medCy,MED_R-2,0,Math.PI*2);c.clip();
-    var insh=c.createRadialGradient(medCx,medCy+MED_R*0.4,MED_R*0.5,medCx,medCy+MED_R*0.4,MED_R*1.2);
-    insh.addColorStop(0,'rgba(0,0,0,0)');insh.addColorStop(1,'rgba(60,40,4,.35)');
-    c.fillStyle=insh;c.fillRect(medCx-MED_R,medCy-MED_R,MED_R*2,MED_R*2);
-    c.restore();
-    c.fillStyle='#1a1206';c.textBaseline='alphabetic';c.textAlign='center';
-    c.font='900 140px '+TH.font;
-    c.fillText(arNum(u.pts), medCx, medCy+10);
-    c.font='800 36px '+TH.font;c.fillStyle='#3a2402';
-    c.fillText(ptsWord(u.pts), medCx, medCy+62);
-
-    var rightX = W - PAD - 40;
-    c.textBaseline='alphabetic';c.textAlign='right';
-    c.font='900 70px '+TH.font;c.fillStyle=TH.ink;
-    var nameY = yy + ch/2 - 10;
-    c.fillText(u.name, rightX, nameY);
-    c.font='700 28px '+TH.font;c.fillStyle=TH.muted;
-    c.fillText(TH.t.bestLabel, rightX, nameY+40);
-    c.font='900 70px '+TH.font;
-    var nameW=c.measureText(u.name).width;
-    medalIcon(rightX-nameW-50, nameY-20, 80);
-  }
-  function rUsr(u,i,yy){
-    var rowH=ROW-6;
-    greenCard(CARD_X,yy,CARD_W,rowH);
-    var cy=yy+rowH/2;
-    var rank=i+1;
-    var chipR=26;
-    var chipCx=W-PAD-22-chipR;
-    rankChip(chipCx, cy, chipR, rank);
-    c.font='800 50px '+TH.font;c.fillStyle='#ffffff';c.textBaseline='middle';
-    c.textAlign='right';
-    c.fillText(u.name, chipCx-chipR-16, cy);
-    c.font='700 32px '+TH.font;
-    var ptsText=arNum(u.pts)+' '+ptsWord(u.pts);
-    var pw=c.measureText(ptsText).width+48;
-    var ph=56;
-    goldPill(PAD+22+pw/2, cy, pw, ph, ptsText, {color:TH.gold,font:'700 32px '+TH.font});
-  }
-  function rRes(m,yy){
-    var rowH=ROW-6;
-    greenCard(CARD_X,yy,CARD_W,rowH);
-    var t=teamsOf(m),r=result(m);
-    var cy=yy+rowH/2;
-    c.font='900 36px '+TH.font;
-    var scoreText=arNum(r.h)+' – '+arNum(r.a);
-    var sw=c.measureText(scoreText).width+50;
-    var sh=60;
-    goldPill(W/2, cy, sw, sh, scoreText, {fill:'#d4af37',border:'rgba(212,175,55,.85)',color:'#1a1206',font:'900 36px '+TH.font});
-    c.font='700 34px '+TH.font;c.fillStyle=TH.ink;c.textBaseline='middle';
-    c.textAlign='right';
-    c.fillText(arTeam(t.home)+' '+(t.hf||''), W-PAD-30, cy);
-    c.textAlign='left';
-    c.fillText((t.af||'')+' '+arTeam(t.away), PAD+30, cy);
-  }
-  function rTom(m,yy){
-    var rowH=TOMITEM-8;
-    greenCard(CARD_X,yy,CARD_W,rowH);
-    var t=teamsOf(m);
-    var cy=yy+rowH/2;
-    c.font='700 26px '+TH.font;c.fillStyle=TH.ink;c.textBaseline='middle';
-    c.textAlign='right';
-    var rightLabel = arTeam(t.home)+' '+(t.hf||'')+'  '+TH.t.vs+'  '+(t.af||'')+' '+arTeam(t.away);
-    c.fillText(rightLabel, W-PAD-22, cy);
-    c.font='700 24px '+TH.font;c.fillStyle=TH.gold;c.textAlign='left';
-    c.fillText(arKick(m), PAD+22, cy);
+  // ----- spotlight (winner) -----
+  var spotHtml = '';
+  if(topT.length){
+    var w0 = topT[0];
+    spotHtml = '\
+<div class="shead"><span class="lbl">'+esc(L.heroHdr)+'</span><span class="ln"></span></div>\
+<div class="spot">\
+  <div class="medal">'+medalHtml+'</div>\
+  <div>\
+    <div class="name">'+esc(w0.name)+'</div>\
+    <div class="sub">'+esc(L.bestLabel)+'</div>\
+  </div>\
+  <div class="ptpill"><b>'+esc(arNum(w0.pts))+'</b><span>'+esc(ptsWord(w0.pts))+'</span></div>\
+</div>';
+  } else {
+    spotHtml = '\
+<div class="shead"><span class="lbl">'+esc(L.heroHdr)+'</span><span class="ln"></span></div>\
+<div class="empty">'+esc(L.noPts)+'</div>';
   }
 
-  // ===== composed flow =====
-  eyebrow(TH.t.heroHdr);
-  if(topT.length){ rHero(topT[0],y); y+=HERO_H; }
-  else { emptyRow(TH.t.noPts); }
-  y += 40;
+  // ----- leaderboard rows (top 5) -----
+  var lbHtml = '<div class="lb" style="margin-top:18px;">';
   if(totals.length){
-    totals.forEach(function(u,i){ rUsr(u,i,y); y+=ROW; });
-  } else { emptyRow(TH.t.noLb); }
-  y += SECTION_GAP;
+    totals.forEach(function(u,i){
+      var rk=i+1;
+      lbHtml += '\
+<div class="lrow">\
+  <div class="rank" style="'+rankCss(rk)+'">'+esc(arNum(rk))+'</div>\
+  <div class="pname">'+esc(u.name)+'</div>\
+  <div class="pts"><b>'+esc(arNum(u.pts))+'</b><span>'+esc(ptsWord(u.pts))+'</span></div>\
+</div>';
+    });
+  } else {
+    lbHtml += '<div class="empty">'+esc(L.noLb)+'</div>';
+  }
+  lbHtml += '</div>';
 
-  eyebrow(TH.t.resultsHdr);
+  // ----- results rows -----
+  var resHtml = '<div class="shead" style="margin-top:40px;"><span class="lbl">'+esc(L.resultsHdr)+'</span><span class="ln"></span></div>';
   if(todayR.length){
-    todayR.forEach(function(m){ rRes(m,y); y+=ROW; });
-  } else { emptyRow(TH.t.noResults); }
-  y += SECTION_GAP;
+    resHtml += '<div class="res">';
+    todayR.forEach(function(m){
+      var t=teamsOf(m), r=result(m);
+      resHtml += '\
+<div class="rrow">\
+  <div class="team home">'+flagFor(t.home)+esc(arTeam(t.home))+'</div>\
+  <div class="score"><span class="g">'+esc(arNum(r.h))+'</span><span class="dash">–</span><span class="g">'+esc(arNum(r.a))+'</span></div>\
+  <div class="team away">'+esc(arTeam(t.away))+flagFor(t.away)+'</div>\
+</div>';
+    });
+    resHtml += '</div>';
+  } else {
+    resHtml += '<div class="empty">'+esc(L.noResults)+'</div>';
+  }
 
-  eyebrow(TH.t.tomorrowHdr);
+  // ----- fixtures rows -----
+  var fxHtml = '<div class="shead" style="margin-top:40px;"><span class="lbl">'+esc(L.tomorrowHdr)+'</span><span class="ln"></span></div>';
   if(tomorrowM.length){
-    tomorrowM.forEach(function(m){ rTom(m,y); y+=TOMITEM; });
-  } else { emptyRow(TH.t.noTomorrow); }
+    fxHtml += '<div class="fx">';
+    tomorrowM.forEach(function(m){
+      var t=teamsOf(m);
+      fxHtml += '\
+<div class="frow">\
+  <div class="vs">'+flagFor(t.home)+esc(arTeam(t.home))+'<span class="x">×</span>'+esc(arTeam(t.away))+flagFor(t.away)+'</div>\
+  <div class="when">'+esc(arKick(m))+'</div>\
+</div>';
+    });
+    fxHtml += '</div>';
+  } else {
+    fxHtml += '<div class="empty">'+esc(L.noTomorrow)+'</div>';
+  }
+
+  // ----- assemble the poster -----
+  var posterHtml = '<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+titleHtml+spotHtml+lbHtml+resHtml+fxHtml+'</div></div>';
+  var posterRoot = document.getElementById('posterRoot');
+  posterRoot.innerHTML = posterHtml;
 
   var fname='wc2026-summary-'+new Date(now).toISOString().slice(0,10)+'.png';
-  cv.toBlob(function(blob){
-    var file = (typeof File!=='undefined') ? new File([blob],fname,{type:'image/png'}) : null;
-    if(file && navigator.canShare && navigator.canShare({files:[file]})){
-      navigator.share({files:[file],title:TH.t.title}).then(function(){toast(TH.t.toastDone);}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();});
-    } else { dl(); }
-    function dl(){
-      var u=URL.createObjectURL(blob);
-      var a=document.createElement('a');a.href=u;a.download=fname;
-      document.body.appendChild(a);a.click();document.body.removeChild(a);
-      setTimeout(function(){URL.revokeObjectURL(u);},1500);
-      toast(TH.t.toastDone);
-    }
-  },'image/png');
+
+  function shareCanvas(cv){
+    cv.toBlob(function(blob){
+      var file = (typeof File!=='undefined') ? new File([blob],fname,{type:'image/png'}) : null;
+      if(file && navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:TH.title}).then(function(){toast(TH.toastDone);}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();});
+      } else { dl(); }
+      function dl(){
+        var u=URL.createObjectURL(blob);
+        var a=document.createElement('a');a.href=u;a.download=fname;
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        setTimeout(function(){URL.revokeObjectURL(u);},1500);
+        toast(TH.toastDone);
+      }
+      // clear the hidden poster so it doesn't sit in memory
+      posterRoot.innerHTML='';
+    },'image/png');
+  }
+
+  var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+  fontsReady.then(function(){
+    var target = posterRoot.querySelector('.poster');
+    if(!target){ posterRoot.innerHTML=''; return; }
+    html2canvas(target, {
+      backgroundColor:null, scale:1, useCORS:true, allowTaint:false,
+      width:1080, height:2180, windowWidth:1080, windowHeight:2180
+    }).then(shareCanvas).catch(function(e){
+      posterRoot.innerHTML='';
+    });
+  });
 }
 function adminZone(m){
   var z=document.createElement('div');z.className='admin-zone';
