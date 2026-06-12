@@ -369,7 +369,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
   background:var(--row);border:1px solid var(--row-edge);border-radius:12px;
   padding:16px 28px;
 }
-#posterRoot .poster .team{display:flex;align-items:center;gap:14px;font-weight:800;font-size:31px;color:#fff;}
+#posterRoot .poster .team{display:flex;align-items:center;gap:14px;font-weight:800;font-size:31px;color:#fff;flex-wrap:nowrap;white-space:nowrap;min-width:0;}
 #posterRoot .poster .team .fl{width:48px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;box-shadow:0 1px 5px rgba(0,0,0,.45);}
 #posterRoot .poster .team.home{justify-content:flex-start;}
 #posterRoot .poster .team.away{justify-content:flex-end;}
@@ -1774,19 +1774,14 @@ function genDailySummary(){
     var h2cTimeout = setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';}, 20000);
     // Prefer html-to-image (better iOS support); fall back to html2canvas if it isn't loaded.
     if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
-      var fontStep = htmlToImage.getFontEmbedCSS ? htmlToImage.getFontEmbedCSS(target).catch(function(){return '';}) : Promise.resolve('');
-      fontStep.then(function(fontCss){
-        return htmlToImage.toBlob(target, {
-          backgroundColor:null,
-          cacheBust:true,
-          pixelRatio:1,
-          width:1080, height:h,
-          fontEmbedCSS: fontCss || undefined
-        });
+      htmlToImage.toBlob(target, {
+        backgroundColor:null,
+        cacheBust:true,
+        pixelRatio: Math.min(2, window.devicePixelRatio||1),
+        width:1080, height:h
       }).then(function(blob){
         clearTimeout(h2cTimeout);
         if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
-        // Mimic the html2canvas path: build a virtual canvas object with toBlob that returns the blob.
         var fakeCv={toBlob:function(cb){cb(blob);}};
         shareCanvas(fakeCv);
       }).catch(function(e){
