@@ -1779,9 +1779,10 @@ function genDailySummary(){
       // plain text ourselves and hand it straight to html-to-image as fontEmbedCSS.
       var fontUrl = 'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap';
       var fontStep = fetch(fontUrl,{cache:'force-cache'})
-        .then(function(r){return r.ok ? r.text() : '';})
-        .catch(function(){return '';});
+        .then(function(r){if(!r.ok){toast('فشل جلب CSS: '+r.status);return '';}return r.text();})
+        .catch(function(e){toast('فشل fetch: '+(e&&e.message||e));return '';});
       fontStep.then(function(fontCss){
+        toast('CSS: '+fontCss.length+' حرف · @font-face: '+(fontCss.match(/@font-face/g)||[]).length);
         return htmlToImage.toBlob(target, {
           backgroundColor:null,
           cacheBust:true,
