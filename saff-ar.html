@@ -166,6 +166,12 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .result-row{display:flex;align-items:center;justify-content:center;gap:14px;background:var(--surface);border-radius:12px;padding:10px;}
 .result-big{font-size:1.6rem;font-weight:800;color:#fff;}
 .result-lbl{font-size:.72rem;color:var(--muted);}
+.live-row{display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(220,55,55,.10);border:1px solid rgba(220,55,55,.32);border-radius:12px;padding:10px;}
+.live-dot{width:9px;height:9px;border-radius:50%;background:#e44a4a;box-shadow:0 0 0 0 rgba(228,74,74,.55);animation:livepulse 1.4s infinite;}
+.live-lbl{font-size:.74rem;font-weight:800;color:#ffb1b1;letter-spacing:.6px;}
+.live-big{font-size:1.6rem;font-weight:900;color:#fff;}
+.live-min{font-size:.78rem;color:#ffb1b1;font-weight:700;}
+@keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(228,74,74,.55);}70%{box-shadow:0 0 0 9px rgba(228,74,74,0);}100%{box-shadow:0 0 0 0 rgba(228,74,74,0);}}
 .your-pred{font-size:.8rem;color:var(--muted);text-align:center;}
 .your-pred b{color:var(--text);}
 .pts-badge{font-size:.82rem;font-weight:800;border-radius:10px;padding:4px 12px;text-align:center;width:fit-content;margin:0 auto;}
@@ -758,11 +764,12 @@ function loadFootballData(verbose){
     .then(function(d){
       if(!d)return;
       if(!d.matches){if(verbose)toast('استجابة FD بدون مباريات');return;}
-      var nr={}, nt={}, matchedCount=0, liveCount=0;
+      var nr={}, nt={}, nl={}, matchedCount=0, liveCount=0;
       d.matches.forEach(function(m){
         var st=matchFD(m); if(!st)return;
         matchedCount++;
-        if(m.status==='IN_PLAY'||m.status==='PAUSED')liveCount++;
+        var isLive = (m.status==='IN_PLAY'||m.status==='PAUSED');
+        if(isLive)liveCount++;
         var hn=m.homeTeam&&m.homeTeam.name, an=m.awayTeam&&m.awayTeam.name;
         if(st.stage!=='group' && (isRealTeam(hn)||isRealTeam(an))){
           nt[st.id]={home:isRealTeam(hn)?canon(hn):null, away:isRealTeam(an)?canon(an):null};
@@ -777,11 +784,19 @@ function loadFootballData(verbose){
             var homeWon = swapped ? (p.away>p.home) : (p.home>p.away);
             res.pw = homeWon?'h':'a';
           }
-          nr[st.id]=res;
+          if(isLive){
+            // live in-play score — keep separate so result(m) doesn't flip the
+            // match to "finished" before the official whistle.
+            nl[st.id]={h:res.h, a:res.a, status:m.status, minute:m.minute||null};
+          } else {
+            nr[st.id]=res;
+          }
         }
       });
       Object.keys(nr).forEach(function(id){apiResults[id]=nr[id];});
       Object.keys(nt).forEach(function(id){apiTeams[id]=nt[id];});
+      // overwrite apiLive wholesale so finished matches drop out of the live set
+      apiLive=nl;
       window.__fdLast={ok:true,total:d.matches.length,matched:matchedCount,live:liveCount,scored:Object.keys(nr).length,ts:Date.now()};
       if(verbose){var baseMsg='FD ✓ '+d.matches.length+' مباراة, '+liveCount+' مباشر, '+Object.keys(nr).length+' بنتيجة';if(/^https?:\/\//i.test(FD_TOKEN)){fetch(FD_TOKEN.replace(/\/+$/,'')+'/scorers',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(sd){var n=sd&&sd.scorers?sd.scorers.length:0;toast(baseMsg+' · الهدافين '+n);}).catch(function(){toast(baseMsg+' · الهدافين ✗');});}else{toast(baseMsg);}}
       renderMatches(); renderLeader(); renderGroups();
@@ -847,7 +862,7 @@ if(configReady){
 var myName='', myKey='', isAdmin=false, authError=null;
 var predsData={}, resultsData={}, teamsData={}, usersData={};
 // auto-pulled from openfootball (knockout teams + official results)
-var apiResults={}, apiTeams={};
+var apiResults={}, apiTeams={}, apiLive={};
 var currentFilter='upcoming'; // selected chip: 'upcoming' | 'g:X' | 'r:R'
 var editingMatch=null;
 var draft={}; // matchId -> {h,a}
@@ -878,6 +893,7 @@ function teamsOf(m){
 function kickoffMs(m){var t=Date.parse(m.utc); return isNaN(t)?Infinity:t;}
 // effective result: admin override wins, otherwise the auto API result
 function result(m){return resultsData[m.id]||apiResults[m.id]||null;}
+function liveScore(m){return apiLive[m.id]||null;}
 var OPEN_WINDOW = 24*60*60*1000; // التوقعات تفتح فقط قبل المباراة بـ24 ساعة
 function statusOf(m){
   if(result(m))return 'finished';
@@ -1356,7 +1372,13 @@ function matchCard(m){
       var no=document.createElement('div');no.className='locked-note';no.textContent='ماتوقعت نتيجة هذه المباراة';el.appendChild(no);
     }
   }else if(st==='locked'){
-    var ln=document.createElement('div');ln.className='locked-note';ln.textContent='● مباشر — أُغلقت التوقعات، بانتظار النتيجة الرسمية';el.appendChild(ln);
+    var lv=liveScore(m);
+    if(lv){
+      var lr=document.createElement('div');lr.className='live-row';
+      lr.innerHTML='<span class="live-dot"></span><span class="live-lbl">مباشر</span><span class="live-big">'+lv.h+' - '+lv.a+'</span>'+(lv.minute?'<span class="live-min">'+arNum(lv.minute)+"'</span>":'');
+      el.appendChild(lr);
+    }
+    var ln=document.createElement('div');ln.className='locked-note';ln.textContent=lv?'أُغلقت التوقعات، بانتظار النتيجة الرسمية':'● مباشر — أُغلقت التوقعات، بانتظار النتيجة الرسمية';el.appendChild(ln);
     if(myPred){var yp2=document.createElement('div');yp2.className='your-pred';yp2.innerHTML='توقّعك: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • بلنتيات: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'')+(myPred.x2?' <span class="x2-badge">⚡2x</span>':'');el.appendChild(yp2);}
     else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='ماتوقعت نتيجة هذه المباراة';el.appendChild(no2);}
   }else if(st==='soon'){
