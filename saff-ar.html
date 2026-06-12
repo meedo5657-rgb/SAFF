@@ -765,20 +765,25 @@ function loadFootballData(verbose){
       if(!d)return;
       if(!d.matches){if(verbose)toast('استجابة FD بدون مباريات');return;}
       var nr={}, nt={}, nl={}, matchedCount=0, liveCount=0;
+      var nowMs=Date.now();
       d.matches.forEach(function(m){
         var st=matchFD(m); if(!st)return;
         matchedCount++;
-        var isLive = (m.status==='IN_PLAY'||m.status==='PAUSED');
+        // Live = kickoff has passed AND FD doesn't say the match is over yet.
+        // Status-based detection alone is unreliable: FD often lags by several
+        // minutes flipping TIMED → IN_PLAY after kickoff.
+        var isFinished = (m.status==='FINISHED'||m.status==='AWARDED');
+        var kickPassed = kickoffMs(st) <= nowMs;
+        var isLive = !isFinished && (kickPassed || m.status==='IN_PLAY' || m.status==='PAUSED');
         if(isLive)liveCount++;
         var hn=m.homeTeam&&m.homeTeam.name, an=m.awayTeam&&m.awayTeam.name;
         if(st.stage!=='group' && (isRealTeam(hn)||isRealTeam(an))){
           nt[st.id]={home:isRealTeam(hn)?canon(hn):null, away:isRealTeam(an)?canon(an):null};
         }
         var sc=m.score||{};
-        // For in-play: FD can put the current score in score.fullTime OR
-        // score.regularTime OR score.halfTime depending on which competition
-        // feed it is. Try them in order, then fall back to 0-0 if the match
-        // is in play but no field has numbers yet (kickoff seconds).
+        // Walk the FD score chain (FD can put the current in-play score in
+        // any of these depending on competition/tier) and fall back to 0-0
+        // when the match is live but no field has numbers yet.
         var fin=(sc.extraTime && sc.extraTime.home!=null && sc.extraTime.away!=null) ? sc.extraTime :
                 (sc.fullTime && sc.fullTime.home!=null && sc.fullTime.away!=null) ? sc.fullTime :
                 (sc.regularTime && sc.regularTime.home!=null && sc.regularTime.away!=null) ? sc.regularTime :
@@ -792,12 +797,12 @@ function loadFootballData(verbose){
             var homeWon = swapped ? (p.away>p.home) : (p.home>p.away);
             res.pw = homeWon?'h':'a';
           }
-          if(isLive){
-            // live in-play score — keep separate so result(m) doesn't flip the
-            // match to "finished" before the official whistle.
-            nl[st.id]={h:res.h, a:res.a, status:m.status, minute:m.minute||null};
-          } else {
+          if(isFinished){
             nr[st.id]=res;
+          } else if(isLive){
+            // live in-play score — keep separate so result(m) doesn't flip
+            // the match to "finished" before the official whistle.
+            nl[st.id]={h:res.h, a:res.a, status:m.status, minute:m.minute||null};
           }
         }
       });
