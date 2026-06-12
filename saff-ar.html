@@ -1597,13 +1597,9 @@ function genDailySummary(){
   };
   function rankCss(rank){ return rankStyle[rank] || 'background:rgba(255,255,255,.16);color:#fff;'; }
 
-  // ----- flag chunk: <img> when we know the ISO, otherwise nothing -----
-  // PNG, not SVG: html2canvas handles raster reliably; the SVG path was
-  // CORS-tainting on iOS Safari so flags rendered as blanks.
+  // ----- flag chunk: skipped while we debug the iOS hang -----
   function flagFor(team){
-    var iso = COUNTRY_ISO[team];
-    if(!iso) return '';
-    return '<img class="fl" src="https://flagcdn.com/w160/'+iso+'.png" alt="" crossorigin="anonymous">';
+    return '';
   }
 
   // ----- concentric gold arcs anchored above the top-left corner -----
