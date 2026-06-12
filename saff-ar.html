@@ -262,16 +262,16 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .up-pill{background:#04130b;border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-weight:800;font-size:.95rem;color:#fff;flex-shrink:0;min-width:54px;text-align:center;letter-spacing:.5px;}
 .up-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.76rem;color:var(--muted);}
 .up-actual{font-weight:700;}
-.up-actual.exact{color:var(--gold);}
+.up-actual.exact{color:#E6CC78;}
 .up-actual.correct{color:#34d399;}
 .up-actual.wrong{color:#fb7185;}
 .up-actual.none{color:var(--muted);}
 .up-badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:8px;font-size:.74rem;font-weight:800;}
-.up-badge.hi{background:rgba(230,204,120,.18);color:var(--gold);border:1px solid rgba(230,204,120,.4);}
+.up-badge.hi{background:rgba(230,204,120,.18);color:#E6CC78;border:1px solid rgba(230,204,120,.4);}
 .up-badge.mid{background:rgba(52,211,153,.18);color:#34d399;border:1px solid rgba(52,211,153,.4);}
 .up-badge.zero{background:rgba(148,163,184,.18);color:var(--muted);border:1px solid rgba(148,163,184,.3);}
 .up-badge.open{background:transparent;color:var(--muted);border:1px dashed rgba(148,163,184,.3);font-weight:600;}
-.up-x2{color:var(--gold);font-weight:800;}
+.up-x2{color:#E6CC78;font-weight:800;}
 .up-pw{font-size:.74rem;color:#cbd5e1;font-weight:600;padding-top:2px;}
 .up-empty{color:var(--muted);font-size:.85rem;text-align:center;padding:30px 10px;}
 
@@ -2043,15 +2043,13 @@ function openUserPreds(userKey){
     '</div>';
   var picksHtml='';
   if(locked){
-    var parts=[];
     if(picks.champion){
-      parts.push((COUNTRY_FLAG[picks.champion]?flagImg(picks.champion,16)+' ':'')+'🏆 '+esc(picks.champion));
+      picksHtml+='<div class="up-picks"><bdi>🏆 '+(COUNTRY_FLAG[picks.champion]?flagImg(picks.champion,16)+' ':'')+esc(picks.champion)+'</bdi></div>';
     }
     if(picks.scorer){
       var st=scorerTeam(picks.scorer);
-      parts.push((st&&COUNTRY_FLAG[st]?flagImg(st,16)+' ':'')+'⚽ '+esc(picks.scorer));
+      picksHtml+='<div class="up-picks"><bdi>⚽ '+(st&&COUNTRY_FLAG[st]?flagImg(st,16)+' ':'')+esc(picks.scorer)+'</bdi></div>';
     }
-    if(parts.length) picksHtml='<div class="up-picks">'+parts.join(' &nbsp;·&nbsp; ')+'</div>';
   }
   sum.innerHTML=statsHtml+picksHtml;
   // list of every match
