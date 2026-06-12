@@ -1781,6 +1781,7 @@ function genDailySummary(){
       var fontScope = document.documentElement || document.body;
       var fontStep = htmlToImage.getFontEmbedCSS ? htmlToImage.getFontEmbedCSS(fontScope).catch(function(){return '';}) : Promise.resolve('');
       fontStep.then(function(fontCss){
+        toast('CSS الخط: '+(fontCss?fontCss.length+' حرف':'فاضي'));
         return htmlToImage.toBlob(target, {
           backgroundColor:null,
           cacheBust:true,
