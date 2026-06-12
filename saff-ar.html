@@ -334,6 +334,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 }
 #posterRoot .poster .spot .medal{flex-shrink:0;}
 #posterRoot .poster .spot .name{font-weight:900;font-size:62px;line-height:1;color:#fff;letter-spacing:0;}
+#posterRoot .poster .spot .name.multi{font-size:36px;line-height:1.15;}
 #posterRoot .poster .spot .sub{font-weight:700;font-size:20px;color:var(--gold);margin-top:8px;}
 #posterRoot .poster .spot .ptpill{
   margin-right:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -1557,7 +1558,7 @@ function genDailySummary(){
   var TH = { title:'ملخّص اليوم', toastDone:'ملخص اليوم جاهز 📸' };
   var L = {
     brand1:'دوري التوقّعات', brand2:'كأس العالم 2026',
-    heroHdr:'الفائزون اليوم', bestLabel:'أفضل لاعب اليوم',
+    heroHdr:'الفائزون اليوم', bestLabel:'أفضل لاعب اليوم', bestLabelPl:'أفضل لاعبي اليوم',
     resultsHdr:'نتائج اليوم', tomorrowHdr:'المباريات القادمة',
     noPts:'ما فيه نقاط اليوم.', noLb:'ما فيه لاعبين بعد.',
     noResults:'ما فيه نتائج اليوم.', noTomorrow:'ما فيه مباريات بكرة.'
@@ -1655,14 +1656,16 @@ function genDailySummary(){
   var spotHtml = '';
   if(topT.length){
     var topPts = topT[0].pts;
-    var namesHtml = topT.map(function(w){return '<div class="name">'+esc(w.name)+'</div>';}).join('');
+    var nameCls = topT.length>1 ? 'name multi' : 'name';
+    var namesHtml = '<div class="'+nameCls+'">'+topT.map(function(w){return esc(w.name);}).join('، ')+'</div>';
+    var subLbl = topT.length>1 ? L.bestLabelPl : L.bestLabel;
     spotHtml = '\
 <div class="shead"><span class="lbl">'+esc(L.heroHdr)+'</span><span class="ln"></span></div>\
 <div class="spot">\
   <div class="medal">'+medalHtml+'</div>\
   <div class="names">\
     '+namesHtml+'\
-    <div class="sub">'+esc(L.bestLabel)+'</div>\
+    <div class="sub">'+esc(subLbl)+'</div>\
   </div>\
   <div class="ptpill"><b>'+esc(arNum(topPts))+'</b><span>'+esc(ptsWord(topPts))+'</span></div>\
 </div>';
