@@ -1992,15 +1992,15 @@ function renderLeader(){
     var medal=rank===1?'🥇':(rank===2?'🥈':(rank===3?'🥉':rank));
     var picksLine='';
     if(locked){
-      var parts=[];
+      var picksHtml='';
       if(r.picks.champion){
-        parts.push((COUNTRY_FLAG[r.picks.champion]?flagImg(r.picks.champion,16)+' ':'')+'🏆 '+esc(r.picks.champion));
+        picksHtml+='<div class="lb-sub lb-picks"><bdi>🏆 '+(COUNTRY_FLAG[r.picks.champion]?flagImg(r.picks.champion,16)+' ':'')+esc(r.picks.champion)+'</bdi></div>';
       }
       if(r.picks.scorer){
         var st=scorerTeam(r.picks.scorer);
-        parts.push((st&&COUNTRY_FLAG[st]?flagImg(st,16)+' ':'')+'⚽ '+esc(r.picks.scorer));
+        picksHtml+='<div class="lb-sub lb-picks"><bdi>⚽ '+(st&&COUNTRY_FLAG[st]?flagImg(st,16)+' ':'')+esc(r.picks.scorer)+'</bdi></div>';
       }
-      if(parts.length) picksLine='<div class="lb-sub lb-picks">'+parts.join(' &nbsp;·&nbsp; ')+'</div>';
+      picksLine=picksHtml;
     }
     el.innerHTML='<div class="lb-rank">'+medal+'</div>'+
       '<div class="lb-name">'+esc(r.name)+(r.key===myKey?' <span class="lb-sub">(أنت)</span>':'')+
