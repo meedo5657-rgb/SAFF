@@ -313,7 +313,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
   width:1080px;min-height:1200px;position:relative;overflow:hidden;
   background:radial-gradient(120% 70% at 38% 4%, var(--green-glow) 0%, var(--green) 46%, var(--green-deep) 100%);
   color:var(--white);
-  font-family:'Tajawal','Alexandria',sans-serif;-webkit-font-smoothing:antialiased;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro',system-ui,'Tajawal',sans-serif;-webkit-font-smoothing:antialiased;
   direction:rtl;
   box-sizing:border-box;
 }
@@ -370,7 +370,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
   padding:16px 28px;
 }
 #posterRoot .poster .team{display:flex;align-items:center;gap:14px;font-weight:800;font-size:31px;color:#fff;flex-wrap:nowrap;white-space:nowrap;min-width:0;}
-#posterRoot .poster .team .fl{width:48px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;box-shadow:0 1px 5px rgba(0,0,0,.45);}
+#posterRoot .poster .team .fl{width:48px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;}
 #posterRoot .poster .team.home{justify-content:flex-start;}
 #posterRoot .poster .team.away{justify-content:flex-end;}
 #posterRoot .poster .score{
@@ -388,7 +388,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 #posterRoot .poster .frow:last-child{border-bottom:none;}
 #posterRoot .poster .frow .when{font-weight:700;font-size:22px;color:var(--gold);direction:rtl;white-space:nowrap;}
 #posterRoot .poster .frow .vs{white-space:nowrap;display:flex;align-items:center;gap:14px;font-weight:800;font-size:28px;color:#fff;}
-#posterRoot .poster .frow .vs .fl{width:42px;height:28px;border-radius:3px;object-fit:cover;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.45);}
+#posterRoot .poster .frow .vs .fl{width:42px;height:28px;border-radius:3px;object-fit:cover;flex-shrink:0;}
 #posterRoot .poster .frow .vs .x{color:var(--faint);font-weight:700;font-size:22px;margin:0 4px;}
 #posterRoot .poster .empty{
   background:var(--row);border:1px solid var(--row-edge);border-radius:12px;
@@ -1774,22 +1774,15 @@ function genDailySummary(){
     var h2cTimeout = setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';}, 20000);
     // Prefer html-to-image (better iOS support); fall back to html2canvas if it isn't loaded.
     if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
-      // Cross-origin stylesheets (Google Fonts <link>) can't be read via the CSSOM,
-      // so getFontEmbedCSS always returns empty for them. Fetch the Tajawal CSS as
-      // plain text ourselves and hand it straight to html-to-image as fontEmbedCSS.
-      var fontUrl = 'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap';
-      var fontStep = fetch(fontUrl,{cache:'force-cache'})
-        .then(function(r){if(!r.ok){toast('فشل جلب CSS: '+r.status);return '';}return r.text();})
-        .catch(function(e){toast('فشل fetch: '+(e&&e.message||e));return '';});
-      fontStep.then(function(fontCss){
-        toast('CSS: '+fontCss.length+' حرف · @font-face: '+(fontCss.match(/@font-face/g)||[]).length);
-        return htmlToImage.toBlob(target, {
-          backgroundColor:null,
-          cacheBust:true,
-          pixelRatio: Math.min(2, window.devicePixelRatio||1),
-          width:1080, height:h,
-          fontEmbedCSS: fontCss || undefined
-        });
+      // Rely on iOS's bundled SF Arabic / Geeza Pro — embedding Google Fonts on the fly
+      // kept failing (CORS on stylesheet rules), and the system fonts render Arabic
+      // beautifully on iPhone without any network fetch.
+      htmlToImage.toBlob(target, {
+        backgroundColor:null,
+        cacheBust:true,
+        pixelRatio: Math.min(2, window.devicePixelRatio||1),
+        width:1080, height:h,
+        skipFonts:true
       }).then(function(blob){
         clearTimeout(h2cTimeout);
         if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
