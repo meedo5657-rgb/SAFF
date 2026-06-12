@@ -1598,9 +1598,11 @@ function genDailySummary(){
   };
   function rankCss(rank){ return rankStyle[rank] || 'background:rgba(255,255,255,.16);color:#fff;'; }
 
-  // ----- flag chunk: skipped while we debug the iOS hang -----
+  // ----- flag chunk: <img> when we know the ISO -----
   function flagFor(team){
-    return '';
+    var iso = COUNTRY_ISO[team];
+    if(!iso) return '';
+    return '<img class="fl" src="https://flagcdn.com/w160/'+iso+'.png" alt="" crossorigin="anonymous">';
   }
 
   // ----- concentric gold arcs anchored above the top-left corner -----
@@ -1769,11 +1771,15 @@ function genDailySummary(){
     var h2cTimeout = setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';}, 20000);
     // Prefer html-to-image (better iOS support); fall back to html2canvas if it isn't loaded.
     if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
-      htmlToImage.toBlob(target, {
-        backgroundColor:null,
-        cacheBust:true,
-        pixelRatio:1,
-        width:1080, height:h
+      var fontStep = htmlToImage.getFontEmbedCSS ? htmlToImage.getFontEmbedCSS(target).catch(function(){return '';}) : Promise.resolve('');
+      fontStep.then(function(fontCss){
+        return htmlToImage.toBlob(target, {
+          backgroundColor:null,
+          cacheBust:true,
+          pixelRatio:1,
+          width:1080, height:h,
+          fontEmbedCSS: fontCss || undefined
+        });
       }).then(function(blob){
         clearTimeout(h2cTimeout);
         if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
