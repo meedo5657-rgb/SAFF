@@ -775,7 +775,15 @@ function loadFootballData(verbose){
           nt[st.id]={home:isRealTeam(hn)?canon(hn):null, away:isRealTeam(an)?canon(an):null};
         }
         var sc=m.score||{};
-        var fin=(sc.extraTime && sc.extraTime.home!=null && sc.extraTime.away!=null) ? sc.extraTime : sc.fullTime;
+        // For in-play: FD can put the current score in score.fullTime OR
+        // score.regularTime OR score.halfTime depending on which competition
+        // feed it is. Try them in order, then fall back to 0-0 if the match
+        // is in play but no field has numbers yet (kickoff seconds).
+        var fin=(sc.extraTime && sc.extraTime.home!=null && sc.extraTime.away!=null) ? sc.extraTime :
+                (sc.fullTime && sc.fullTime.home!=null && sc.fullTime.away!=null) ? sc.fullTime :
+                (sc.regularTime && sc.regularTime.home!=null && sc.regularTime.away!=null) ? sc.regularTime :
+                (sc.halfTime && sc.halfTime.home!=null && sc.halfTime.away!=null) ? sc.halfTime :
+                (isLive ? {home:0, away:0} : null);
         if(fin && typeof fin.home==='number' && typeof fin.away==='number'){
           var swapped = (st.stage==='group') && (canon(hn)!==st.home);
           var res = swapped ? {h:fin.away, a:fin.home} : {h:fin.home, a:fin.away};
@@ -1153,20 +1161,27 @@ function filteredMatches(){
 function renderMatches(){
   var list=document.getElementById('matchList');
   if(!list)return;
-  var sy=window.scrollY;
-  list.innerHTML='';
-  if(isAdmin) list.appendChild(adminBar());
-  if(isAdmin && tournamentLocked()) list.appendChild(tournamentCard()); // admin truth panel only
+  // Build the new content in a DocumentFragment so the page never momentarily
+  // shrinks — that brief shrink is what was throwing iOS Safari's scroll
+  // position back to the top during the 15s live-polling re-render.
+  var sy=window.scrollY||window.pageYOffset||0;
+  var frag=document.createDocumentFragment();
+  if(isAdmin) frag.appendChild(adminBar());
+  if(isAdmin && tournamentLocked()) frag.appendChild(tournamentCard());
   var ms=filteredMatches();
   if(!ms.length){
     var e=document.createElement('div');e.className='empty';
     e.textContent=(currentFilter==='upcoming'?'لا مباريات قادمة — خلصت! اختر مجموعة أو دوراً. 🏟️':'لا مباريات هنا.');
-    list.appendChild(e);
-    window.scrollTo(0,sy);
-    return;
+    frag.appendChild(e);
+  } else {
+    ms.forEach(function(m){frag.appendChild(matchCard(m));});
   }
-  ms.forEach(function(m){list.appendChild(matchCard(m));});
-  window.scrollTo(0,sy);
+  if(list.replaceChildren) list.replaceChildren(frag);
+  else { while(list.firstChild) list.removeChild(list.firstChild); list.appendChild(frag); }
+  if(sy && Math.abs(window.scrollY-sy)>2){
+    window.scrollTo(0,sy);
+    if(window.requestAnimationFrame) requestAnimationFrame(function(){ if(Math.abs(window.scrollY-sy)>2) window.scrollTo(0,sy); });
+  }
 }
 
 
