@@ -1580,7 +1580,8 @@ function genDailySummary(){
       if(p){if(!up[k])up[k]={name:(usersData[k]&&usersData[k].name)||k,pts:0};up[k].pts+=p;}
     });
   });
-  var topT=Object.keys(up).map(function(k){return up[k];}).sort(function(a,b){return b.pts-a.pts;}).slice(0,1);
+  var _allT=Object.keys(up).map(function(k){return up[k];}).sort(function(a,b){return b.pts-a.pts;});
+  var topT=[]; if(_allT.length){var _top=_allT[0].pts; topT=_allT.filter(function(u){return u.pts===_top;});}
   var ttruth=tournamentTruth();
   var totals=Object.keys(usersData||{}).map(function(k){
     var t=0;MATCHES.forEach(function(m){var r=result(m);var p=predsData[m.id]&&predsData[m.id][k];if(p&&r)t+=scoreOf(p,r);});
@@ -1651,19 +1652,20 @@ function genDailySummary(){
   // ----- title -----
   var titleHtml = '<h1 class="disp" style="font-size:92px;margin-top:46px;margin-bottom:44px;">'+esc(TH.title.split(' ')[0])+' <span style="color:var(--gold);">'+esc(TH.title.split(' ')[1]||'')+'</span></h1>';
 
-  // ----- spotlight (winner) -----
+  // ----- spotlight (winner / co-winners) -----
   var spotHtml = '';
   if(topT.length){
-    var w0 = topT[0];
+    var topPts = topT[0].pts;
+    var namesHtml = topT.map(function(w){return '<div class="name">'+esc(w.name)+'</div>';}).join('');
     spotHtml = '\
 <div class="shead"><span class="lbl">'+esc(L.heroHdr)+'</span><span class="ln"></span></div>\
 <div class="spot">\
   <div class="medal">'+medalHtml+'</div>\
-  <div>\
-    <div class="name">'+esc(w0.name)+'</div>\
+  <div class="names">\
+    '+namesHtml+'\
     <div class="sub">'+esc(L.bestLabel)+'</div>\
   </div>\
-  <div class="ptpill"><b>'+esc(arNum(w0.pts))+'</b><span>'+esc(ptsWord(w0.pts))+'</span></div>\
+  <div class="ptpill"><b>'+esc(arNum(topPts))+'</b><span>'+esc(ptsWord(topPts))+'</span></div>\
 </div>';
   } else {
     spotHtml = '\
@@ -1755,7 +1757,12 @@ function genDailySummary(){
     }
   }
 
-  var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+  // Race fonts.ready against a 1.5s timeout — iOS Safari sometimes never resolves
+  // document.fonts.ready and stalls the whole flow.
+  var fontsReady = Promise.race([
+    (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve(),
+    new Promise(function(r){setTimeout(r,1500);})
+  ]);
   fontsReady.then(function(){
     var target = posterRoot.querySelector('.poster');
     if(!target){ toast('فشل: قالب البوستر غير موجود');posterRoot.innerHTML=''; return; }
