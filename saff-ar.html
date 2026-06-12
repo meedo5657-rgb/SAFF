@@ -1146,7 +1146,7 @@ function listen(){
 }
 
 // ===== FILTER CHIPS ===== (Upcoming first, then groups A-L, then knockout rounds)
-var FILTERS=[{k:'upcoming',label:'⏰ القادمة'}];
+var FILTERS=[{k:'upcoming',label:'⏰ القادمة'},{k:'past',label:'✅ السابقة'}];
 ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(function(g){FILTERS.push({k:'g:'+g,label:'المجموعة '+g});});
 [['R32','دور الـ32'],['R16','ثمن النهائي'],['QF','ربع النهائي'],['SF','نصف النهائي'],['3RD','المركز الثالث'],['FINAL','النهائي']]
   .forEach(function(r){FILTERS.push({k:'r:'+r[0],label:r[1]});});
@@ -1177,6 +1177,10 @@ function filteredMatches(){
     var d0=new Date(Date.now());d0.setHours(0,0,0,0);var today=d0.getTime();
     return MATCHES.filter(function(m){var k=kickoffMs(m);if(!isFinite(k))return false;var d=new Date(k);d.setHours(0,0,0,0);var day=d.getTime();return day>=today&&(day===today||statusOf(m)!=='finished');})
       .sort(function(a,b){return kickoffMs(a)-kickoffMs(b);});
+  }
+  if(currentFilter==='past'){ // finished matches, most recent first
+    return MATCHES.filter(function(m){return statusOf(m)==='finished';})
+      .sort(function(a,b){return kickoffMs(b)-kickoffMs(a);});
   }
   if(currentFilter.indexOf('g:')===0){
     var g=currentFilter.slice(2);
@@ -1210,7 +1214,7 @@ function renderMatches(){
   var ms=filteredMatches();
   if(!ms.length){
     var e=document.createElement('div');e.className='empty';
-    e.textContent=(currentFilter==='upcoming'?'لا مباريات قادمة — خلصت! اختر مجموعة أو دوراً. 🏟️':'لا مباريات هنا.');
+    e.textContent=(currentFilter==='upcoming'?'لا مباريات قادمة — خلصت! اختر مجموعة أو دوراً. 🏟️':currentFilter==='past'?'ما فيه مباريات منتهية بعد ⏳':'لا مباريات هنا.');
     frag.appendChild(e);
   } else {
     ms.forEach(function(m){frag.appendChild(matchCard(m));});
@@ -1433,10 +1437,22 @@ function matchCard(m){
     var lv=liveScore(m);
     if(lv){
       var lr=document.createElement('div');lr.className='live-row';
-      // FD's minute can be null for several minutes after kickoff; fall
-      // back to a kickoff-relative estimate so the user sees the clock move.
-      var minVal = lv.minute || Math.min(120, Math.max(1, Math.floor((Date.now()-kickoffMs(m))/60000)));
-      lr.innerHTML='<span class="live-dot"></span><span class="live-lbl">مباشر</span><span class="live-big">'+lv.h+' - '+lv.a+'</span><span class="live-min">'+arNum(minVal)+"'</span>";
+      // FD's minute is null pretty often; estimate from kickoff with rough
+      // halftime accounting (matches do not have a single common halftime
+      // length so this only needs to be close):
+      //   ≤45min elapsed = first-half minute
+      //   45-60min elapsed = halftime
+      //   >60min elapsed = elapsed minus the 15min break
+      var label;
+      if(lv.status==='PAUSED' && !lv.minute) label='نصف الشوط';
+      else if(typeof lv.minute==='number' && lv.minute>0) label=arNum(lv.minute)+"'";
+      else {
+        var elapsed=Math.floor((Date.now()-kickoffMs(m))/60000);
+        if(elapsed<=45) label=arNum(Math.max(1,elapsed))+"'";
+        else if(elapsed<=60) label='نصف الشوط';
+        else label=arNum(Math.min(120, elapsed-15))+"'";
+      }
+      lr.innerHTML='<span class="live-dot"></span><span class="live-lbl">مباشر</span><span class="live-big">'+lv.h+' - '+lv.a+'</span><span class="live-min">'+label+'</span>';
       el.appendChild(lr);
     }
     var ln=document.createElement('div');ln.className='locked-note';ln.textContent=lv?'أُغلقت التوقعات، بانتظار النتيجة الرسمية':'● مباشر — أُغلقت التوقعات، بانتظار النتيجة الرسمية';el.appendChild(ln);
