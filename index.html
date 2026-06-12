@@ -669,7 +669,7 @@ function loadFootballData(verbose){
       Object.keys(nr).forEach(function(id){apiResults[id]=nr[id];});
       Object.keys(nt).forEach(function(id){apiTeams[id]=nt[id];});
       window.__fdLast={ok:true,total:d.matches.length,matched:matchedCount,live:liveCount,scored:Object.keys(nr).length,ts:Date.now()};
-      if(verbose)toast(function(){return 'FD OK · '+d.matches.length+' fixtures, '+liveCount+' live, '+Object.keys(nr).length+' with score';}());
+      if(verbose){var baseMsg='FD OK · '+d.matches.length+' fixtures, '+liveCount+' live, '+Object.keys(nr).length+' with score';if(/^https?:\/\//i.test(FD_TOKEN)){fetch(FD_TOKEN.replace(/\/+$/,'')+'/scorers',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(sd){var n=sd&&sd.scorers?sd.scorers.length:0;toast(baseMsg+' · scorers '+n);}).catch(function(){toast(baseMsg+' · scorers ✗');});}else{toast(baseMsg);}}
       renderMatches(); renderLeader();
     })
     .catch(function(e){if(verbose)toast('Connection failed: '+(e&&e.message||e));window.__fdLast={ok:false,err:String(e),ts:Date.now()};});
