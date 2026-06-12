@@ -788,14 +788,20 @@ function loadFootballData(verbose){
           nt[st.id]={home:isRealTeam(hn)?canon(hn):null, away:isRealTeam(an)?canon(an):null};
         }
         var sc=m.score||{};
-        // Walk the FD score chain (FD can put the current in-play score in
-        // any of these depending on competition/tier) and fall back to 0-0
-        // when the match is live but no field has numbers yet.
-        var fin=(sc.extraTime && sc.extraTime.home!=null && sc.extraTime.away!=null) ? sc.extraTime :
-                (sc.fullTime && sc.fullTime.home!=null && sc.fullTime.away!=null) ? sc.fullTime :
-                (sc.regularTime && sc.regularTime.home!=null && sc.regularTime.away!=null) ? sc.regularTime :
-                (sc.halfTime && sc.halfTime.home!=null && sc.halfTime.away!=null) ? sc.halfTime :
-                (isLive ? {home:0, away:0} : null);
+        // Walk every field that might hold the current in-play score.
+        // Different FD mirrors / tiers expose it under different keys.
+        function _pair(o){ return (o && typeof o.home==='number' && typeof o.away==='number') ? o : null; }
+        var fin = _pair(sc.extraTime)
+              || _pair(sc.fullTime)
+              || _pair(sc.regularTime)
+              || _pair(sc.halfTime)
+              || _pair(sc.current)
+              || _pair(sc.live)
+              || _pair(sc)
+              || _pair(m.goals)
+              || (typeof m.homeScore==='number' && typeof m.awayScore==='number' ? {home:m.homeScore, away:m.awayScore} : null)
+              || (typeof m.homeGoals==='number' && typeof m.awayGoals==='number' ? {home:m.homeGoals, away:m.awayGoals} : null)
+              || (isLive ? {home:0, away:0} : null);
         if(fin && typeof fin.home==='number' && typeof fin.away==='number'){
           var swapped = (st.stage==='group') && (canon(hn)!==st.home);
           var res = swapped ? {h:fin.away, a:fin.home} : {h:fin.home, a:fin.away};
@@ -816,7 +822,7 @@ function loadFootballData(verbose){
             if(fdMin==null) fdMin = m.currentMinute;
             if(fdMin==null && m.score && m.score.minute!=null) fdMin = m.score.minute;
             if(fdMin==null && m.injuryTime!=null) fdMin = m.injuryTime;
-            nl[st.id]={h:res.h, a:res.a, status:m.status, minute:(typeof fdMin==='number'?fdMin:null)};
+            nl[st.id]={h:res.h, a:res.a, status:m.status, minute:(typeof fdMin==='number'?fdMin:null), ts:nowMs};
           }
         }
       });
