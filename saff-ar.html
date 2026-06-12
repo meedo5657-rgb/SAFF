@@ -808,8 +808,15 @@ function loadFootballData(verbose){
             nr[st.id]=res;
           } else if(isLive){
             // live in-play score — keep separate so result(m) doesn't flip
-            // the match to "finished" before the official whistle.
-            nl[st.id]={h:res.h, a:res.a, status:m.status, minute:m.minute||null};
+            // the match to "finished" before the official whistle. Probe a
+            // handful of names since different FD feeds/proxies stash the
+            // current minute under different keys (or sometimes inject it
+            // into score.duration).
+            var fdMin = m.minute;
+            if(fdMin==null) fdMin = m.currentMinute;
+            if(fdMin==null && m.score && m.score.minute!=null) fdMin = m.score.minute;
+            if(fdMin==null && m.injuryTime!=null) fdMin = m.injuryTime;
+            nl[st.id]={h:res.h, a:res.a, status:m.status, minute:(typeof fdMin==='number'?fdMin:null)};
           }
         }
       });
@@ -934,19 +941,17 @@ function kickoffMs(m){var t=Date.parse(m.utc); return isNaN(t)?Infinity:t;}
 // effective result: admin override wins, otherwise the auto API result
 function result(m){return resultsData[m.id]||apiResults[m.id]||null;}
 function liveScore(m){return liveData[m.id]||apiLive[m.id]||null;}
-// Best-effort current match minute. FD's m.minute is unreliable (often null,
-// occasionally returns wall-clock elapsed instead of match clock), so we ignore
-// it and run the calc off the kickoff timestamp every render. Halftime adds
-// a 15-minute gap that we have to model so the displayed clock doesn't drift
-// into the second half. PAUSED status → "نصف الشوط" regardless of the math.
+// Live minute label: trust FD's reported m.minute when it's a valid number
+// (the user asked for the FD value verbatim). Fall back to "نصف الشوط" on
+// PAUSED with no number, and to a kickoff-based estimate as a last resort.
 function liveMinuteLabel(m,lv){
+  if(lv && typeof lv.minute==='number' && lv.minute>0) return arNum(lv.minute)+"'";
   if(lv && lv.status==='PAUSED') return 'نصف الشوط';
   var elapsed=Math.floor((Date.now()-kickoffMs(m))/60000);
   if(elapsed<1) return "1'";
   if(elapsed<=45) return arNum(elapsed)+"'";
   if(elapsed<=60) return 'نصف الشوط';
-  var second=elapsed-60;          // minutes into the second half
-  var clock=45+second;            // displayed match minute (46..90+)
+  var clock=45+(elapsed-60);
   if(clock>120) clock=120;
   return arNum(clock)+"'";
 }
