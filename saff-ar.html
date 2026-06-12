@@ -1131,17 +1131,20 @@ function filteredMatches(){
 function renderMatches(){
   var list=document.getElementById('matchList');
   if(!list)return;
+  var sy=window.scrollY;
   list.innerHTML='';
   if(isAdmin) list.appendChild(adminBar());
-  list.appendChild(tournamentCard());
+  if(isAdmin && tournamentLocked()) list.appendChild(tournamentCard()); // admin truth panel only
   var ms=filteredMatches();
   if(!ms.length){
     var e=document.createElement('div');e.className='empty';
     e.textContent=(currentFilter==='upcoming'?'لا مباريات قادمة — خلصت! اختر مجموعة أو دوراً. 🏟️':'لا مباريات هنا.');
     list.appendChild(e);
+    window.scrollTo(0,sy);
     return;
   }
   ms.forEach(function(m){list.appendChild(matchCard(m));});
+  window.scrollTo(0,sy);
 }
 
 
