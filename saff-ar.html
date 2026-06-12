@@ -684,7 +684,7 @@ var FD_URL='https://api.football-data.org/v4/competitions/WC/matches';
 // Merged openfootball + football-data.org aliases. canon() folds either feed's
 // team labels onto the static fixture names so live updates line up regardless of source.
 var OF_ALIAS={
-  'Bosnia & Herzegovina':'Bosnia and Herzegovina','Bosnia and Herzegovina':'Bosnia and Herzegovina',
+  'Bosnia & Herzegovina':'Bosnia and Herzegovina','Bosnia and Herzegovina':'Bosnia and Herzegovina','Bosnia-Herzegovina':'Bosnia and Herzegovina','Bosnia Herzegovina':'Bosnia and Herzegovina',
   'Curaçao':'Curacao','Curacao':'Curacao',
   'Czech Republic':'Czechia','Czechia':'Czechia',
   'Turkey':'Turkiye','Türkiye':'Turkiye','Turkiye':'Turkiye',
@@ -1616,11 +1616,15 @@ function fdTokenRow(){
   grp.appendChild(inp);grp.appendChild(save);grp.appendChild(test);grp.appendChild(diag);
   row.appendChild(grp);
   setTimeout(updateFdState,0);
+  // Re-open the diagnostic panel after a re-render if the admin had it open.
+  if(__fdDiagOpen){ setTimeout(function(){ if(!row.querySelector('.fd-diag')) showFdDiag(row); },0); }
   return row;
 }
+var __fdDiagOpen=false;
 function showFdDiag(container){
   var prev=container.querySelector('.fd-diag');
-  if(prev){ prev.remove(); return; }
+  if(prev){ prev.remove(); __fdDiagOpen=false; return; }
+  __fdDiagOpen=true;
   var box=document.createElement('div');
   box.className='fd-diag';
   box.style.cssText='margin-top:8px;padding:10px;border-radius:8px;border:1px solid var(--line);background:#0a1820;font-size:.7rem;color:var(--text);font-family:monospace;line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:50vh;overflow:auto;';
