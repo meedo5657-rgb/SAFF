@@ -1769,10 +1769,13 @@ function genDailySummary(){
     var rect=target.getBoundingClientRect();
     var h=Math.max(1200, Math.round(rect.height));
     toast('1/3: جاري الرسم…');
+    var h2cTimeout = setTimeout(function(){toast('html2canvas تأخّر · جرب ثاني');posterRoot.innerHTML='';}, 20000);
     html2canvas(target, {
       backgroundColor:null, scale:1, useCORS:true, allowTaint:false,
+      imageTimeout:5000, logging:false,
       width:1080, height:h, windowWidth:1080, windowHeight:h
-    }).then(shareCanvas).catch(function(e){
+    }).then(function(cv){clearTimeout(h2cTimeout);shareCanvas(cv);}).catch(function(e){
+      clearTimeout(h2cTimeout);
       posterRoot.innerHTML='';
       toast('فشل html2canvas: '+(e&&e.message||e));
     });
