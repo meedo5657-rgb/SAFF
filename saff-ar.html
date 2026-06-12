@@ -685,7 +685,8 @@ var OF_ALIAS={
 };
 function canon(n){return OF_ALIAS[n]||n;}
 // football-data.org token: live in-play scores. Stored only in localStorage; sent only to api.football-data.org.
-var FD_TOKEN=''; try{FD_TOKEN=localStorage.getItem('saff_fdToken')||'';}catch(e){}
+var FD_DEFAULT='https://saff-fd.meedo5657.workers.dev';
+var FD_TOKEN=FD_DEFAULT; try{var _s=localStorage.getItem('saff_fdToken'); if(_s)FD_TOKEN=_s;}catch(e){}
 function isRealTeam(n){return !!(n&&FLAG_CODE[canon(n)]);}
 // group matches are matched by their (unordered) team pair, not by position
 function pairKey(a,b){return [a,b].sort().join(' :: ');}
@@ -1499,10 +1500,10 @@ function fdTokenRow(){
   save.addEventListener('click',function(){
     var v=(inp.value||'').trim();
     try{if(v)localStorage.setItem('saff_fdToken',v); else localStorage.removeItem('saff_fdToken');}catch(e){}
-    FD_TOKEN=v;
+    FD_TOKEN=v||FD_DEFAULT;
     updateFdState();
     if(v){ loadFootballData(true); }
-    else  { toast('انمسح الرمز'); }
+    else  { toast('رجعنا للرابط الافتراضي'); loadFootballData(true); }
   });
   var test=document.createElement('button');
   test.textContent='اختبار';
