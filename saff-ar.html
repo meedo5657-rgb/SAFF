@@ -1774,11 +1774,20 @@ function genDailySummary(){
     var h2cTimeout = setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';}, 20000);
     // Prefer html-to-image (better iOS support); fall back to html2canvas if it isn't loaded.
     if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
-      htmlToImage.toBlob(target, {
-        backgroundColor:null,
-        cacheBust:true,
-        pixelRatio: Math.min(2, window.devicePixelRatio||1),
-        width:1080, height:h
+      // Embed Tajawal by walking the WHOLE document, not just the offscreen poster — the
+      // <link> rel=stylesheet that loads Tajawal lives in <head>, not inside the cloned
+      // poster tree, so scoping getFontEmbedCSS to the target leaves the rasteriser with
+      // no @font-face and the rendered text falls back to the system Arabic face.
+      var fontScope = document.documentElement || document.body;
+      var fontStep = htmlToImage.getFontEmbedCSS ? htmlToImage.getFontEmbedCSS(fontScope).catch(function(){return '';}) : Promise.resolve('');
+      fontStep.then(function(fontCss){
+        return htmlToImage.toBlob(target, {
+          backgroundColor:null,
+          cacheBust:true,
+          pixelRatio: Math.min(2, window.devicePixelRatio||1),
+          width:1080, height:h,
+          fontEmbedCSS: fontCss || undefined
+        });
       }).then(function(blob){
         clearTimeout(h2cTimeout);
         if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
