@@ -818,6 +818,21 @@ function loadFootballData(verbose){
       // overwrite apiLive wholesale so finished matches drop out of the live set
       apiLive=nl;
       window.__fdLast={ok:true,total:d.matches.length,matched:matchedCount,live:liveCount,scored:Object.keys(nr).length,ts:Date.now()};
+      // Admin diagnostic: if the schedule says a match should be in progress
+      // right now but FD didn't return one (or we couldn't match it), surface
+      // that to the admin so they know FD is the bottleneck, not the client.
+      try{
+        if(typeof isAdmin!=='undefined' && isAdmin){
+          var scheduledLive=0;
+          for(var _i=0;_i<MATCHES.length;_i++){
+            var _k=kickoffMs(MATCHES[_i]);
+            if(isFinite(_k) && nowMs>=_k && nowMs<_k+150*60*1000 && !result(MATCHES[_i])) scheduledLive++;
+          }
+          if(scheduledLive && Object.keys(nl).length===0){
+            console.log('[FD] expected '+scheduledLive+' live match(es) but apiLive is empty. Total returned:', d.matches.length, 'matched:', matchedCount, 'flagged live by FD:', liveCount);
+          }
+        }
+      }catch(e){}
       if(verbose){var baseMsg='FD ✓ '+d.matches.length+' مباراة, '+liveCount+' مباشر, '+Object.keys(nr).length+' بنتيجة';if(/^https?:\/\//i.test(FD_TOKEN)){fetch(FD_TOKEN.replace(/\/+$/,'')+'/scorers',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(sd){var n=sd&&sd.scorers?sd.scorers.length:0;toast(baseMsg+' · الهدافين '+n);}).catch(function(){toast(baseMsg+' · الهدافين ✗');});}else{toast(baseMsg);}}
       renderMatches(); renderLeader(); renderGroups();
     })
@@ -1462,12 +1477,16 @@ function matchCard(m){
 }
 
 // Everyone's predictions for a match — revealed only after kickoff (live/finished)
+var __openAllPreds={};
 function allPredsBlock(m,r){
   var box=document.createElement('div');box.className='allpreds-wrap';
   var obj=predsData[m.id]||{}, keys=Object.keys(obj), t=teamsOf(m);
   var btn=document.createElement('button');btn.className='see-preds';
   btn.textContent='اعرض توقعات الآخرين ('+keys.length+')';
   var list=document.createElement('div');list.className='allpreds';
+  // Persist open/closed state across the 15s polling re-render so the user
+  // doesn't get kicked out of an expanded predictions list.
+  if(__openAllPreds[m.id]) list.classList.add('show');
   if(!keys.length){var e=document.createElement('div');e.className='ap-empty';e.textContent='مافيه أحد توقع نتيجة هذه المباراة';list.appendChild(e);}
   var entries=keys.map(function(k){
     var nm=(usersData[k]&&usersData[k].name)?usersData[k].name:k;
@@ -1485,7 +1504,11 @@ function allPredsBlock(m,r){
     if(r){var pb=document.createElement('span');pb.className='ap-pts';pb.textContent='+'+en.pt;rt.appendChild(pb);}
     row.appendChild(nm);row.appendChild(rt);list.appendChild(row);
   });
-  btn.addEventListener('click',function(){list.classList.toggle('show');});
+  btn.addEventListener('click',function(){
+    var nowOpen=!list.classList.contains('show');
+    list.classList.toggle('show', nowOpen);
+    if(nowOpen) __openAllPreds[m.id]=true; else delete __openAllPreds[m.id];
+  });
   box.appendChild(btn);box.appendChild(list);
   return box;
 }
