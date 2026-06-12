@@ -1029,13 +1029,10 @@ function enter(){
   booted=true;
   buildChips();
   listen();
-  setInterval(function(){renderMatches();},30000);   // refresh locks over time
+  setInterval(function(){renderMatches();},60000);   // refresh locks every minute
   loadOpenfootball();                                 // initial auto data pull
   loadFootballData();                                 // football-data.org primary (live), needs a token
-  // adaptive polling:
-  //   - while any match is live AND a football-data.org token is set: FD every 15s (running scores)
-  //   - while any match is live without a token: openfootball every 45s (lag is unavoidable)
-  //   - always: openfootball every 5 min as the baseline + knockout team auto-fill
+  // adaptive polling: every 30s during a live match window, idle otherwise
   setInterval(function(){
     var now=Date.now(), live=false;
     for(var i=0;i<MATCHES.length;i++){
@@ -1046,7 +1043,7 @@ function enter(){
     if(!live)return;
     if(FD_TOKEN) loadFootballData();
     else         loadOpenfootball();
-  },15000);
+  },30000);
   setInterval(loadOpenfootball,300000);               // baseline refresh every 5 min
 }
 
@@ -1963,6 +1960,11 @@ function renderGroups(){renderStandings();renderScorers();}
 function renderLeader(){
   var list=document.getElementById('leaderList');
   if(!list)return;
+  // Skip re-render while the user is mid-interaction with the predictions modal
+  var ovOpen=document.getElementById('userPredsOverlay');
+  if(ovOpen && ovOpen.classList.contains('show')) return;
+  var _sy=window.scrollY;
+  setTimeout(function(){window.scrollTo(0,_sy);},0);
   list.innerHTML='';
   var hint=document.createElement('div');hint.style.cssText='font-size:.72rem;color:var(--muted);text-align:center;padding:4px 0 10px;';hint.textContent='👆 اضغط على أي لاعب لعرض توقّعاته';list.appendChild(hint);
   var keys=Object.keys(usersData).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
