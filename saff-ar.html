@@ -817,19 +817,21 @@ function loadFootballData(verbose){
       Object.keys(nt).forEach(function(id){apiTeams[id]=nt[id];});
       // overwrite apiLive wholesale so finished matches drop out of the live set
       apiLive=nl;
+      // Keep the most recent FD payload around so an admin can ask the app to
+      // dump it (raw or summarised). Without server-side access this is the
+      // only way to figure out whether FD is the bottleneck.
+      window.__fdRaw=d;
       window.__fdLast={ok:true,total:d.matches.length,matched:matchedCount,live:liveCount,scored:Object.keys(nr).length,ts:Date.now()};
-      // Admin diagnostic: if the schedule says a match should be in progress
-      // right now but FD didn't return one (or we couldn't match it), surface
-      // that to the admin so they know FD is the bottleneck, not the client.
       try{
         if(typeof isAdmin!=='undefined' && isAdmin){
-          var scheduledLive=0;
+          var scheduledLive=[];
           for(var _i=0;_i<MATCHES.length;_i++){
-            var _k=kickoffMs(MATCHES[_i]);
-            if(isFinite(_k) && nowMs>=_k && nowMs<_k+150*60*1000 && !result(MATCHES[_i])) scheduledLive++;
+            var _m=MATCHES[_i], _k=kickoffMs(_m);
+            if(isFinite(_k) && nowMs>=_k && nowMs<_k+150*60*1000 && !result(_m)) scheduledLive.push(_m.id);
           }
-          if(scheduledLive && Object.keys(nl).length===0){
-            console.log('[FD] expected '+scheduledLive+' live match(es) but apiLive is empty. Total returned:', d.matches.length, 'matched:', matchedCount, 'flagged live by FD:', liveCount);
+          if(scheduledLive.length && Object.keys(nl).length===0){
+            console.log('[FD] expected live match(es):', scheduledLive.join(','), '| FD total:', d.matches.length, '| matched:', matchedCount, '| FD-flagged live:', liveCount);
+            console.log('[FD] sample matches:', (d.matches||[]).slice(0,3).map(function(x){return {status:x.status, home:x.homeTeam&&x.homeTeam.name, away:x.awayTeam&&x.awayTeam.name, utcDate:x.utcDate, stage:x.stage, scoreFT:x.score&&x.score.fullTime};}));
           }
         }
       }catch(e){}
@@ -1607,10 +1609,54 @@ function fdTokenRow(){
   test.textContent='اختبار';
   test.style.cssText='padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;';
   test.addEventListener('click',function(){loadFootballData(true);});
-  grp.appendChild(inp);grp.appendChild(save);grp.appendChild(test);
+  var diag=document.createElement('button');
+  diag.textContent='تشخيص';
+  diag.style.cssText='padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;';
+  diag.addEventListener('click',function(){showFdDiag(row);});
+  grp.appendChild(inp);grp.appendChild(save);grp.appendChild(test);grp.appendChild(diag);
   row.appendChild(grp);
   setTimeout(updateFdState,0);
   return row;
+}
+function showFdDiag(container){
+  var prev=container.querySelector('.fd-diag');
+  if(prev){ prev.remove(); return; }
+  var box=document.createElement('div');
+  box.className='fd-diag';
+  box.style.cssText='margin-top:8px;padding:10px;border-radius:8px;border:1px solid var(--line);background:#0a1820;font-size:.7rem;color:var(--text);font-family:monospace;line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:50vh;overflow:auto;';
+  var lines=[];
+  var fl=window.__fdLast;
+  if(!fl){ box.textContent='ما فيه استجابة FD بعد · اضغط اختبار'; container.appendChild(box); return; }
+  lines.push('آخر استجابة FD: '+(fl.ts?new Date(fl.ts).toLocaleTimeString():'?'));
+  if(!fl.ok){ lines.push('FAIL · status='+fl.status+(fl.err?(' err='+fl.err):'')); }
+  else lines.push('OK · رجّعت '+fl.total+' مباراة · طبقنا '+fl.matched+' · مباشر '+fl.live+' · بنتيجة '+fl.scored);
+  lines.push('apiLive كي: '+Object.keys(apiLive).join(',') || 'فاضي');
+  lines.push('apiResults كي: '+Object.keys(apiResults).join(',') || 'فاضي');
+  var nowMs=Date.now();
+  var expected=[];
+  for(var i=0;i<MATCHES.length;i++){
+    var k=kickoffMs(MATCHES[i]);
+    if(isFinite(k) && nowMs>=k && nowMs<k+150*60*1000 && !result(MATCHES[i])) expected.push(MATCHES[i].id);
+  }
+  lines.push('مفروض لايف الآن (من الجدول): '+(expected.join(',')||'لا شي'));
+  var raw=window.__fdRaw;
+  if(raw && raw.matches){
+    lines.push('--- أول ٥ مباريات من FD: ---');
+    raw.matches.slice(0,5).forEach(function(x,i){
+      var ft=x.score&&x.score.fullTime;
+      lines.push((i+1)+'. '+(x.homeTeam&&x.homeTeam.name)+' v '+(x.awayTeam&&x.awayTeam.name)+' · '+x.status+' · '+(x.utcDate||'?')+' · FT='+(ft?(ft.home+'-'+ft.away):'null'));
+    });
+    var inplay=raw.matches.filter(function(x){return x.status==='IN_PLAY'||x.status==='PAUSED';});
+    if(inplay.length){
+      lines.push('--- FD يقول لايف الآن ('+inplay.length+'): ---');
+      inplay.forEach(function(x,i){
+        var ft=x.score&&x.score.fullTime;
+        lines.push((i+1)+'. '+(x.homeTeam&&x.homeTeam.name)+' v '+(x.awayTeam&&x.awayTeam.name)+' · min='+x.minute+' · FT='+(ft?(ft.home+'-'+ft.away):'null'));
+      });
+    }
+  }
+  box.textContent=lines.join('\n');
+  container.appendChild(box);
 }
 function updateFdState(){
   var el=document.getElementById('fdState'); if(!el)return;
