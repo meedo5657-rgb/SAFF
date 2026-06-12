@@ -1664,25 +1664,25 @@ function genDailySummary(){
     var topPts = topT[0].pts;
     var nameCls = topT.length>1 ? 'name multi' : 'name';
     var namesHtml = '<div class="'+nameCls+'">'+topT.map(function(w){return esc(w.name);}).join('، ')+'</div>';
-    var subLbl = topT.length>1 ? L.bestLabelPl : L.bestLabel;
+    var spotHdr = topT.length>1 ? L.bestLabelPl : L.bestLabel;
     spotHtml = '\
-<div class="shead"><span class="lbl">'+esc(L.heroHdr)+'</span><span class="ln"></span></div>\
+<div class="shead"><span class="lbl">'+esc(spotHdr)+'</span><span class="ln"></span></div>\
 <div class="spot">\
   <div class="medal">'+medalHtml+'</div>\
   <div class="names">\
     '+namesHtml+'\
-    <div class="sub">'+esc(subLbl)+'</div>\
   </div>\
   <div class="ptpill"><b>'+esc(arNum(topPts))+'</b><span>'+esc(ptsWord(topPts))+'</span></div>\
 </div>';
   } else {
     spotHtml = '\
-<div class="shead"><span class="lbl">'+esc(L.heroHdr)+'</span><span class="ln"></span></div>\
+<div class="shead"><span class="lbl">'+esc(L.bestLabel)+'</span><span class="ln"></span></div>\
 <div class="empty">'+esc(L.noPts)+'</div>';
   }
 
   // ----- leaderboard rows (top 5) -----
-  var lbHtml = '<div class="lb" style="margin-top:18px;">';
+  var lbHtml = '<div class="shead" style="margin-top:40px;"><span class="lbl">'+esc(L.heroHdr)+'</span><span class="ln"></span></div>';
+  lbHtml += '<div class="lb">';
   if(totals.length){
     totals.forEach(function(u,i){
       var rk=i+1;
