@@ -1565,8 +1565,10 @@ function genDailySummary(){
   var _y=new Date(now); _y.setDate(_y.getDate()-1); _y.setHours(13,0,0,0);
   var t0=_y.getTime(), t1=now;
   var todayM=MATCHES.filter(function(m){var k=kickoffMs(m);return k>=t0&&k<t1;});
-  // Upcoming: next 8 matches starting after now.
-  var tomorrowM=MATCHES.filter(function(m){return kickoffMs(m)>=now;}).sort(function(a,b){return kickoffMs(a)-kickoffMs(b);}).slice(0,8);
+  // Upcoming: from now up to 1pm tomorrow (mirrors the look-back window).
+  var _tom=new Date(now); _tom.setDate(_tom.getDate()+1); _tom.setHours(13,0,0,0);
+  var tomorrowEnd=_tom.getTime();
+  var tomorrowM=MATCHES.filter(function(m){var k=kickoffMs(m);return k>=now && k<tomorrowEnd;}).sort(function(a,b){return kickoffMs(a)-kickoffMs(b);}).slice(0,8);
   var todayR=todayM.filter(function(m){return !!result(m);});
   var up={};
   todayR.forEach(function(m){
