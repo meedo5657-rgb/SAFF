@@ -757,7 +757,12 @@ function loadFootballData(verbose){
   if(!FD_TOKEN){if(verbose)toast('لا يوجد رمز محفوظ');return;}
   if(typeof fetch!=='function')return;
   var _isUrl=/^https?:\/\//i.test(FD_TOKEN);
-  var _url=_isUrl ? (FD_TOKEN + (FD_TOKEN.indexOf('?')<0?'?':'&') + '_=' + Date.now()) : FD_URL;
+  // Force a tight day window so FD returns matches happening *now* even when
+  // the "current season" default is some past WC edition. Yesterday → +2 days
+  // catches every match still on the live polling timer (kickoff + 150min).
+  function _ymd(o){var d=new Date(Date.now()+o*86400000);return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');}
+  var _q='dateFrom='+_ymd(-1)+'&dateTo='+_ymd(2)+'&_='+Date.now();
+  var _url=_isUrl ? (FD_TOKEN + (FD_TOKEN.indexOf('?')<0?'?':'&') + _q) : (FD_URL+'?'+_q);
   fetch(_url, _isUrl?{cache:'no-store'}:{headers:{'X-Auth-Token':FD_TOKEN},cache:'no-store'})
     .then(function(r){
       if(!r.ok){var st=r.status;if(verbose)toast('خطأ FD: '+st+(st===403?' (رمز خطأ أو منتهي)':st===429?' (تجاوزت الحد)':''));window.__fdLast={ok:false,status:st,ts:Date.now()};return null;}
