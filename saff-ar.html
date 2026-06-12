@@ -1561,9 +1561,12 @@ function genDailySummary(){
   };
   var now=Date.now();
   function dayStart(off){var d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return d.getTime();}
-  var t0=dayStart(0), t1=dayStart(1), t2=dayStart(2);
+  // Past matches: from yesterday 13:00 up to now (when the button was tapped).
+  var _y=new Date(now); _y.setDate(_y.getDate()-1); _y.setHours(13,0,0,0);
+  var t0=_y.getTime(), t1=now;
   var todayM=MATCHES.filter(function(m){var k=kickoffMs(m);return k>=t0&&k<t1;});
-  var tomorrowM=MATCHES.filter(function(m){var k=kickoffMs(m);return k>=t1&&k<t2;}).slice(0,8);
+  // Upcoming: next 8 matches starting after now.
+  var tomorrowM=MATCHES.filter(function(m){return kickoffMs(m)>=now;}).sort(function(a,b){return kickoffMs(a)-kickoffMs(b);}).slice(0,8);
   var todayR=todayM.filter(function(m){return !!result(m);});
   var up={};
   todayR.forEach(function(m){
@@ -1590,10 +1593,12 @@ function genDailySummary(){
   function rankCss(rank){ return rankStyle[rank] || 'background:rgba(255,255,255,.16);color:#fff;'; }
 
   // ----- flag chunk: <img> when we know the ISO, otherwise nothing -----
+  // PNG, not SVG: html2canvas handles raster reliably; the SVG path was
+  // CORS-tainting on iOS Safari so flags rendered as blanks.
   function flagFor(team){
     var iso = COUNTRY_ISO[team];
     if(!iso) return '';
-    return '<img class="fl" src="https://flagcdn.com/'+iso+'.svg" alt="" crossorigin="anonymous">';
+    return '<img class="fl" src="https://flagcdn.com/w160/'+iso+'.png" alt="" crossorigin="anonymous">';
   }
 
   // ----- concentric gold arcs anchored above the top-left corner -----
