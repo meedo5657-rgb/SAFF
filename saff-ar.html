@@ -934,6 +934,22 @@ function kickoffMs(m){var t=Date.parse(m.utc); return isNaN(t)?Infinity:t;}
 // effective result: admin override wins, otherwise the auto API result
 function result(m){return resultsData[m.id]||apiResults[m.id]||null;}
 function liveScore(m){return liveData[m.id]||apiLive[m.id]||null;}
+// Best-effort current match minute. FD's m.minute is unreliable (often null,
+// occasionally returns wall-clock elapsed instead of match clock), so we ignore
+// it and run the calc off the kickoff timestamp every render. Halftime adds
+// a 15-minute gap that we have to model so the displayed clock doesn't drift
+// into the second half. PAUSED status → "نصف الشوط" regardless of the math.
+function liveMinuteLabel(m,lv){
+  if(lv && lv.status==='PAUSED') return 'نصف الشوط';
+  var elapsed=Math.floor((Date.now()-kickoffMs(m))/60000);
+  if(elapsed<1) return "1'";
+  if(elapsed<=45) return arNum(elapsed)+"'";
+  if(elapsed<=60) return 'نصف الشوط';
+  var second=elapsed-60;          // minutes into the second half
+  var clock=45+second;            // displayed match minute (46..90+)
+  if(clock>120) clock=120;
+  return arNum(clock)+"'";
+}
 var OPEN_WINDOW = 24*60*60*1000; // التوقعات تفتح فقط قبل المباراة بـ24 ساعة
 function statusOf(m){
   if(result(m))return 'finished';
@@ -1437,22 +1453,7 @@ function matchCard(m){
     var lv=liveScore(m);
     if(lv){
       var lr=document.createElement('div');lr.className='live-row';
-      // FD's minute is null pretty often; estimate from kickoff with rough
-      // halftime accounting (matches do not have a single common halftime
-      // length so this only needs to be close):
-      //   ≤45min elapsed = first-half minute
-      //   45-60min elapsed = halftime
-      //   >60min elapsed = elapsed minus the 15min break
-      var label;
-      if(lv.status==='PAUSED' && !lv.minute) label='نصف الشوط';
-      else if(typeof lv.minute==='number' && lv.minute>0) label=arNum(lv.minute)+"'";
-      else {
-        var elapsed=Math.floor((Date.now()-kickoffMs(m))/60000);
-        if(elapsed<=45) label=arNum(Math.max(1,elapsed))+"'";
-        else if(elapsed<=60) label='نصف الشوط';
-        else label=arNum(Math.min(120, elapsed-15))+"'";
-      }
-      lr.innerHTML='<span class="live-dot"></span><span class="live-lbl">مباشر</span><span class="live-big">'+lv.h+' - '+lv.a+'</span><span class="live-min">'+label+'</span>';
+      lr.innerHTML='<span class="live-dot"></span><span class="live-lbl">مباشر</span><span class="live-big">'+lv.h+' - '+lv.a+'</span><span class="live-min">'+liveMinuteLabel(m,lv)+'</span>';
       el.appendChild(lr);
     }
     var ln=document.createElement('div');ln.className='locked-note';ln.textContent=lv?'أُغلقت التوقعات، بانتظار النتيجة الرسمية':'● مباشر — أُغلقت التوقعات، بانتظار النتيجة الرسمية';el.appendChild(ln);
