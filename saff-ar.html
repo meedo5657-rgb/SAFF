@@ -1029,10 +1029,10 @@ function enter(){
   booted=true;
   buildChips();
   listen();
-  setInterval(function(){renderMatches();},60000);   // refresh locks every minute
+  setInterval(function(){renderMatches();},30000);   // refresh locks over time
   loadOpenfootball();                                 // initial auto data pull
   loadFootballData();                                 // football-data.org primary (live), needs a token
-  // adaptive polling: every 30s during a live match window, idle otherwise
+  // adaptive polling: every 15s during a live match window, idle otherwise
   setInterval(function(){
     var now=Date.now(), live=false;
     for(var i=0;i<MATCHES.length;i++){
@@ -1043,7 +1043,7 @@ function enter(){
     if(!live)return;
     if(FD_TOKEN) loadFootballData();
     else         loadOpenfootball();
-  },30000);
+  },15000);
   setInterval(loadOpenfootball,300000);               // baseline refresh every 5 min
 }
 
