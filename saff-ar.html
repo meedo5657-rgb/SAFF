@@ -1731,37 +1731,45 @@ function genDailySummary(){
   var fname='wc2026-summary-'+new Date(now).toISOString().slice(0,10)+'.png';
 
   function shareCanvas(cv){
-    cv.toBlob(function(blob){
-      var file = (typeof File!=='undefined') ? new File([blob],fname,{type:'image/png'}) : null;
-      if(file && navigator.canShare && navigator.canShare({files:[file]})){
-        navigator.share({files:[file],title:TH.title}).then(function(){toast(TH.toastDone);}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();});
-      } else { dl(); }
-      function dl(){
-        var u=URL.createObjectURL(blob);
-        var a=document.createElement('a');a.href=u;a.download=fname;
-        document.body.appendChild(a);a.click();document.body.removeChild(a);
-        setTimeout(function(){URL.revokeObjectURL(u);},1500);
-        toast(TH.toastDone);
-      }
-      // clear the hidden poster so it doesn't sit in memory
+    toast('2/3: جاري التحويل…');
+    try{
+      cv.toBlob(function(blob){
+        if(!blob){toast('فشل: blob فاضي (canvas مُلوَّث؟)');posterRoot.innerHTML='';return;}
+        toast('3/3: جاري المشاركة…');
+        var file = (typeof File!=='undefined') ? new File([blob],fname,{type:'image/png'}) : null;
+        if(file && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:TH.title}).then(function(){toast(TH.toastDone);}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
+        } else { dl(); }
+        function dl(){
+          var u=URL.createObjectURL(blob);
+          var a=document.createElement('a');a.href=u;a.download=fname;
+          document.body.appendChild(a);a.click();document.body.removeChild(a);
+          setTimeout(function(){URL.revokeObjectURL(u);},1500);
+          toast(TH.toastDone);
+        }
+        posterRoot.innerHTML='';
+      },'image/png');
+    }catch(e){
+      toast('فشل toBlob: '+(e&&e.message||e));
       posterRoot.innerHTML='';
-    },'image/png');
+    }
   }
 
   var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
   fontsReady.then(function(){
     var target = posterRoot.querySelector('.poster');
-    if(!target){ posterRoot.innerHTML=''; return; }
+    if(!target){ toast('فشل: قالب البوستر غير موجود');posterRoot.innerHTML=''; return; }
     var rect=target.getBoundingClientRect();
     var h=Math.max(1200, Math.round(rect.height));
+    toast('1/3: جاري الرسم…');
     html2canvas(target, {
       backgroundColor:null, scale:1, useCORS:true, allowTaint:false,
       width:1080, height:h, windowWidth:1080, windowHeight:h
     }).then(shareCanvas).catch(function(e){
       posterRoot.innerHTML='';
-      toast('فشل توليد الصورة: '+(e&&e.message||e));
+      toast('فشل html2canvas: '+(e&&e.message||e));
     });
-  });
+  }).catch(function(e){toast('فشل تحميل الخط: '+(e&&e.message||e));});
 }
 function adminZone(m){
   var z=document.createElement('div');z.className='admin-zone';
