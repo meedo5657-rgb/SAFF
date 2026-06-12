@@ -730,7 +730,7 @@ function loadOpenfootball(){
       }
     });
     apiResults=nr; apiTeams=nt;
-    renderMatches(); renderLeader();
+    renderMatches(); renderLeader(); renderGroups();
   }).catch(function(){ /* offline or not yet updated -> admin entries still work */ });
 }
 
@@ -775,7 +775,7 @@ function loadFootballData(verbose){
       Object.keys(nt).forEach(function(id){apiTeams[id]=nt[id];});
       window.__fdLast={ok:true,total:d.matches.length,matched:matchedCount,live:liveCount,scored:Object.keys(nr).length,ts:Date.now()};
       if(verbose){var baseMsg='FD ✓ '+d.matches.length+' مباراة, '+liveCount+' مباشر, '+Object.keys(nr).length+' بنتيجة';if(/^https?:\/\//i.test(FD_TOKEN)){fetch(FD_TOKEN.replace(/\/+$/,'')+'/scorers',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(sd){var n=sd&&sd.scorers?sd.scorers.length:0;toast(baseMsg+' · الهدافين '+n);}).catch(function(){toast(baseMsg+' · الهدافين ✗');});}else{toast(baseMsg);}}
-      renderMatches(); renderLeader();
+      renderMatches(); renderLeader(); renderGroups();
     })
     .catch(function(e){if(verbose)toast('فشل الاتصال: '+(e&&e.message||e));window.__fdLast={ok:false,err:String(e),ts:Date.now()};});
 }
