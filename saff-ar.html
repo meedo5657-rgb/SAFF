@@ -1756,8 +1756,8 @@ function genDailySummary(){
       backgroundColor:null, scale:1, useCORS:true, allowTaint:false,
       width:1080, height:h, windowWidth:1080, windowHeight:h
     }).then(shareCanvas).catch(function(e){
-      // safety net — if html2canvas blows up we just clear the poster.
       posterRoot.innerHTML='';
+      toast('فشل توليد الصورة: '+(e&&e.message||e));
     });
   });
 }
@@ -2064,6 +2064,8 @@ function openUserPreds(userKey){
   list.innerHTML='';
   var pending=[], finished=[];
   MATCHES.forEach(function(m){
+    var p=predsData[m.id]&&predsData[m.id][userKey];
+    if(!p) return;                                   // hide matches the user didn't predict
     if(result(m)) finished.push(m);
     else if(Date.now()>=kickoffMs(m)) pending.push(m);
   });
