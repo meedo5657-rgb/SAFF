@@ -369,9 +369,9 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
   background:var(--row);border:1px solid var(--row-edge);border-radius:12px;
   padding:16px 28px;
 }
-#posterRoot .poster .team{font-weight:800;font-size:28px;color:#fff;display:flex;align-items:center;gap:14px;min-width:0;}
+#posterRoot .poster .team{font-weight:800;font-size:28px;color:#fff;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:14px;min-width:0;text-align:right;flex:0 1 auto;}
 #posterRoot .poster .team .fl{width:48px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;display:block;}
-#posterRoot .poster .team .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#posterRoot .poster .team .nm{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1;}
 #posterRoot .poster .team.home{justify-content:flex-start;}
 #posterRoot .poster .team.away{justify-content:flex-end;}
 #posterRoot .poster .team.away .nm{text-align:left;}
