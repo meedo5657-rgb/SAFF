@@ -1173,9 +1173,9 @@ function buildChips(){
 }
 
 function filteredMatches(){
-  if(currentFilter==='upcoming'){ // today's matches (even if finished) + all future days
+  if(currentFilter==='upcoming'){ // today and future, finished matches excluded (they live in the past tab)
     var d0=new Date(Date.now());d0.setHours(0,0,0,0);var today=d0.getTime();
-    return MATCHES.filter(function(m){var k=kickoffMs(m);if(!isFinite(k))return false;var d=new Date(k);d.setHours(0,0,0,0);var day=d.getTime();return day>=today&&(day===today||statusOf(m)!=='finished');})
+    return MATCHES.filter(function(m){var k=kickoffMs(m);if(!isFinite(k))return false;var d=new Date(k);d.setHours(0,0,0,0);var day=d.getTime();return day>=today && statusOf(m)!=='finished';})
       .sort(function(a,b){return kickoffMs(a)-kickoffMs(b);});
   }
   if(currentFilter==='past'){ // finished matches, most recent first
