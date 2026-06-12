@@ -1075,7 +1075,8 @@ function enter(){
   setInterval(function(){renderMatches();},30000);   // refresh locks over time
   loadOpenfootball();                                 // initial auto data pull
   loadFootballData();                                 // football-data.org primary (live), needs a token
-  // adaptive polling: every 15s during a live match window, idle otherwise
+  // adaptive polling: every 10s during a live match window, idle otherwise.
+  // 10s × 6 ticks/min keeps us at the free-tier rate-limit ceiling.
   setInterval(function(){
     var now=Date.now(), live=false;
     for(var i=0;i<MATCHES.length;i++){
@@ -1086,7 +1087,7 @@ function enter(){
     if(!live)return;
     if(FD_TOKEN) loadFootballData();
     else         loadOpenfootball();
-  },15000);
+  },10000);
   setInterval(loadOpenfootball,300000);               // baseline refresh every 5 min
 }
 
@@ -1409,7 +1410,10 @@ function matchCard(m){
     var lv=liveScore(m);
     if(lv){
       var lr=document.createElement('div');lr.className='live-row';
-      lr.innerHTML='<span class="live-dot"></span><span class="live-lbl">مباشر</span><span class="live-big">'+lv.h+' - '+lv.a+'</span>'+(lv.minute?'<span class="live-min">'+arNum(lv.minute)+"'</span>":'');
+      // FD's minute can be null for several minutes after kickoff; fall
+      // back to a kickoff-relative estimate so the user sees the clock move.
+      var minVal = lv.minute || Math.min(120, Math.max(1, Math.floor((Date.now()-kickoffMs(m))/60000)));
+      lr.innerHTML='<span class="live-dot"></span><span class="live-lbl">مباشر</span><span class="live-big">'+lv.h+' - '+lv.a+'</span><span class="live-min">'+arNum(minVal)+"'</span>";
       el.appendChild(lr);
     }
     var ln=document.createElement('div');ln.className='locked-note';ln.textContent=lv?'أُغلقت التوقعات، بانتظار النتيجة الرسمية':'● مباشر — أُغلقت التوقعات، بانتظار النتيجة الرسمية';el.appendChild(ln);
