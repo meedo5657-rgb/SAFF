@@ -756,7 +756,9 @@ function loadOpenfootball(){
 function loadFootballData(verbose){
   if(!FD_TOKEN){if(verbose)toast('لا يوجد رمز محفوظ');return;}
   if(typeof fetch!=='function')return;
-  fetch((/^https?:\/\//i.test(FD_TOKEN)?FD_TOKEN:FD_URL),(/^https?:\/\//i.test(FD_TOKEN)?{cache:'no-store'}:{headers:{'X-Auth-Token':FD_TOKEN},cache:'no-store'}))
+  var _isUrl=/^https?:\/\//i.test(FD_TOKEN);
+  var _url=_isUrl ? (FD_TOKEN + (FD_TOKEN.indexOf('?')<0?'?':'&') + '_=' + Date.now()) : FD_URL;
+  fetch(_url, _isUrl?{cache:'no-store'}:{headers:{'X-Auth-Token':FD_TOKEN},cache:'no-store'})
     .then(function(r){
       if(!r.ok){var st=r.status;if(verbose)toast('خطأ FD: '+st+(st===403?' (رمز خطأ أو منتهي)':st===429?' (تجاوزت الحد)':''));window.__fdLast={ok:false,status:st,ts:Date.now()};return null;}
       return r.json();
@@ -818,8 +820,11 @@ function loadFootballData(verbose){
 }
 function matchFD(m){
   var t1=canon(m.homeTeam&&m.homeTeam.name), t2=canon(m.awayTeam&&m.awayTeam.name);
-  if(m.stage==='GROUP_STAGE'){
-    return GROUP_BY_PAIR[pairKey(t1,t2)]||null;
+  // Try the team-pair lookup first regardless of FD's stage string
+  // (we've seen GROUP, GROUP_STAGE, and stageless feeds in the wild).
+  if(t1 && t2){
+    var byPair=GROUP_BY_PAIR[pairKey(t1,t2)];
+    if(byPair) return byPair;
   }
   if(m.utcDate){
     var fd=Date.parse(m.utcDate);
@@ -1170,6 +1175,11 @@ function renderMatches(){
   // shrinks — that brief shrink is what was throwing iOS Safari's scroll
   // position back to the top during the 15s live-polling re-render.
   var sy=window.scrollY||window.pageYOffset||0;
+  // Freeze the list's outer height during the swap. Even an atomic
+  // replaceChildren can ship a frame where the new card heights haven't been
+  // measured yet; pinning the height keeps the document scroll-stable.
+  var lockH=list.offsetHeight;
+  if(lockH) list.style.minHeight=lockH+'px';
   var frag=document.createDocumentFragment();
   if(isAdmin) frag.appendChild(adminBar());
   if(isAdmin && tournamentLocked()) frag.appendChild(tournamentCard());
@@ -1183,10 +1193,14 @@ function renderMatches(){
   }
   if(list.replaceChildren) list.replaceChildren(frag);
   else { while(list.firstChild) list.removeChild(list.firstChild); list.appendChild(frag); }
-  if(sy && Math.abs(window.scrollY-sy)>2){
-    window.scrollTo(0,sy);
-    if(window.requestAnimationFrame) requestAnimationFrame(function(){ if(Math.abs(window.scrollY-sy)>2) window.scrollTo(0,sy); });
+  // Pin scroll BEFORE releasing the height lock so the document can't dip.
+  if(sy && Math.abs(window.scrollY-sy)>2) window.scrollTo(0,sy);
+  // Drop the height pin on the next frame, after the new cards have laid out.
+  function unlock(){
+    if(list.style.minHeight) list.style.minHeight='';
+    if(sy && Math.abs(window.scrollY-sy)>2) window.scrollTo(0,sy);
   }
+  if(window.requestAnimationFrame) requestAnimationFrame(unlock); else setTimeout(unlock,0);
 }
 
 
