@@ -1551,6 +1551,8 @@ function arKick(m){
 // html2canvas to rasterise it into a 1080×2180 PNG. Matches the artifact
 // the user designed in a Claude artifact.
 function genDailySummary(){
+  toast('جاري تجهيز الملخص…');
+  if(typeof html2canvas!=='function'){toast('فشل: html2canvas غير محمل');return;}
   var TH = { title:'ملخّص اليوم', toastDone:'ملخص اليوم جاهز 📸' };
   var L = {
     brand1:'دوري التوقّعات', brand2:'كأس العالم 2026',
