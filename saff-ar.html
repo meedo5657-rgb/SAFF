@@ -878,7 +878,7 @@ if(configReady){
 
 // ===== STATE (Firebase: only predictions, results, team overrides, users) =====
 var myName='', myKey='', isAdmin=false, authError=null;
-var predsData={}, resultsData={}, teamsData={}, usersData={};
+var predsData={}, resultsData={}, teamsData={}, usersData={}, liveData={};
 // auto-pulled from openfootball (knockout teams + official results)
 var apiResults={}, apiTeams={}, apiLive={};
 var currentFilter='upcoming'; // selected chip: 'upcoming' | 'g:X' | 'r:R'
@@ -911,7 +911,7 @@ function teamsOf(m){
 function kickoffMs(m){var t=Date.parse(m.utc); return isNaN(t)?Infinity:t;}
 // effective result: admin override wins, otherwise the auto API result
 function result(m){return resultsData[m.id]||apiResults[m.id]||null;}
-function liveScore(m){return apiLive[m.id]||null;}
+function liveScore(m){return liveData[m.id]||apiLive[m.id]||null;}
 var OPEN_WINDOW = 24*60*60*1000; // التوقعات تفتح فقط قبل المباراة بـ24 ساعة
 function statusOf(m){
   if(result(m))return 'finished';
@@ -1111,6 +1111,7 @@ document.querySelectorAll('.me-chip').forEach(function(c){
 function listen(){
   ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};renderMatches();renderLeader();});
   ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
+  ROOT.child('live').on('value',function(s){liveData=s.val()||{};renderMatches();});
   ROOT.child('teams').on('value',function(s){teamsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   var __myPicksDigest=null;
   ROOT.child('users').on('value',function(s){
@@ -1895,9 +1896,39 @@ function adminZone(m){
       if(!rd.pw){toast('حدّد الفائز بالبلنتيات');return;}
       data.pw=rd.pw;
     }
-    ROOT.child('results/'+m.id).set(data).then(function(){toast('تم حفظ النتيجة ✅');});
+    ROOT.child('results/'+m.id).set(data).then(function(){
+      // clear any live score for this match — the official result supersedes it
+      if(liveData[m.id]) ROOT.child('live/'+m.id).remove();
+      toast('تم حفظ النتيجة ✅');
+    });
   });
   z.appendChild(save);
+  // Live in-play score entry — shows up only while the match is in its
+  // kickoff window and the official result hasn't been set yet. Useful
+  // when football-data.org is lagging or unavailable for the match.
+  var nowMs=Date.now(), kMs=kickoffMs(m);
+  var inWindow = isFinite(kMs) && nowMs>=kMs && nowMs<kMs+150*60*1000;
+  if(inWindow && !r){
+    var lLbl=document.createElement('div');lLbl.className='lbl';lLbl.style.marginTop='12px';lLbl.textContent='النتيجة المباشرة';z.appendChild(lLbl);
+    var lv=liveScore(m);
+    var ld={h:lv?Number(lv.h):0, a:lv?Number(lv.a):0};
+    var lrow=document.createElement('div');lrow.className='pred-row';
+    lrow.appendChild(adminStepper(ld,'h'));
+    var ldash=document.createElement('div');ldash.className='vs';ldash.textContent='-';lrow.appendChild(ldash);
+    lrow.appendChild(adminStepper(ld,'a'));
+    z.appendChild(lrow);
+    var lsave=document.createElement('button');lsave.className='btn btn-green';lsave.style.padding='10px';lsave.textContent=lv?'حدّث النتيجة المباشرة':'احفظ النتيجة المباشرة';
+    lsave.addEventListener('click',function(){
+      var min=Math.min(120, Math.max(1, Math.floor((Date.now()-kMs)/60000)));
+      ROOT.child('live/'+m.id).set({h:ld.h, a:ld.a, status:'IN_PLAY', minute:min, ts:Date.now()}).then(function(){toast('تم حفظ النتيجة المباشرة ⚽');});
+    });
+    z.appendChild(lsave);
+    if(lv && liveData[m.id]){
+      var lclr=document.createElement('button');lclr.className='a-del';lclr.style.marginTop='6px';lclr.textContent='امسح المباشر';
+      lclr.addEventListener('click',function(){ROOT.child('live/'+m.id).remove().then(function(){toast('تم مسح المباشر');});});
+      z.appendChild(lclr);
+    }
+  }
   var acts=document.createElement('div');acts.className='admin-actions';
   var bt=document.createElement('button');bt.className='a-edit';bt.textContent='عيّن الفرق';
   bt.addEventListener('click',function(){openTeamModal(m);});
