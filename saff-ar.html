@@ -20,6 +20,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Cairo:wght@500;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -1765,16 +1766,36 @@ function genDailySummary(){
     var rect=target.getBoundingClientRect();
     var h=Math.max(1200, Math.round(rect.height));
     toast('1/3: جاري الرسم…');
-    var h2cTimeout = setTimeout(function(){toast('html2canvas تأخّر · جرب ثاني');posterRoot.innerHTML='';}, 20000);
-    html2canvas(target, {
-      backgroundColor:null, scale:1, useCORS:true, allowTaint:false,
-      imageTimeout:5000, logging:false,
-      width:1080, height:h, windowWidth:1080, windowHeight:h
-    }).then(function(cv){clearTimeout(h2cTimeout);shareCanvas(cv);}).catch(function(e){
-      clearTimeout(h2cTimeout);
-      posterRoot.innerHTML='';
-      toast('فشل html2canvas: '+(e&&e.message||e));
-    });
+    var h2cTimeout = setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';}, 20000);
+    // Prefer html-to-image (better iOS support); fall back to html2canvas if it isn't loaded.
+    if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
+      htmlToImage.toBlob(target, {
+        backgroundColor:null,
+        cacheBust:true,
+        pixelRatio:1,
+        width:1080, height:h
+      }).then(function(blob){
+        clearTimeout(h2cTimeout);
+        if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
+        // Mimic the html2canvas path: build a virtual canvas object with toBlob that returns the blob.
+        var fakeCv={toBlob:function(cb){cb(blob);}};
+        shareCanvas(fakeCv);
+      }).catch(function(e){
+        clearTimeout(h2cTimeout);
+        posterRoot.innerHTML='';
+        toast('فشل html-to-image: '+(e&&e.message||e));
+      });
+    } else {
+      html2canvas(target, {
+        backgroundColor:null, scale:1, useCORS:true, allowTaint:false,
+        imageTimeout:5000, logging:false,
+        width:1080, height:h, windowWidth:1080, windowHeight:h
+      }).then(function(cv){clearTimeout(h2cTimeout);shareCanvas(cv);}).catch(function(e){
+        clearTimeout(h2cTimeout);
+        posterRoot.innerHTML='';
+        toast('فشل html2canvas: '+(e&&e.message||e));
+      });
+    }
   }).catch(function(e){toast('فشل تحميل الخط: '+(e&&e.message||e));});
 }
 function adminZone(m){
