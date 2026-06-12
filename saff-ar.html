@@ -1774,14 +1774,14 @@ function genDailySummary(){
     var h2cTimeout = setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';}, 20000);
     // Prefer html-to-image (better iOS support); fall back to html2canvas if it isn't loaded.
     if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
-      // Embed Tajawal by walking the WHOLE document, not just the offscreen poster — the
-      // <link> rel=stylesheet that loads Tajawal lives in <head>, not inside the cloned
-      // poster tree, so scoping getFontEmbedCSS to the target leaves the rasteriser with
-      // no @font-face and the rendered text falls back to the system Arabic face.
-      var fontScope = document.documentElement || document.body;
-      var fontStep = htmlToImage.getFontEmbedCSS ? htmlToImage.getFontEmbedCSS(fontScope).catch(function(){return '';}) : Promise.resolve('');
+      // Cross-origin stylesheets (Google Fonts <link>) can't be read via the CSSOM,
+      // so getFontEmbedCSS always returns empty for them. Fetch the Tajawal CSS as
+      // plain text ourselves and hand it straight to html-to-image as fontEmbedCSS.
+      var fontUrl = 'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap';
+      var fontStep = fetch(fontUrl,{cache:'force-cache'})
+        .then(function(r){return r.ok ? r.text() : '';})
+        .catch(function(){return '';});
       fontStep.then(function(fontCss){
-        toast('CSS الخط: '+(fontCss?fontCss.length+' حرف':'فاضي'));
         return htmlToImage.toBlob(target, {
           backgroundColor:null,
           cacheBust:true,
