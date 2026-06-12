@@ -335,7 +335,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 #posterRoot .poster .spot .medal{flex-shrink:0;}
 #posterRoot .poster .spot .name{font-weight:900;font-size:62px;line-height:1;color:#fff;letter-spacing:0;}
 #posterRoot .poster .spot .name.multi{font-size:36px;line-height:1.15;}
-#posterRoot .poster .spot .sub{font-weight:700;font-size:28px;color:var(--gold);margin-top:10px;}
+#posterRoot .poster .spot .sub{font-weight:700;font-size:23px;color:var(--gold);margin-top:10px;}
 #posterRoot .poster .spot .ptpill{
   margin-right:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
   width:184px;height:184px;border-radius:50%;flex-shrink:0;gap:0;
@@ -369,10 +369,13 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
   background:var(--row);border:1px solid var(--row-edge);border-radius:12px;
   padding:16px 28px;
 }
-#posterRoot .poster .team{font-weight:800;font-size:28px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#posterRoot .poster .team .fl{width:48px;height:32px;border-radius:4px;object-fit:cover;display:inline-block;vertical-align:middle;margin:0 12px;}
-#posterRoot .poster .team.home{text-align:right;}
-#posterRoot .poster .team.away{text-align:left;}
+#posterRoot .poster .team{font-weight:800;font-size:28px;color:#fff;display:flex;align-items:center;gap:14px;min-width:0;}
+#posterRoot .poster .team .fl{width:48px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;display:block;}
+#posterRoot .poster .team .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#posterRoot .poster .team.home{justify-content:flex-start;}
+#posterRoot .poster .team.away{justify-content:flex-end;}
+#posterRoot .poster .team.away .nm{text-align:left;}
+#posterRoot .poster .team.home .nm{text-align:right;}
 #posterRoot .poster .score{
   display:flex;align-items:center;gap:12px;font-weight:900;font-size:34px;
   letter-spacing:.04em;color:#0A2C20;background:var(--gold);
@@ -691,12 +694,21 @@ var FD_DEFAULT='https://saff-fd.meedo5657.workers.dev';
 var FD_TOKEN=FD_DEFAULT; try{var _s=localStorage.getItem('saff_fdToken'); if(_s && /^https?:\/\//i.test(_s)) FD_TOKEN=_s;}catch(e){}
 // Pre-fetch the SAFF logo as a data URI so the daily-summary html-to-image
 // run doesn't have to worry about cross-origin loading at capture time.
+// SAFF_LOGO_READY is a Promise that the daily-summary flow can await.
 var SAFF_LOGO_DATA='';
-try{
-  fetch('saff-white.png').then(function(r){return r.ok?r.blob():null;}).then(function(b){
-    if(!b)return; var rd=new FileReader(); rd.onload=function(){SAFF_LOGO_DATA=rd.result;}; rd.readAsDataURL(b);
-  }).catch(function(){});
-}catch(e){}
+var SAFF_LOGO_READY=(function(){
+  try{
+    return fetch('saff-white.png',{cache:'force-cache'}).then(function(r){return r.ok?r.blob():null;}).then(function(b){
+      if(!b) return;
+      return new Promise(function(res){
+        var rd=new FileReader();
+        rd.onload=function(){ SAFF_LOGO_DATA=rd.result; res(); };
+        rd.onerror=function(){ res(); };
+        rd.readAsDataURL(b);
+      });
+    }).catch(function(){});
+  }catch(e){ return Promise.resolve(); }
+})();
 function isRealTeam(n){return !!(n&&FLAG_CODE[canon(n)]);}
 // group matches are matched by their (unordered) team pair, not by position
 function pairKey(a,b){return [a,b].sort().join(' :: ');}
@@ -1561,6 +1573,16 @@ function arKick(m){
 // html2canvas to rasterise it into a 1080×2180 PNG. Matches the artifact
 // the user designed in a Claude artifact.
 function genDailySummary(){
+  // If the SAFF logo prefetch hasn't completed yet, wait for it (with a 3s
+  // cap) before building the poster — otherwise the header strips the logo.
+  if(!SAFF_LOGO_DATA && typeof SAFF_LOGO_READY!=='undefined' && SAFF_LOGO_READY && SAFF_LOGO_READY.then){
+    toast('جاري تجهيز الملخص…');
+    Promise.race([SAFF_LOGO_READY, new Promise(function(r){setTimeout(r,3000);})]).then(function(){ _genDailySummaryImpl(); });
+    return;
+  }
+  _genDailySummaryImpl();
+}
+function _genDailySummaryImpl(){
   toast('جاري تجهيز الملخص…');
   if(typeof html2canvas!=='function'){toast('فشل: html2canvas غير محمل');return;}
   var TH = { title:'ملخّص اليوم', toastDone:'ملخص اليوم جاهز 📸' };
@@ -1647,7 +1669,7 @@ function genDailySummary(){
   var headerHtml = '\
 <div style="display:flex;justify-content:space-between;align-items:center;">\
   <div style="display:flex;align-items:center;gap:20px;">\
-    '+(SAFF_LOGO_DATA?'<img src="'+SAFF_LOGO_DATA+'" alt="" style="height:78px;width:auto;display:block;flex-shrink:0;filter:brightness(0) invert(1);">':'')+'\
+    <img src="'+(SAFF_LOGO_DATA||'saff-white.png')+'" alt="" crossorigin="anonymous" style="height:78px;width:auto;display:block;flex-shrink:0;filter:brightness(0) invert(1);">\
     <div style="width:2px;height:56px;background:rgba(255,255,255,.28);"></div>\
     <div style="text-align:right;line-height:1.25;">\
       <div style="font-size:24px;font-weight:900;color:#fff;">'+esc(L.brand1)+'</div>\
@@ -1708,9 +1730,9 @@ function genDailySummary(){
       var t=teamsOf(m), r=result(m);
       resHtml += '\
 <div class="rrow">\
-  <div class="team home">'+flagFor(t.home)+esc(arTeam(t.home))+'</div>\
+  <div class="team home">'+flagFor(t.home)+'<span class="nm">'+esc(arTeam(t.home))+'</span></div>\
   <div class="score"><span class="g">'+esc(arNum(r.h))+'</span><span class="dash">–</span><span class="g">'+esc(arNum(r.a))+'</span></div>\
-  <div class="team away">'+esc(arTeam(t.away))+flagFor(t.away)+'</div>\
+  <div class="team away"><span class="nm">'+esc(arTeam(t.away))+'</span>'+flagFor(t.away)+'</div>\
 </div>';
     });
     resHtml += '</div>';
