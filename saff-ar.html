@@ -1663,7 +1663,7 @@ function genDailySummary(){
   if(topT.length){
     var topPts = topT[0].pts;
     var nameCls = topT.length>1 ? 'name multi' : 'name';
-    var namesHtml = '<div class="'+nameCls+'">'+topT.map(function(w){return esc(w.name);}).join('، ')+'</div>';
+    var namesHtml = topT.map(function(w){return '<div class="'+nameCls+'">'+esc(w.name)+'</div>';}).join('');
     var spotHdr = topT.length>1 ? L.bestLabelPl : L.bestLabel;
     spotHtml = '\
 <div class="shead"><span class="lbl">'+esc(spotHdr)+'</span><span class="ln"></span></div>\
