@@ -947,20 +947,6 @@ function kickoffMs(m){var t=Date.parse(m.utc); return isNaN(t)?Infinity:t;}
 // effective result: admin override wins, otherwise the auto API result
 function result(m){return resultsData[m.id]||apiResults[m.id]||null;}
 function liveScore(m){return liveData[m.id]||apiLive[m.id]||null;}
-// Live minute label: trust FD's reported m.minute when it's a valid number
-// (the user asked for the FD value verbatim). Fall back to "نصف الشوط" on
-// PAUSED with no number, and to a kickoff-based estimate as a last resort.
-function liveMinuteLabel(m,lv){
-  if(lv && typeof lv.minute==='number' && lv.minute>0) return arNum(lv.minute)+"'";
-  if(lv && lv.status==='PAUSED') return 'نصف الشوط';
-  var elapsed=Math.floor((Date.now()-kickoffMs(m))/60000);
-  if(elapsed<1) return "1'";
-  if(elapsed<=45) return arNum(elapsed)+"'";
-  if(elapsed<=60) return 'نصف الشوط';
-  var clock=45+(elapsed-60);
-  if(clock>120) clock=120;
-  return arNum(clock)+"'";
-}
 var OPEN_WINDOW = 24*60*60*1000; // التوقعات تفتح فقط قبل المباراة بـ24 ساعة
 function statusOf(m){
   if(result(m))return 'finished';
@@ -1464,7 +1450,7 @@ function matchCard(m){
     var lv=liveScore(m);
     if(lv){
       var lr=document.createElement('div');lr.className='live-row';
-      lr.innerHTML='<span class="live-dot"></span><span class="live-lbl">مباشر</span><span class="live-big">'+lv.h+' - '+lv.a+'</span><span class="live-min">'+liveMinuteLabel(m,lv)+'</span>';
+      lr.innerHTML='<span class="live-dot"></span><span class="live-lbl">مباشر</span><span class="live-big">'+lv.h+' - '+lv.a+'</span>';
       el.appendChild(lr);
     }
     var ln=document.createElement('div');ln.className='locked-note';ln.textContent=lv?'أُغلقت التوقعات، بانتظار النتيجة الرسمية':'● مباشر — أُغلقت التوقعات، بانتظار النتيجة الرسمية';el.appendChild(ln);
