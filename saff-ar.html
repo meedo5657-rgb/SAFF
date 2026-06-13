@@ -1458,11 +1458,6 @@ function matchCard(m){
     }
   }else if(st==='locked'){
     var lv=liveScore(m);
-    if(lv){
-      var lr=document.createElement('div');lr.className='live-row';
-      lr.innerHTML='<span class="live-dot"></span><span class="live-lbl">مباشر</span><span class="live-big">'+lv.h+' - '+lv.a+'</span>';
-      el.appendChild(lr);
-    }
     var ln=document.createElement('div');ln.className='locked-note';ln.textContent=lv?'أُغلقت التوقعات، بانتظار النتيجة الرسمية':'● مباشر — أُغلقت التوقعات، بانتظار النتيجة الرسمية';el.appendChild(ln);
     if(myPred){var yp2=document.createElement('div');yp2.className='your-pred';yp2.innerHTML='توقّعك: <b>'+myPred.h+' - '+myPred.a+'</b>'+(myPred.pw?(' • بلنتيات: '+(myPred.pw==='h'?esc(t.home):esc(t.away))):'')+(myPred.x2?' <span class="x2-badge">⚡2x</span>':'');el.appendChild(yp2);}
     else{var no2=document.createElement('div');no2.className='locked-note';no2.textContent='ماتوقعت نتيجة هذه المباراة';el.appendChild(no2);}
