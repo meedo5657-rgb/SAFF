@@ -157,6 +157,8 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .team .flagimg{width:46px;height:31px;object-fit:cover;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.45);}
 .team .tname{font-size:.88rem;font-weight:700;}
 .vs{font-size:.8rem;color:var(--muted);font-weight:700;padding:0 4px;}
+.tscore{font-size:1.5rem;font-weight:900;color:#fff;min-width:1.2em;text-align:center;padding:0 4px;}
+.tscore-live{color:#ffb1b1;}
 .score-in{display:flex;align-items:center;gap:6px;}
 .stp{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:#fff;font-size:1.1rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .stp:active{transform:scale(.9);}
@@ -1420,8 +1422,16 @@ function matchCard(m){
   el.appendChild(head);
 
   var teams=document.createElement('div');teams.className='teams';
+  // Show the score (live in-play or final) wedged between each team and the
+  // central "ضد", so glancing at the card surface gives the score even when
+  // the card is collapsed.
+  var _sc=null;
+  if(st==='finished') _sc=result(m);
+  else if(st==='locked') _sc=liveScore(m);
+  var _scH = _sc ? '<span class="tscore'+(st==='locked'?' tscore-live':'')+'">'+_sc.h+'</span>' : '';
+  var _scA = _sc ? '<span class="tscore'+(st==='locked'?' tscore-live':'')+'">'+_sc.a+'</span>' : '';
   teams.innerHTML='<div class="team">'+flagHTML(t.home,t.hf)+'<div class="tname">'+esc(t.home)+'</div></div>'+
-    '<div class="vs">ضد</div>'+
+    _scH+'<div class="vs">ضد</div>'+_scA+
     '<div class="team">'+flagHTML(t.away,t.af)+'<div class="tname">'+esc(t.away)+'</div></div>';
   el.appendChild(teams);
 
