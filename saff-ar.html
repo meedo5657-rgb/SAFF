@@ -1438,9 +1438,6 @@ function matchCard(m){
   var ko=m.stage!=='group';
   if(st==='finished'){
     var r=result(m);
-    var res=document.createElement('div');res.className='result-row';
-    res.innerHTML='<span class="result-lbl">النتيجة</span><span class="result-big">'+r.h+' - '+r.a+'</span>';
-    el.appendChild(res);
     if(r.pw){
       var pn=document.createElement('div');pn.className='pen-note';
       pn.textContent='🥅 البلنتيات: فاز '+(r.pw==='h'?t.home:t.away);el.appendChild(pn);
