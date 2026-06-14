@@ -938,6 +938,7 @@ var currentFilter='upcoming'; // selected chip: 'upcoming' | 'g:X' | 'r:R'
 var editingMatch=null;
 var draft={}; // matchId -> {h,a}
 var draftEdited={}; // matchId -> true once the user has touched the draft this session
+var predsLoaded=false; // flips to true after the first predictions snapshot lands
 
 // ===== HELPERS =====
 function show(id){
@@ -1162,7 +1163,7 @@ document.querySelectorAll('.me-chip').forEach(function(c){
 });
 
 function listen(){
-  ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};renderMatches();renderLeader();});
+  ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};predsLoaded=true;renderMatches();renderLeader();});
   ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   ROOT.child('live').on('value',function(s){liveData=s.val()||{};renderMatches();});
   ROOT.child('teams').on('value',function(s){teamsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
@@ -1410,14 +1411,19 @@ function matchCard(m){
   var st=statusOf(m);
   var t=teamsOf(m);
   var myPred=(predsData[m.id]&&predsData[m.id][myKey])?predsData[m.id][myKey]:null;
-  if(draft[m.id]===undefined){
-    draft[m.id]=myPred?{h:Number(myPred.h),a:Number(myPred.a),pw:myPred.pw||null,x2:!!myPred.x2}:{h:0,a:0,pw:null,x2:false};
-  } else if(myPred && !draftEdited[m.id]){
-    // late predsData arrival — user hasn't touched the draft, sync from saved value
-    draft[m.id].h=Number(myPred.h);
-    draft[m.id].a=Number(myPred.a);
-    draft[m.id].pw=myPred.pw||null;
-    draft[m.id].x2=!!myPred.x2;
+  // Only touch `draft` after the first predictions snapshot has landed.
+  // Otherwise we'd init to 0-0 and the user could overwrite their saved
+  // prediction with zeroes by tapping save before Firebase replies.
+  if(predsLoaded){
+    if(draft[m.id]===undefined){
+      draft[m.id]=myPred?{h:Number(myPred.h),a:Number(myPred.a),pw:myPred.pw||null,x2:!!myPred.x2}:{h:0,a:0,pw:null,x2:false};
+    } else if(myPred && !draftEdited[m.id]){
+      // late predsData arrival — user hasn't touched the draft, sync from saved value
+      draft[m.id].h=Number(myPred.h);
+      draft[m.id].a=Number(myPred.a);
+      draft[m.id].pw=myPred.pw||null;
+      draft[m.id].x2=!!myPred.x2;
+    }
   }
 
   var el=document.createElement('div');
@@ -1478,6 +1484,11 @@ function matchCard(m){
     var sn=document.createElement('div');sn.className='locked-note';
     sn.innerHTML='🔒 التوقع يفتح قبل المباراة بـ24 ساعة'+(openKick(m)?('<br><span style="opacity:.85">يفتح '+esc(openKick(m))+'</span>'):'');
     el.appendChild(sn);
+  }else if(!predsLoaded){
+    // Predictions snapshot hasn't landed yet — show a placeholder instead
+    // of editable steppers so the user can't accidentally save a 0-0 over
+    // their existing prediction.
+    var wait=document.createElement('div');wait.className='locked-note';wait.textContent='جاري تحميل توقّعك…';el.appendChild(wait);
   }else{
     var pen=null;
     var pr=document.createElement('div');pr.className='pred-row';
@@ -1584,6 +1595,7 @@ function penRow(obj,homeName,awayName,onTouch){
 function savePred(id){
   var m=MATCH_BY_ID[id];
   if(statusOf(m)!=='open'){toast('التوقعات مغلقة لهذه المباراة');renderMatches();return;}
+  if(!predsLoaded){toast('جاري تحميل توقّعك… حاول بعد لحظة');return;}
   var d=draft[id];
   var data={h:d.h,a:d.a};
   if(m.stage!=='group'&&Number(d.h)===Number(d.a)){ // knockout draw: penalties winner is required
