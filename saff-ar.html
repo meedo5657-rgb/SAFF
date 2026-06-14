@@ -130,6 +130,20 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .gr-legend span{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle;}
 .gr-legend .lg-q{background:#22c55e;}
 .gr-legend .lg-q3{background:#fbbf24;}
+.ko-sec{display:flex;flex-direction:column;gap:10px;}
+.ko-sh{font-size:.95rem;font-weight:800;color:#fde68a;padding:4px 2px;border-bottom:1px solid var(--line);}
+.ko-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;}
+.ko-head{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--muted);font-weight:700;}
+.ko-num{color:#fde68a;}
+.ko-row{display:flex;align-items:stretch;gap:10px;}
+.ko-vs{flex-shrink:0;align-self:center;font-size:.95rem;font-weight:800;color:#fff;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-width:54px;text-align:center;}
+.ko-slot{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0;}
+.ko-slot.resolved{flex-direction:row;align-items:center;justify-content:center;gap:8px;font-weight:800;font-size:.95rem;border-color:rgba(10,92,51,.55);background:rgba(10,92,51,.10);}
+.ko-slot.resolved .ko-team{color:#fff;}
+.ko-slot-lbl{font-size:.78rem;font-weight:800;color:#fde68a;text-align:center;}
+.ko-opts{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
+.ko-chip{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;color:var(--text);background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;padding:4px 9px;white-space:nowrap;}
+.ko-chip img.flag{width:18px;height:12px;object-fit:cover;border-radius:2px;}
 .sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
 .sc-rank{font-weight:800;color:var(--muted);min-width:24px;text-align:center;font-size:.95rem;}
 .sc-row:nth-child(1) .sc-rank,.sc-row:nth-child(2) .sc-rank{color:#fde68a;}
@@ -469,9 +483,11 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
   <div class="sub-tabs">
     <button class="sub-tab active" data-sub="standings">الترتيب</button>
     <button class="sub-tab" data-sub="scorers">الهدافون</button>
+    <button class="sub-tab" data-sub="knockouts">الإقصائيات</button>
   </div>
   <div id="standingsView" style="width:100%;display:flex;flex-direction:column;gap:14px;"></div>
   <div id="scorersView" style="width:100%;display:none;flex-direction:column;gap:8px;"></div>
+  <div id="knockoutsView" style="width:100%;display:none;flex-direction:column;gap:14px;"></div>
 </div>
 
 <!-- RULES -->
@@ -2215,7 +2231,97 @@ function renderScorers(){
     loadOF();
   }
 }
-function renderGroups(){renderStandings();renderScorers();}
+function renderGroups(){renderStandings();renderScorers();var kv=document.getElementById('knockoutsView');if(kv&&kv.style.display!=='none')renderKnockouts();}
+// ===== Knockouts tab =====
+// Resolve a fixture slot (e.g. "Winner Group A", "Runner-up Group B",
+// "3rd Group A/B/C/D/F", "Winner Match 73", "Loser Match 101") to the list
+// of teams that could still fill it. Returns null when the slot is already
+// a concrete team name.
+function _isResolved(name){return !!(name && FLAG_CODE[canon(name)]);}
+function knockoutSlotOptions(name){
+  if(!name) return [];
+  if(_isResolved(name)) return [name];
+  var m;
+  if((m=name.match(/^Winner Group ([A-L])$/))) return (SCHEDULE_DATA.groups[m[1]]||[]).map(function(t){return t.name;});
+  if((m=name.match(/^Runner[- ]?up Group ([A-L])$/))) return (SCHEDULE_DATA.groups[m[1]]||[]).map(function(t){return t.name;});
+  if((m=name.match(/^3rd Group ([A-L\/]+)$/))){
+    var gs=m[1].split('/'); var out=[];
+    gs.forEach(function(g){(SCHEDULE_DATA.groups[g]||[]).forEach(function(t){if(out.indexOf(t.name)<0)out.push(t.name);});});
+    return out;
+  }
+  if((m=name.match(/^(Winner|Loser) Match (\d+)$/))){
+    var n=+m[2], src=MATCH_BY_ID['m'+n];
+    if(!src) return [];
+    var srcT=teamsOf(src), o=[];
+    [srcT.home,srcT.away].forEach(function(x){knockoutSlotOptions(x).forEach(function(t){if(o.indexOf(t)<0)o.push(t);});});
+    return o;
+  }
+  return [];
+}
+function renderKnockouts(){
+  var v=document.getElementById('knockoutsView');if(!v)return;
+  var stages=[['R32','دور الـ32'],['R16','ثمن النهائي'],['QF','ربع النهائي'],['SF','نصف النهائي'],['3RD','المركز الثالث'],['FINAL','النهائي']];
+  var frag=document.createDocumentFragment();
+  var lead=document.createElement('div');lead.className='hint';
+  lead.textContent='شوف كل مباراة إقصائية ومين الفِرَق المرشّحة لكل خانة. الخانة اللي تأكدت تطلع باسم الفريق + علمه.';
+  frag.appendChild(lead);
+  stages.forEach(function(pair){
+    var code=pair[0], label=pair[1];
+    var ms=MATCHES.filter(function(m){return m.stage===code;});
+    if(!ms.length) return;
+    var sec=document.createElement('div');sec.className='ko-sec';
+    var sh=document.createElement('div');sh.className='ko-sh';sh.textContent=label;sec.appendChild(sh);
+    ms.forEach(function(m){
+      var t=teamsOf(m), r=result(m);
+      var card=document.createElement('div');card.className='ko-card';
+      var head=document.createElement('div');head.className='ko-head';
+      head.innerHTML='<span class="ko-num">مباراة '+m.n+'</span><span class="ko-when">'+esc(localKick(m))+'</span>';
+      card.appendChild(head);
+      var row=document.createElement('div');row.className='ko-row';
+      row.appendChild(knockoutSlot(t.home, m.home));
+      var vs=document.createElement('div');vs.className='ko-vs';
+      vs.textContent = r ? (r.h+' - '+r.a) : 'ضد';
+      row.appendChild(vs);
+      row.appendChild(knockoutSlot(t.away, m.away));
+      card.appendChild(row);
+      sec.appendChild(card);
+    });
+    frag.appendChild(sec);
+  });
+  v.innerHTML=''; v.appendChild(frag);
+}
+function knockoutSlot(currentName, originalSlot){
+  var slot=document.createElement('div');slot.className='ko-slot';
+  if(_isResolved(currentName)){
+    slot.classList.add('resolved');
+    slot.innerHTML=flagImg(currentName,28)+'<span class="ko-team">'+esc(currentName)+'</span>';
+    return slot;
+  }
+  var label=document.createElement('div');label.className='ko-slot-lbl';
+  label.textContent=arSlotLabel(originalSlot||currentName);
+  slot.appendChild(label);
+  var opts=knockoutSlotOptions(originalSlot||currentName);
+  if(opts.length){
+    var chips=document.createElement('div');chips.className='ko-opts';
+    opts.forEach(function(team){
+      var c=document.createElement('span');c.className='ko-chip';
+      c.innerHTML=flagImg(team,20)+esc(team);
+      chips.appendChild(c);
+    });
+    slot.appendChild(chips);
+  }
+  return slot;
+}
+function arSlotLabel(name){
+  if(!name) return '';
+  var m;
+  if((m=name.match(/^Winner Group ([A-L])$/))) return 'متصدّر المجموعة '+m[1];
+  if((m=name.match(/^Runner[- ]?up Group ([A-L])$/))) return 'وصيف المجموعة '+m[1];
+  if((m=name.match(/^3rd Group ([A-L\/]+)$/))) return 'ثالث من المجموعات '+m[1].split('/').join('/');
+  if((m=name.match(/^Winner Match (\d+)$/))) return 'الفائز من المباراة '+m[1];
+  if((m=name.match(/^Loser Match (\d+)$/))) return 'الخاسر من المباراة '+m[1];
+  return name;
+}
 
 // ===== LEADERBOARD =====
 function renderLeader(){
@@ -2418,6 +2524,8 @@ document.querySelectorAll('.sub-tab').forEach(function(b){b.addEventListener('cl
   document.querySelectorAll('.sub-tab').forEach(function(x){x.classList.toggle('active',x.dataset.sub===s);});
   document.getElementById('standingsView').style.display=s==='standings'?'flex':'none';
   document.getElementById('scorersView').style.display=s==='scorers'?'flex':'none';
+  document.getElementById('knockoutsView').style.display=s==='knockouts'?'flex':'none';
+  if(s==='knockouts') renderKnockouts();
 });});
 
 // ===== PWA: تسجيل service worker للتثبيت والعمل بدون شبكة =====
