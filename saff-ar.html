@@ -1661,11 +1661,6 @@ function showFdDiag(container){
   lines.push('مفروض لايف الآن (من الجدول): '+(expected.join(',')||'لا شي'));
   var raw=window.__fdRaw;
   if(raw && raw.matches){
-    lines.push('--- أول ٥ مباريات من FD: ---');
-    raw.matches.slice(0,5).forEach(function(x,i){
-      var ft=x.score&&x.score.fullTime;
-      lines.push((i+1)+'. '+(x.homeTeam&&x.homeTeam.name)+' v '+(x.awayTeam&&x.awayTeam.name)+' · '+x.status+' · '+(x.utcDate||'?')+' · FT='+(ft?(ft.home+'-'+ft.away):'null'));
-    });
     var inplay=raw.matches.filter(function(x){return x.status==='IN_PLAY'||x.status==='PAUSED';});
     if(inplay.length){
       lines.push('--- FD يقول لايف الآن ('+inplay.length+'): ---');
@@ -1674,6 +1669,28 @@ function showFdDiag(container){
         lines.push((i+1)+'. '+(x.homeTeam&&x.homeTeam.name)+' v '+(x.awayTeam&&x.awayTeam.name)+' · min='+x.minute+' · FT='+(ft?(ft.home+'-'+ft.away):'null'));
       });
     }
+    // Dump every FINISHED match FD returned today/yesterday so we can verify
+    // whether a specific fixture got a score (e.g. "ليش تركيا × أستراليا
+    // ما طلعت في الملخّص؟").
+    var finCutoff = nowMs - 36*60*60*1000;
+    var fin=raw.matches.filter(function(x){
+      if(x.status!=='FINISHED' && x.status!=='AWARDED') return false;
+      var t=Date.parse(x.utcDate||0);
+      return !isNaN(t) && t>=finCutoff;
+    });
+    if(fin.length){
+      lines.push('--- FD أنهى ('+fin.length+' آخر ٣٦ ساعة): ---');
+      fin.forEach(function(x,i){
+        var ft=x.score&&x.score.fullTime, hn=x.homeTeam&&x.homeTeam.name, an=x.awayTeam&&x.awayTeam.name;
+        var ourMatch = (function(){ try{ return matchFD(x); }catch(e){ return null; } })();
+        lines.push((i+1)+'. '+hn+' v '+an+' · FT='+(ft?(ft.home+'-'+ft.away):'null')+' · ربط='+(ourMatch?ourMatch.id:'لا'));
+      });
+    }
+    lines.push('--- أول ٥ مباريات من FD: ---');
+    raw.matches.slice(0,5).forEach(function(x,i){
+      var ft=x.score&&x.score.fullTime;
+      lines.push((i+1)+'. '+(x.homeTeam&&x.homeTeam.name)+' v '+(x.awayTeam&&x.awayTeam.name)+' · '+x.status+' · '+(x.utcDate||'?')+' · FT='+(ft?(ft.home+'-'+ft.away):'null'));
+    });
   }
   box.textContent=lines.join('\n');
   container.appendChild(box);
