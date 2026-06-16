@@ -1049,13 +1049,22 @@ var STORY_OPTIONS=[
   'غانا','فرنسا','قطر','كرواتيا','كندا','كوبا','كوريا الجنوبية','كوريا الشمالية','كولومبيا',
   'كوستاريكا','مصر','نيجيريا','نيوزيلندا','هايتي','هندوراس','هولندا','ويلز','الأوروغواي'
 ];
+function _storyLocalKey(){return 'saff_story_'+(myKey||'_')+'_'+todayKey();}
 function _userStoryRec(){
-  var t=todayKey(); var rec=(storyScores[myKey]&&storyScores[myKey][t])||null; return rec;
+  var t=todayKey();
+  var rec=(storyScores[myKey]&&storyScores[myKey][t])||null;
+  if(rec) return rec;
+  // Fall back to localStorage so the result survives a refresh even if the
+  // Firebase write was rejected by security rules.
+  try{var raw=localStorage.getItem(_storyLocalKey()); if(raw) return JSON.parse(raw);}catch(e){}
+  return null;
 }
 function saveStoryResult(pts,won,idx){
   if(!myKey) return;
   var t=todayKey();
-  ROOT.child('storyScores/'+myKey+'/'+t).set({pts:pts,won:!!won,idx:idx,ts:Date.now()});
+  var data={pts:pts,won:!!won,idx:idx,ts:Date.now()};
+  try{localStorage.setItem(_storyLocalKey(), JSON.stringify(data));}catch(e){}
+  ROOT.child('storyScores/'+myKey+'/'+t).set(data).catch(function(){});
 }
 function dailyStoryCard(){
   if(!isAdmin) return null; // hidden for everyone until admin opens it up
