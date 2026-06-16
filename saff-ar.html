@@ -1036,6 +1036,19 @@ function storyMatches(story,guess){
 // In-memory game state for today's story — never persisted while in play.
 // Persisted result (pts, won, idx) lives in Firebase under storyScores.
 var __storyGame=null;
+// Picklist for the answer dropdown — every WC participant the user could
+// reasonably guess. Stories' canonical team names appear in this list so
+// storyMatches() resolves exactly.
+var STORY_OPTIONS=[
+  'الأرجنتين','الإمارات','الإكوادور','أستراليا','أنغولا','أيرلندا','إنجلترا','إيران','إيطاليا',
+  'اسكتلندا','البحرين','البرازيل','البرتغال','الجزائر','الدنمارك','الرأس الأخضر','السعودية',
+  'السلفادور','السنغال','السويد','الصين','العراق','الكاميرون','الكونغو الديمقراطية','الكويت',
+  'المجر','المغرب','المكسيك','النرويج','النمسا','الولايات المتحدة','اليابان','اليونان','أيسلندا',
+  'باراغواي','بلجيكا','بلغاريا','بنما','بوليفيا','بيرو','تركيا','تشيكوسلوفاكيا','تشيلي','تونس',
+  'جامايكا','جنوب أفريقيا','روسيا','رومانيا','ساحل العاج','سلوفاكيا','سلوفينيا','سويسرا','صربيا',
+  'غانا','فرنسا','قطر','كرواتيا','كندا','كوبا','كوريا الجنوبية','كوريا الشمالية','كولومبيا',
+  'كوستاريكا','مصر','نيجيريا','نيوزيلندا','هايتي','هندوراس','هولندا','ويلز','الأوروغواي'
+];
 function _userStoryRec(){
   var t=todayKey(); var rec=(storyScores[myKey]&&storyScores[myKey][t])||null; return rec;
 }
@@ -1045,6 +1058,7 @@ function saveStoryResult(pts,won,idx){
   ROOT.child('storyScores/'+myKey+'/'+t).set({pts:pts,won:!!won,idx:idx,ts:Date.now()});
 }
 function dailyStoryCard(){
+  if(!isAdmin) return null; // hidden for everyone until admin opens it up
   var t=todayStory(); if(!t) return null; // no story for today (before/after WC window)
   var card=document.createElement('div'); card.className='storycard';
   var head=document.createElement('div'); head.className='sc-head';
@@ -1054,7 +1068,7 @@ function dailyStoryCard(){
   if(rec){
     // already played today — show result
     var msg=rec.won
-      ? '✓ مبروك! +'+rec.pts+' نقاط — الإجابة كانت '+STORIES[rec.idx].team
+      ? '✓ مبروك! +'+rec.pts+' '+(rec.pts===1?'نقطة':'نقاط')+' — الإجابة كانت '+STORIES[rec.idx].team
       : '✗ ما خمّنت — الإجابة كانت '+STORIES[rec.idx].team;
     var res=document.createElement('div'); res.className='sc-result '+(rec.won?'win':'lose'); res.textContent=msg;
     card.appendChild(res);
@@ -1062,12 +1076,12 @@ function dailyStoryCard(){
     card.appendChild(foot);
     return card;
   }
-  if(__storyGame && __storyGame.idx===t.idx){
+  if(__storyGame && __storyGame.idx===t.idx && !__storyGame.ended){
     return renderStoryPlayingCard(card, t);
   }
   // Not started yet
   var intro=document.createElement('div'); intro.className='sc-hint';
-  intro.innerHTML='<span class="lbl">القواعد</span>هينتين، ٣٠ ثانية لكل وحدة، توقّعَين بحدّ أقصى. الإجابة الصحيحة على الهنت الأول = ١٠ نقاط، على الثاني = ٥ نقاط.';
+  intro.innerHTML='<span class="lbl">القواعد</span>معلومتين، ٣٠ ثانية لكل وحدة، توقّعَين بحدّ أقصى. الإجابة الصحيحة على المعلومة الأولى = ٣ نقاط، على الثانية = ١ نقطة.';
   card.appendChild(intro);
   var btn=document.createElement('button'); btn.className='sc-start'; btn.textContent='ابدأ اللعبة';
   btn.addEventListener('click',function(){
@@ -1112,7 +1126,7 @@ function endStoryGame(won){
   if(!__storyGame) return;
   __storyGame.ended=true;
   if(__storyGame.intervalId) clearInterval(__storyGame.intervalId);
-  var pts = won ? (__storyGame.hintLevel===1 ? 10 : 5) : 0;
+  var pts = won ? (__storyGame.hintLevel===1 ? 3 : 1) : 0;
   var idx = __storyGame.idx;
   // Optimistic local update so the result card is shown instantly without
   // waiting for the Firebase round-trip.
@@ -1120,11 +1134,12 @@ function endStoryGame(won){
   storyScores[myKey][todayKey()]={pts:pts, won:!!won, idx:idx, ts:Date.now()};
   saveStoryResult(pts, won, idx);
   __storyGame=null;
+  renderMatches();
 }
 function renderStoryPlayingCard(card, t){
   var story=t.story;
   var hintText=__storyGame.hintLevel===1 ? story.hint1 : story.hint2;
-  var hintLbl=__storyGame.hintLevel===1 ? '🔴 هنت ١ (صعب) — ١٠ نقاط' : '🟡 هنت ٢ (متوسط) — ٥ نقاط';
+  var hintLbl=__storyGame.hintLevel===1 ? '🔴 معلومة ١ (صعب) — ٣ نقاط' : '🟡 معلومة ٢ (متوسط) — نقطة واحدة';
   var hint=document.createElement('div'); hint.className='sc-hint';
   hint.innerHTML='<span class="lbl">'+hintLbl+'</span>'+esc(hintText);
   card.appendChild(hint);
@@ -1135,26 +1150,28 @@ function renderStoryPlayingCard(card, t){
   pr.innerHTML='<div class="bar" style="width:'+(100*__storyGame.timeLeft/30)+'%;"></div>';
   card.appendChild(pr);
   var row=document.createElement('div'); row.className='sc-input-row';
-  var input=document.createElement('input'); input.className='sc-input'; input.type='text'; input.placeholder='اكتب اسم المنتخب…'; input.autocomplete='off'; input.dir='rtl';
+  var sel=document.createElement('select'); sel.className='sc-input';
+  var ph=document.createElement('option'); ph.value=''; ph.textContent='اختر المنتخب…'; ph.disabled=true; ph.selected=true;
+  sel.appendChild(ph);
+  STORY_OPTIONS.slice().sort(function(a,b){return a.localeCompare(b,'ar');}).forEach(function(name){
+    var op=document.createElement('option'); op.value=name; op.textContent=name; sel.appendChild(op);
+  });
   var go=document.createElement('button'); go.className='sc-go'; go.textContent='تأكيد';
   function submit(){
-    var v=input.value.trim(); if(!v) return;
+    var v=sel.value; if(!v) return;
     if(!__storyGame||__storyGame.ended) return;
-    if(storyMatches(story,v)){ endStoryGame(true); renderMatches(); return; }
+    if(storyMatches(story,v)){ endStoryGame(true); return; }
     __storyGame.guessesLeft--;
     if(__storyGame.guessesLeft<=0){
       if(__storyGame.hintLevel===1){ advanceStoryHint(); return; }
-      endStoryGame(false); renderMatches(); return;
+      endStoryGame(false); return;
     }
-    input.value=''; toast('غلط — جرّب مرة ثانية');
+    sel.value=''; ph.selected=true; toast('غلط — جرّب مرة ثانية');
     renderMatches();
-    setTimeout(function(){var i=document.querySelector('.storycard .sc-input'); if(i)i.focus();},30);
   }
   go.addEventListener('click',submit);
-  input.addEventListener('keydown',function(e){if(e.key==='Enter')submit();});
-  row.appendChild(input); row.appendChild(go);
+  row.appendChild(sel); row.appendChild(go);
   card.appendChild(row);
-  setTimeout(function(){input.focus();},50);
   return card;
 }
 function renderStoryLeader(){
@@ -2480,6 +2497,10 @@ function applyAdminUI(){
     b.style.display=au?'':'none';
     b.classList.toggle('admin-on',isAdmin);
   });
+  // Hide the "قصة منتخب" leaderboard sub-tab when the player isn't admin,
+  // since the game itself is admin-gated for now.
+  var storyTab=document.querySelector('.sub-tab[data-leadsub="story"]');
+  if(storyTab) storyTab.style.display = isAdmin ? '' : 'none';
 }
 function openSettings(){
   if(isAdmin){
