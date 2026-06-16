@@ -1526,6 +1526,19 @@ function matchCard(m){
   }
 
   if(st==='locked'||st==='finished') el.appendChild(allPredsBlock(m,result(m)));
+  // Special: "قائمة الخونة" button — only on Saudi Arabia × Uruguay (m15)
+  // for the admin, once a non-draw result has been recorded.
+  if(m.id==='m15' && isAdmin){
+    var rr=result(m);
+    if(rr && Number(rr.h)!==Number(rr.a)){
+      var tb=document.createElement('button');
+      tb.className='btn btn-gold';
+      tb.style.cssText='width:100%;padding:12px;margin-top:8px;font-weight:800;';
+      tb.textContent='📜 قائمة الخونة';
+      tb.addEventListener('click',function(){genTraitorsPoster(m.id);});
+      el.appendChild(tb);
+    }
+  }
   if(isAdmin) el.appendChild(adminZone(m));
   return el;
 }
@@ -2191,13 +2204,6 @@ function adminZone(m){
     acts.appendChild(bt);
   }
   z.appendChild(acts);
-  // "قائمة الخونة" — only meaningful once the match has a non-draw result.
-  if(r && Number(r.h)!==Number(r.a)){
-    var bt2=document.createElement('button');bt2.className='btn btn-gold';bt2.style.cssText='padding:10px;margin-top:8px;';
-    bt2.textContent='📜 قائمة الخونة';
-    bt2.addEventListener('click',function(){genTraitorsPoster(m.id);});
-    z.appendChild(bt2);
-  }
   return z;
 }
 function adminStepper(rd,k,onChange){
