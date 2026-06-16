@@ -1116,7 +1116,7 @@ function startStoryTick(){
 }
 function updateStoryTimer(){
   var card=document.querySelector('.storycard'); if(!card) return;
-  var sec=card.querySelector('.sec'); if(sec) sec.textContent=__storyGame.timeLeft+' ثانية';
+  var sec=card.querySelector('.sec'); if(sec) sec.textContent=arNum(__storyGame.timeLeft)+' ثانية';
   var bar=card.querySelector('.sc-progress .bar'); if(bar) bar.style.width=(100*__storyGame.timeLeft/30)+'%';
 }
 function advanceStoryHint(){
@@ -1149,7 +1149,7 @@ function renderStoryPlayingCard(card, t){
   hint.innerHTML='<span class="lbl">'+hintLbl+'</span>'+esc(hintText);
   card.appendChild(hint);
   var tim=document.createElement('div'); tim.className='sc-timer';
-  tim.innerHTML='<span>⏱️ <span class="sec">'+__storyGame.timeLeft+' ثانية</span></span><span class="sc-tries">المحاولات المتبقية: '+__storyGame.guessesLeft+'/٢</span>';
+  tim.innerHTML='<span>⏱️ <span class="sec">'+arNum(__storyGame.timeLeft)+' ثانية</span></span><span class="sc-tries">المحاولات المتبقية: '+arNum(__storyGame.guessesLeft)+'/٢</span>';
   card.appendChild(tim);
   var pr=document.createElement('div'); pr.className='sc-progress';
   pr.innerHTML='<div class="bar" style="width:'+(100*__storyGame.timeLeft/30)+'%;"></div>';
