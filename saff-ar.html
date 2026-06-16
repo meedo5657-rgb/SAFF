@@ -1069,8 +1069,14 @@ function saveStoryResult(pts,won,idx){
   // across devices instead of being stuck on whichever phone you played on.
   ROOT.child('users/'+myKey+'/story/'+t).set(data).catch(function(e){toast('فشل حفظ النتيجة في الحساب: '+((e&&e.code)||e));});
 }
+var STORY_PUBLIC_AT = 1781686800000; // Wed 17 Jun 2026 · 12:00 Riyadh · 09:00 UTC
+function storyPublicOpen(){
+  // Goes live to every user at STORY_PUBLIC_AT. Admins always see it
+  // for testing, regardless of the clock.
+  return Date.now() >= STORY_PUBLIC_AT;
+}
 function dailyStoryCard(){
-  if(!isAdmin) return null; // hidden for everyone until admin opens it up
+  if(!isAdmin && !storyPublicOpen()) return null;
   var t=todayStory(); if(!t) return null; // no story for today (before/after WC window)
   var card=document.createElement('div'); card.className='storycard';
   var head=document.createElement('div'); head.className='sc-head';
@@ -1258,27 +1264,28 @@ function storyTeamPicker(){
 function renderStoryLeader(){
   var v=document.getElementById('storyLeader'); if(!v) return;
   v.innerHTML='';
+  var hint=document.createElement('div'); hint.style.cssText='font-size:.72rem;color:var(--muted);text-align:center;padding:4px 0 8px;line-height:1.6;';
+  hint.textContent='قصة منتخب · ٣ نقاط لمن يصيب من المعلومة الأولى، ونقطة واحدة من الثانية';
+  v.appendChild(hint);
   var keys=Object.keys(usersData||{}).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
-  if(!keys.length){var em=document.createElement('div');em.className='empty';em.textContent='لا يوجد لاعبون بعد 🏟️';v.appendChild(em);return;}
   var rows=keys.map(function(k){
     var rec=storyScores[k]||{};
     var total=0, plays=0, wins=0;
     Object.keys(rec).forEach(function(d){var r=rec[d]; if(r&&typeof r.pts==='number'){total+=r.pts;plays++;if(r.won)wins++;}});
     return {key:k,name:(usersData[k]&&usersData[k].name)||k,pts:total,plays:plays,wins:wins};
-  }).sort(function(a,b){return b.pts-a.pts||b.wins-a.wins;});
-  var hint=document.createElement('div'); hint.style.cssText='font-size:.72rem;color:var(--muted);text-align:center;padding:4px 0 6px;';
-  hint.textContent='قصة منتخب · ١٠ نقاط للهنت الأول، ٥ للثاني';
-  v.appendChild(hint);
+  }).filter(function(u){return u.plays>0;}) // drop users who haven't played yet
+    .sort(function(a,b){return b.pts-a.pts||b.wins-a.wins;});
+  if(!rows.length){var em=document.createElement('div');em.className='empty';em.textContent='ما حد لعب بعد. كن أول واحد 🏟️';v.appendChild(em);return;}
   rows.forEach(function(u,i){
     var row=document.createElement('div'); row.className='lb-row';
     row.style.cssText='display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;';
     var rnk=document.createElement('div');
-    rnk.style.cssText='width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;'+(i===0?'background:var(--gold,#fbbf24);color:#0a2c20;':i===1?'background:#d1d5db;color:#0a2c20;':i===2?'background:#d79b63;color:#0a2c20;':'background:rgba(255,255,255,.10);color:#fff;');
-    rnk.textContent=(i+1);
+    rnk.style.cssText='width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;'+(i===0?'background:#fbbf24;color:#0a2c20;':i===1?'background:#d1d5db;color:#0a2c20;':i===2?'background:#d79b63;color:#0a2c20;':'background:rgba(255,255,255,.10);color:#fff;');
+    rnk.textContent=arNum(i+1);
     var nm=document.createElement('div'); nm.style.cssText='flex:1;font-weight:700;color:#fff;'; nm.textContent=u.name+(u.key===myKey?' (أنت)':'');
     var pt=document.createElement('div'); pt.style.cssText='display:flex;align-items:baseline;gap:6px;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.34);border-radius:999px;padding:6px 14px;color:#fde68a;font-weight:800;';
-    pt.innerHTML='<b style="font-size:1rem;">'+u.pts+'</b><span style="font-size:.7rem;">نقطة</span>';
-    var sub=document.createElement('div'); sub.style.cssText='font-size:.7rem;color:var(--muted);'; sub.textContent=u.wins+'/'+u.plays;
+    pt.innerHTML='<b style="font-size:1rem;">'+arNum(u.pts)+'</b><span style="font-size:.7rem;">'+ptsWord(u.pts)+'</span>';
+    var sub=document.createElement('div'); sub.style.cssText='font-size:.7rem;color:var(--muted);'; sub.textContent=arNum(u.wins)+'/'+arNum(u.plays);
     row.appendChild(rnk); row.appendChild(nm); row.appendChild(sub); row.appendChild(pt);
     v.appendChild(row);
   });
@@ -1540,6 +1547,15 @@ function listen(){
     var d=u?(u.champion||'')+'/'+(u.scorer||''):'/';
     if(d!==__myPicksDigest){__myPicksDigest=d;}
   });
+  // Make the قصة منتخب card / leaderboard tab appear automatically the
+  // moment the public-release threshold passes, even if the user just
+  // sits on the page.
+  try{
+    var msUntilOpen = STORY_PUBLIC_AT - Date.now();
+    if(msUntilOpen > 0 && msUntilOpen < 7*24*60*60*1000){
+      setTimeout(function(){ applyAdminUI(); renderMatches(); renderStoryLeader(); },msUntilOpen);
+    }
+  }catch(e){}
 }
 
 // ===== FILTER CHIPS ===== (Upcoming first, then groups A-L, then knockout rounds)
@@ -2598,10 +2614,10 @@ function applyAdminUI(){
     b.style.display=au?'':'none';
     b.classList.toggle('admin-on',isAdmin);
   });
-  // Hide the "قصة منتخب" leaderboard sub-tab when the player isn't admin,
-  // since the game itself is admin-gated for now.
+  // Show the "قصة منتخب" leaderboard sub-tab to admins always, and to
+  // everyone after the public-release threshold.
   var storyTab=document.querySelector('.sub-tab[data-leadsub="story"]');
-  if(storyTab) storyTab.style.display = isAdmin ? '' : 'none';
+  if(storyTab) storyTab.style.display = (isAdmin || storyPublicOpen()) ? '' : 'none';
 }
 function openSettings(){
   if(isAdmin){
