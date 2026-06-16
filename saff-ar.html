@@ -1080,7 +1080,7 @@ function dailyStoryCard(){
   if(rec){
     // already played today — show result
     var msg=rec.won
-      ? '✓ إجابة صحيحة، تستاهل '+rec.pts+' '+(rec.pts===1?'نقطة':'نقاط')
+      ? '✓ إجابة صحيحة، تستاهل '+ptsPhrase(rec.pts)
       : '✗ إجاباتك خاطئة — الإجابة الصحيحة كانت '+STORIES[rec.idx].team;
     var res=document.createElement('div'); res.className='sc-result '+(rec.won?'win':'lose'); res.textContent=msg;
     card.appendChild(res);
@@ -1211,20 +1211,29 @@ function renderStoryPlayingCard(card, t){
     }
     picker.reset(); toast('غلط — جرّب مرة ثانية');
     renderMatches();
-    setTimeout(function(){var i=document.querySelector('.storycard .psearch-input'); if(i)i.focus();},30);
   }
   go.addEventListener('click',submit);
   picker.wrap.style.flex='1';
   row.appendChild(picker.wrap); row.appendChild(go);
   card.appendChild(row);
-  setTimeout(function(){picker.input.focus();},50);
   return card;
 }
 function storyTeamPicker(){
   var wrap=document.createElement('div'); wrap.className='psearch';
   var hidden=document.createElement('input'); hidden.type='hidden';
-  var input=document.createElement('input'); input.type='text'; input.className='psearch-input';
-  input.style.direction='rtl'; input.placeholder='اكتب أو اختر المنتخب…'; input.autocomplete='off';
+  var input=document.createElement('input'); input.type='search'; input.className='psearch-input';
+  input.name='story-team';
+  input.style.direction='rtl'; input.placeholder='اكتب أو اختر المنتخب…';
+  // Belt-and-suspenders to keep iOS Safari / 1Password / LastPass from
+  // offering to save this as a password.
+  input.setAttribute('autocomplete','off');
+  input.setAttribute('autocorrect','off');
+  input.setAttribute('autocapitalize','off');
+  input.setAttribute('spellcheck','false');
+  input.setAttribute('data-form-type','other');
+  input.setAttribute('data-1p-ignore','true');
+  input.setAttribute('data-lpignore','true');
+  input.setAttribute('inputmode','search');
   var drop=document.createElement('div'); drop.className='psearch-drop';
   var teams=STORY_OPTIONS.slice().sort(function(a,b){return a.localeCompare(b,'ar');});
   function render(q){
@@ -1286,7 +1295,20 @@ function sanitize(s){return s.replace(/[.#$\[\]\/]/g,'_').trim();}
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
 function sign(n){return n>0?1:(n<0?-1:0);}
 // تمييز عربي صحيح للنقاط: 1/2/11+ -> نقطة ; 3..10 -> نقاط
-function ptsWord(n){return (n>=3 && n<=10) ? 'نقاط' : 'نقطة';}
+function ptsWord(n){
+  // تمييز الأعداد العربي: 2 ⇒ نقطتان، 3–10 ⇒ نقاط، باقي الأرقام ⇒ نقطة
+  if(n===2) return 'نقطتان';
+  if(n>=3 && n<=10) return 'نقاط';
+  return 'نقطة';
+}
+function ptsPhrase(n){
+  // Combine number + properly-inflected noun for win/result messages.
+  if(n<=0) return 'صفر نقطة';
+  if(n===1) return 'نقطة واحدة';
+  if(n===2) return 'نقطتين';
+  if(n>=3 && n<=10) return arNum(n)+' نقاط';
+  return arNum(n)+' نقطة';
+}
 
 // effective teams: admin override > auto API team > static fixture label
 function teamsOf(m){
