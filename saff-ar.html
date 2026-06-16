@@ -1127,6 +1127,8 @@ function dailyStoryCard(){
 function startStoryTick(){
   if(!__storyGame||__storyGame.ended) return;
   if(__storyGame.intervalId) clearInterval(__storyGame.intervalId);
+  __storyGame.hintStartedAt = Date.now();
+  __storyGame.hintDuration  = 30000;
   __storyGame.intervalId=setInterval(function(){
     if(!__storyGame||__storyGame.ended){ clearInterval(__storyGame.intervalId); return; }
     __storyGame.timeLeft--;
@@ -1140,11 +1142,25 @@ function startStoryTick(){
       updateStoryTimer();
     }
   },1000);
+  if(__storyGame.rafId) cancelAnimationFrame(__storyGame.rafId);
+  smoothStoryBar();
+}
+function smoothStoryBar(){
+  if(!__storyGame||__storyGame.ended) return;
+  var card=document.querySelector('.storycard');
+  if(card){
+    var bar=card.querySelector('.sc-progress .bar');
+    if(bar){
+      var elapsed = Date.now() - __storyGame.hintStartedAt;
+      var pct = Math.max(0, 100 * (1 - elapsed/__storyGame.hintDuration));
+      bar.style.width = pct + '%';
+    }
+  }
+  __storyGame.rafId = requestAnimationFrame(smoothStoryBar);
 }
 function updateStoryTimer(){
   var card=document.querySelector('.storycard'); if(!card) return;
   var sec=card.querySelector('.sec'); if(sec) sec.textContent=arNum(__storyGame.timeLeft)+' ثانية';
-  var bar=card.querySelector('.sc-progress .bar'); if(bar) bar.style.width=(100*__storyGame.timeLeft/30)+'%';
 }
 function advanceStoryHint(){
   if(!__storyGame||__storyGame.ended) return;
@@ -1158,6 +1174,7 @@ function endStoryGame(won){
   if(!__storyGame) return;
   __storyGame.ended=true;
   if(__storyGame.intervalId) clearInterval(__storyGame.intervalId);
+  if(__storyGame.rafId) cancelAnimationFrame(__storyGame.rafId);
   var pts = won ? (__storyGame.hintLevel===1 ? 3 : 1) : 0;
   var idx = __storyGame.idx;
   // Optimistic local update so the result card is shown instantly without
