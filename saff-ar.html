@@ -1198,17 +1198,10 @@ function renderStoryPlayingCard(card, t){
   pr.innerHTML='<div class="bar" style="width:'+(100*__storyGame.timeLeft/30)+'%;"></div>';
   card.appendChild(pr);
   var row=document.createElement('div'); row.className='sc-input-row';
-  var listId='storyOpts_'+Date.now();
-  var input=document.createElement('input'); input.className='sc-input'; input.type='text';
-  input.setAttribute('list',listId); input.placeholder='اكتب أو اختر المنتخب…';
-  input.autocomplete='off'; input.dir='rtl';
-  var dl=document.createElement('datalist'); dl.id=listId;
-  STORY_OPTIONS.slice().sort(function(a,b){return a.localeCompare(b,'ar');}).forEach(function(name){
-    var op=document.createElement('option'); op.value=name; dl.appendChild(op);
-  });
+  var picker=storyTeamPicker();
   var go=document.createElement('button'); go.className='sc-go'; go.textContent='تأكيد';
   function submit(){
-    var v=(input.value||'').trim(); if(!v) return;
+    var v=picker.getValue(); if(!v) return;
     if(!__storyGame||__storyGame.ended) return;
     if(storyMatches(story,v)){ endStoryGame(true); return; }
     __storyGame.guessesLeft--;
@@ -1216,16 +1209,42 @@ function renderStoryPlayingCard(card, t){
       if(__storyGame.hintLevel===1){ advanceStoryHint(); return; }
       endStoryGame(false); return;
     }
-    input.value=''; toast('غلط — جرّب مرة ثانية');
+    picker.reset(); toast('غلط — جرّب مرة ثانية');
     renderMatches();
-    setTimeout(function(){var i=document.querySelector('.storycard .sc-input'); if(i)i.focus();},30);
+    setTimeout(function(){var i=document.querySelector('.storycard .psearch-input'); if(i)i.focus();},30);
   }
   go.addEventListener('click',submit);
-  input.addEventListener('keydown',function(e){if(e.key==='Enter')submit();});
-  row.appendChild(input); row.appendChild(go); row.appendChild(dl);
+  picker.wrap.style.flex='1';
+  row.appendChild(picker.wrap); row.appendChild(go);
   card.appendChild(row);
-  setTimeout(function(){input.focus();},50);
+  setTimeout(function(){picker.input.focus();},50);
   return card;
+}
+function storyTeamPicker(){
+  var wrap=document.createElement('div'); wrap.className='psearch';
+  var hidden=document.createElement('input'); hidden.type='hidden';
+  var input=document.createElement('input'); input.type='text'; input.className='psearch-input';
+  input.style.direction='rtl'; input.placeholder='اكتب أو اختر المنتخب…'; input.autocomplete='off';
+  var drop=document.createElement('div'); drop.className='psearch-drop';
+  var teams=STORY_OPTIONS.slice().sort(function(a,b){return a.localeCompare(b,'ar');});
+  function render(q){
+    drop.innerHTML='';
+    var nq=normalizeGuess(q||'');
+    var hits=nq?teams.filter(function(t){return normalizeGuess(t).indexOf(nq)!==-1;}):teams.slice();
+    hits=hits.slice(0,60);
+    if(!hits.length){var em=document.createElement('div');em.className='psearch-empty';em.textContent='ما لقيت';drop.appendChild(em);return;}
+    hits.forEach(function(t){
+      var r=document.createElement('div'); r.className='psearch-row'; r.setAttribute('data-val',t);
+      r.innerHTML='<span>'+esc(t)+'</span>';
+      r.addEventListener('mousedown',function(ev){ev.preventDefault();hidden.value=t;input.value=t;drop.classList.remove('open');});
+      drop.appendChild(r);
+    });
+  }
+  input.addEventListener('focus',function(){render(input.value);drop.classList.add('open');});
+  input.addEventListener('input',function(){hidden.value='';render(input.value);drop.classList.add('open');});
+  input.addEventListener('blur',function(){setTimeout(function(){drop.classList.remove('open');},150);});
+  wrap.appendChild(hidden); wrap.appendChild(input); wrap.appendChild(drop);
+  return {wrap:wrap, input:input, getValue:function(){return (hidden.value||input.value||'').trim();}, reset:function(){hidden.value='';input.value='';}};
 }
 function renderStoryLeader(){
   var v=document.getElementById('storyLeader'); if(!v) return;
