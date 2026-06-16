@@ -1064,7 +1064,10 @@ function saveStoryResult(pts,won,idx){
   var t=todayKey();
   var data={pts:pts,won:!!won,idx:idx,ts:Date.now()};
   try{localStorage.setItem(_storyLocalKey(), JSON.stringify(data));}catch(e){}
-  ROOT.child('storyScores/'+myKey+'/'+t).set(data).catch(function(){});
+  // Persist under users/<key>/story/<date>. That sub-tree is already covered
+  // by the project's Firebase rules, so the result follows the account
+  // across devices instead of being stuck on whichever phone you played on.
+  ROOT.child('users/'+myKey+'/story/'+t).set(data).catch(function(e){toast('فشل حفظ النتيجة في الحساب: '+((e&&e.code)||e));});
 }
 function dailyStoryCard(){
   if(!isAdmin) return null; // hidden for everyone until admin opens it up
@@ -1092,7 +1095,7 @@ function dailyStoryCard(){
       replay.addEventListener('click',function(){
         try{localStorage.removeItem(_storyLocalKey());}catch(e){}
         if(storyScores[myKey]) delete storyScores[myKey][todayKey()];
-        ROOT.child('storyScores/'+myKey+'/'+todayKey()).remove().catch(function(){});
+        ROOT.child('users/'+myKey+'/story/'+todayKey()).remove().catch(function(){});
         __storyGame=null;
         renderMatches();
       });
@@ -1458,15 +1461,22 @@ function listen(){
   ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};predsLoaded=true;renderMatches();renderLeader();});
   ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   ROOT.child('live').on('value',function(s){liveData=s.val()||{};renderMatches();});
-  ROOT.child('storyScores').on('value',function(s){storyScores=s.val()||{};renderMatches();renderStoryLeader();});
   ROOT.child('teams').on('value',function(s){teamsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   var __myPicksDigest=null;
   ROOT.child('users').on('value',function(s){
     usersData=s.val()||{};
+    // Rebuild storyScores from users/<key>/story/<date> so the daily-story
+    // record follows the account (Firebase users node) instead of the device.
+    storyScores={};
+    Object.keys(usersData).forEach(function(k){
+      var u=usersData[k]; if(u && u.story) storyScores[k]=u.story;
+    });
     renderLeader();
+    renderStoryLeader();
+    renderMatches();
     var u=usersData[myKey];
     var d=u?(u.champion||'')+'/'+(u.scorer||''):'/';
-    if(d!==__myPicksDigest){__myPicksDigest=d;renderMatches();}
+    if(d!==__myPicksDigest){__myPicksDigest=d;}
   });
 }
 
