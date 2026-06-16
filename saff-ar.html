@@ -1182,15 +1182,17 @@ function renderStoryPlayingCard(card, t){
   pr.innerHTML='<div class="bar" style="width:'+(100*__storyGame.timeLeft/30)+'%;"></div>';
   card.appendChild(pr);
   var row=document.createElement('div'); row.className='sc-input-row';
-  var sel=document.createElement('select'); sel.className='sc-input';
-  var ph=document.createElement('option'); ph.value=''; ph.textContent='اختر المنتخب…'; ph.disabled=true; ph.selected=true;
-  sel.appendChild(ph);
+  var listId='storyOpts_'+Date.now();
+  var input=document.createElement('input'); input.className='sc-input'; input.type='text';
+  input.setAttribute('list',listId); input.placeholder='اكتب أو اختر المنتخب…';
+  input.autocomplete='off'; input.dir='rtl';
+  var dl=document.createElement('datalist'); dl.id=listId;
   STORY_OPTIONS.slice().sort(function(a,b){return a.localeCompare(b,'ar');}).forEach(function(name){
-    var op=document.createElement('option'); op.value=name; op.textContent=name; sel.appendChild(op);
+    var op=document.createElement('option'); op.value=name; dl.appendChild(op);
   });
   var go=document.createElement('button'); go.className='sc-go'; go.textContent='تأكيد';
   function submit(){
-    var v=sel.value; if(!v) return;
+    var v=(input.value||'').trim(); if(!v) return;
     if(!__storyGame||__storyGame.ended) return;
     if(storyMatches(story,v)){ endStoryGame(true); return; }
     __storyGame.guessesLeft--;
@@ -1198,12 +1200,15 @@ function renderStoryPlayingCard(card, t){
       if(__storyGame.hintLevel===1){ advanceStoryHint(); return; }
       endStoryGame(false); return;
     }
-    sel.value=''; ph.selected=true; toast('غلط — جرّب مرة ثانية');
+    input.value=''; toast('غلط — جرّب مرة ثانية');
     renderMatches();
+    setTimeout(function(){var i=document.querySelector('.storycard .sc-input'); if(i)i.focus();},30);
   }
   go.addEventListener('click',submit);
-  row.appendChild(sel); row.appendChild(go);
+  input.addEventListener('keydown',function(e){if(e.key==='Enter')submit();});
+  row.appendChild(input); row.appendChild(go); row.appendChild(dl);
   card.appendChild(row);
+  setTimeout(function(){input.focus();},50);
   return card;
 }
 function renderStoryLeader(){
