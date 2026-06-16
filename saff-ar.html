@@ -1083,6 +1083,21 @@ function dailyStoryCard(){
     card.appendChild(res);
     var foot=document.createElement('div'); foot.className='sc-tries'; foot.textContent='قصة جديدة بكرة 👋';
     card.appendChild(foot);
+    // Admin-only replay button so we can test the flow without waiting for
+    // tomorrow's story.
+    if(isAdmin){
+      var replay=document.createElement('button'); replay.className='sc-start';
+      replay.style.cssText='background:rgba(255,255,255,.08);color:#fff;font-weight:700;';
+      replay.textContent='🔁 العب مرة ثانية (أدمن)';
+      replay.addEventListener('click',function(){
+        try{localStorage.removeItem(_storyLocalKey());}catch(e){}
+        if(storyScores[myKey]) delete storyScores[myKey][todayKey()];
+        ROOT.child('storyScores/'+myKey+'/'+todayKey()).remove().catch(function(){});
+        __storyGame=null;
+        renderMatches();
+      });
+      card.appendChild(replay);
+    }
     return card;
   }
   if(__storyGame && __storyGame.idx===t.idx && !__storyGame.ended){
