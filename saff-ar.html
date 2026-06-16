@@ -1526,18 +1526,15 @@ function matchCard(m){
   }
 
   if(st==='locked'||st==='finished') el.appendChild(allPredsBlock(m,result(m)));
-  // Special: "قائمة الخونة" button — only on Saudi Arabia × Uruguay (m15)
-  // for the admin, once a non-draw result has been recorded.
+  // Special: "قائمة الخونة" button — only on Saudi Arabia × Uruguay (m15),
+  // admin only. Shows regardless of whether the result has been recorded.
   if(m.id==='m15' && isAdmin){
-    var rr=result(m);
-    if(rr && Number(rr.h)!==Number(rr.a)){
-      var tb=document.createElement('button');
-      tb.className='btn btn-gold';
-      tb.style.cssText='width:100%;padding:12px;margin-top:8px;font-weight:800;';
-      tb.textContent='📜 قائمة الخونة';
-      tb.addEventListener('click',function(){genTraitorsPoster(m.id);});
-      el.appendChild(tb);
-    }
+    var tb=document.createElement('button');
+    tb.className='btn btn-gold';
+    tb.style.cssText='width:100%;padding:12px;margin-top:8px;font-weight:800;';
+    tb.textContent='📜 قائمة الخونة';
+    tb.addEventListener('click',function(){genTraitorsPoster(m.id,'a');});
+    el.appendChild(tb);
   }
   if(isAdmin) el.appendChild(adminZone(m));
   return el;
@@ -2037,12 +2034,19 @@ function genDailySummary(){
 }
 // ===== "قائمة الخونة" — share-poster for users who picked the losing side =====
 // Same green/gold palette as the daily summary so the brand is consistent.
-function genTraitorsPoster(matchId){
+function genTraitorsPoster(matchId, forcedLoserSide){
   var m=MATCH_BY_ID[matchId]; if(!m){toast('ما لقيت المباراة');return;}
-  var r=result(m); if(!r){toast('المباراة ما لها نتيجة بعد');return;}
-  if(Number(r.h)===Number(r.a)){toast('المباراة تعادل — ما فيه خونة');return;}
+  var r=result(m);
   var t=teamsOf(m);
-  var loserSide = (Number(r.h)>Number(r.a)) ? 'a' : 'h';
+  // Use the explicit losing side when given (for fixtures like Saudi×Uruguay
+  // where "خونة" = anyone who picked Uruguay, regardless of the actual
+  // outcome). Otherwise derive it from the recorded result.
+  var loserSide = forcedLoserSide;
+  if(!loserSide){
+    if(!r){toast('المباراة ما لها نتيجة بعد');return;}
+    if(Number(r.h)===Number(r.a)){toast('المباراة تعادل — ما فيه خونة');return;}
+    loserSide = (Number(r.h)>Number(r.a)) ? 'a' : 'h';
+  }
   var loserTeam = loserSide==='h' ? t.home : t.away;
   var winnerTeam = loserSide==='h' ? t.away : t.home;
   var loserAr = arTeam(loserTeam), winnerAr = arTeam(winnerTeam);
@@ -2081,7 +2085,7 @@ function genTraitorsPoster(matchId){
 </div>';
 
   var titleHtml='<h1 class="disp" style="font-size:92px;margin-top:46px;margin-bottom:18px;">قائمة <span style="color:var(--gold);">الخونة</span></h1>';
-  var subHtml='<div style="font-weight:700;font-size:30px;color:var(--mute);margin-bottom:32px;">توقّعوا فوز <bdi style="color:#fff;">'+esc(loserAr)+'</bdi> على <bdi style="color:#fff;">'+esc(winnerAr)+'</bdi> · النتيجة الفعلية <bdi style="color:var(--gold);">'+esc(arNum(r.h))+' - '+esc(arNum(r.a))+'</bdi></div>';
+  var subHtml='<div style="font-weight:700;font-size:30px;color:var(--mute);margin-bottom:32px;">توقّعوا فوز <bdi style="color:#fff;">'+esc(loserAr)+'</bdi> على <bdi style="color:#fff;">'+esc(winnerAr)+'</bdi>'+(r?' · النتيجة الفعلية <bdi style="color:var(--gold);">'+esc(arNum(r.h))+' - '+esc(arNum(r.a))+'</bdi>':'')+'</div>';
 
   var lbHtml;
   if(traitors.length){
