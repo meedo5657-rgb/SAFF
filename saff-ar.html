@@ -2022,6 +2022,109 @@ function genDailySummary(){
     }
   }).catch(function(e){toast('فشل تحميل الخط: '+(e&&e.message||e));});
 }
+// ===== "قائمة الخونة" — share-poster for users who picked the losing side =====
+// Same green/gold palette as the daily summary so the brand is consistent.
+function genTraitorsPoster(matchId){
+  var m=MATCH_BY_ID[matchId]; if(!m){toast('ما لقيت المباراة');return;}
+  var r=result(m); if(!r){toast('المباراة ما لها نتيجة بعد');return;}
+  if(Number(r.h)===Number(r.a)){toast('المباراة تعادل — ما فيه خونة');return;}
+  var t=teamsOf(m);
+  var loserSide = (Number(r.h)>Number(r.a)) ? 'a' : 'h';
+  var loserTeam = loserSide==='h' ? t.home : t.away;
+  var winnerTeam = loserSide==='h' ? t.away : t.home;
+  var loserAr = arTeam(loserTeam), winnerAr = arTeam(winnerTeam);
+  var preds = predsData[m.id] || {};
+  var traitors = [];
+  Object.keys(preds).forEach(function(k){
+    var u = usersData[k]; if(u && u.removed) return;
+    var p = preds[k]; if(!p) return;
+    var pH=Number(p.h), pA=Number(p.a);
+    var pickedLoser = (loserSide==='h' && pH>pA) || (loserSide==='a' && pA>pH);
+    if(pickedLoser){
+      var nm = (u && u.name) || k;
+      traitors.push({name:nm, h:pH, a:pA});
+    }
+  });
+  traitors.sort(function(a,b){return (''+a.name).localeCompare(''+b.name);});
+
+  toast('جاري تجهيز القائمة…');
+  var arcRings=[[1450,140,.12],[1200,120,.10],[950,100,.08],[700,80,.06]];
+  var arcsHtml='<svg class="arcs" viewBox="0 0 1080 2180" preserveAspectRatio="xMidYMid slice">';
+  arcRings.forEach(function(g){arcsHtml+='<circle cx="-100" cy="-70" r="'+g[0]+'" fill="none" stroke="#E6CC78" stroke-width="'+g[1]+'" stroke-opacity="'+g[2]+'"/>';});
+  arcsHtml+='</svg>';
+
+  var brand1='دوري التوقّعات', brand2='كأس العالم 2026';
+  var headerHtml='\
+<div style="display:flex;justify-content:space-between;align-items:center;">\
+  <div style="display:flex;align-items:center;gap:20px;">\
+    <div role="img" aria-label="" style="width:79px;height:78px;background-image:url('+SAFF_LOGO_DATA+');background-size:contain;background-repeat:no-repeat;background-position:center;flex-shrink:0;"></div>\
+    <div style="width:2px;height:56px;background:rgba(255,255,255,.28);"></div>\
+    <div style="text-align:right;line-height:1.25;">\
+      <div style="font-size:24px;font-weight:900;color:#fff;">'+esc(brand1)+'</div>\
+      <div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">'+esc(brand2)+'</div>\
+    </div>\
+  </div>\
+  <div class="kick" style="font-size:21px;color:var(--mute);">'+esc(arDateLong(new Date()))+'</div>\
+</div>';
+
+  var titleHtml='<h1 class="disp" style="font-size:92px;margin-top:46px;margin-bottom:18px;">قائمة <span style="color:var(--gold);">الخونة</span></h1>';
+  var subHtml='<div style="font-weight:700;font-size:30px;color:var(--mute);margin-bottom:32px;">توقّعوا فوز <bdi style="color:#fff;">'+esc(loserAr)+'</bdi> على <bdi style="color:#fff;">'+esc(winnerAr)+'</bdi> · النتيجة الفعلية <bdi style="color:var(--gold);">'+esc(arNum(r.h))+' - '+esc(arNum(r.a))+'</bdi></div>';
+
+  var lbHtml;
+  if(traitors.length){
+    lbHtml='<div class="lb">';
+    traitors.forEach(function(u,i){
+      lbHtml+='\
+<div class="lrow">\
+  <div class="rank" style="background:#a32a2a;color:#fff;">'+esc(arNum(i+1))+'</div>\
+  <div class="pname">'+esc(u.name)+'</div>\
+  <div class="pts" style="background:rgba(163,42,42,.16);border-color:rgba(163,42,42,.45);color:#ffd9d9;"><b>'+esc(arNum(u.h))+' - '+esc(arNum(u.a))+'</b><span>توقّع</span></div>\
+</div>';
+    });
+    lbHtml+='</div>';
+  } else {
+    lbHtml='<div class="empty">ما فيه أحد توقع فوز '+esc(loserAr)+' 🎉</div>';
+  }
+
+  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+titleHtml+subHtml+lbHtml+'</div></div>';
+  var posterRoot=document.getElementById('posterRoot');
+  posterRoot.innerHTML=posterHtml;
+
+  var fname='wc2026-traitors-'+m.id+'-'+new Date().toISOString().slice(0,10)+'.png';
+  function shareCanvas(cv){
+    toast('2/3: جاري التحويل…');
+    try{
+      cv.toBlob(function(blob){
+        if(!blob){toast('فشل: blob فاضي');posterRoot.innerHTML='';return;}
+        toast('3/3: جاري المشاركة…');
+        var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
+        if(file && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'قائمة الخونة'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
+        } else { dl(); }
+        function dl(){
+          var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');
+        }
+        posterRoot.innerHTML='';
+      },'image/png');
+    }catch(e){toast('فشل toBlob: '+(e&&e.message||e));posterRoot.innerHTML='';}
+  }
+  var fontsReady=Promise.race([(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve(),new Promise(function(r){setTimeout(r,1500);})]);
+  fontsReady.then(function(){
+    var target=posterRoot.querySelector('.poster');
+    if(!target){toast('فشل: قالب البوستر غير موجود');posterRoot.innerHTML='';return;}
+    var rect=target.getBoundingClientRect(), h=Math.max(1200,Math.round(rect.height));
+    toast('1/3: جاري الرسم…');
+    var to=setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';},20000);
+    if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
+      htmlToImage.toBlob(target,{backgroundColor:null,cacheBust:true,pixelRatio:Math.min(2,window.devicePixelRatio||1),width:1080,height:h,skipFonts:true}).then(function(blob){
+        clearTimeout(to);if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
+        shareCanvas({toBlob:function(cb){cb(blob);}});
+      }).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html-to-image: '+(e&&e.message||e));});
+    } else if(typeof html2canvas==='function'){
+      html2canvas(target,{backgroundColor:null,scale:1,useCORS:true,allowTaint:false,imageTimeout:5000,logging:false,width:1080,height:h,windowWidth:1080,windowHeight:h}).then(function(cv){clearTimeout(to);shareCanvas(cv);}).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html2canvas: '+(e&&e.message||e));});
+    } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
+  });
+}
 function adminZone(m){
   var z=document.createElement('div');z.className='admin-zone';
   var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='النتيجة الرسمية';z.appendChild(lbl);
@@ -2088,6 +2191,13 @@ function adminZone(m){
     acts.appendChild(bt);
   }
   z.appendChild(acts);
+  // "قائمة الخونة" — only meaningful once the match has a non-draw result.
+  if(r && Number(r.h)!==Number(r.a)){
+    var bt2=document.createElement('button');bt2.className='btn btn-gold';bt2.style.cssText='padding:10px;margin-top:8px;';
+    bt2.textContent='📜 قائمة الخونة';
+    bt2.addEventListener('click',function(){genTraitorsPoster(m.id);});
+    z.appendChild(bt2);
+  }
   return z;
 }
 function adminStepper(rd,k,onChange){
