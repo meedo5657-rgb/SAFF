@@ -1077,8 +1077,8 @@ function dailyStoryCard(){
   if(rec){
     // already played today — show result
     var msg=rec.won
-      ? '✓ مبروك! +'+rec.pts+' '+(rec.pts===1?'نقطة':'نقاط')+' — الإجابة كانت '+STORIES[rec.idx].team
-      : '✗ ما خمّنت — الإجابة كانت '+STORIES[rec.idx].team;
+      ? '✓ مبروك! +'+rec.pts+' '+(rec.pts===1?'نقطة':'نقاط')+' — الإجابة الصحيحة كانت '+STORIES[rec.idx].team
+      : '✗ إجاباتك خاطئة — الإجابة الصحيحة كانت '+STORIES[rec.idx].team;
     var res=document.createElement('div'); res.className='sc-result '+(rec.won?'win':'lose'); res.textContent=msg;
     card.appendChild(res);
     var foot=document.createElement('div'); foot.className='sc-tries'; foot.textContent='قصة جديدة بكرة 👋';
