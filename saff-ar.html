@@ -171,6 +171,29 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .team .flagimg{width:46px;height:31px;object-fit:cover;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.45);}
 .team .tname{font-size:.88rem;font-weight:700;}
 .vs{font-size:.8rem;color:var(--muted);font-weight:700;padding:0 4px;}
+.storycard{width:100%;background:linear-gradient(155deg,rgba(212,175,55,.18),rgba(212,175,55,.04) 55%,rgba(255,255,255,.03));border:1.5px solid rgba(212,175,55,.55);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.storycard .sc-head{display:flex;align-items:center;justify-content:space-between;}
+.storycard .sc-title{font-weight:800;color:#fde68a;font-size:1rem;}
+.storycard .sc-status{font-size:.74rem;font-weight:700;color:var(--muted);}
+.storycard .sc-status.ok{color:#22c55e;}
+.storycard .sc-status.bad{color:#fca5a5;}
+.storycard .sc-hint{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--text);font-size:.92rem;line-height:1.6;}
+.storycard .sc-hint .lbl{display:block;font-size:.72rem;font-weight:800;color:#fde68a;margin-bottom:6px;}
+.storycard .sc-timer{display:flex;align-items:center;justify-content:space-between;font-size:.78rem;font-weight:700;color:var(--text);}
+.storycard .sc-timer .sec{color:#fde68a;font-size:1rem;}
+.storycard .sc-tries{color:var(--muted);font-size:.78rem;}
+.storycard .sc-input-row{display:flex;gap:6px;}
+.storycard .sc-input{flex:1;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--text);font-family:inherit;font-size:.95rem;outline:none;}
+.storycard .sc-input:focus{border-color:#fbbf24;}
+.storycard .sc-go{padding:10px 16px;border-radius:10px;border:none;background:#fbbf24;color:#0a2c20;font-weight:800;cursor:pointer;font-family:inherit;}
+.storycard .sc-go:disabled{opacity:.5;cursor:default;}
+.storycard .sc-start{padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#fbbf24,#d4af37);color:#0a2c20;font-weight:800;cursor:pointer;font-family:inherit;font-size:.95rem;}
+.storycard .sc-result{padding:10px;border-radius:12px;text-align:center;font-weight:800;}
+.storycard .sc-result.win{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#86efac;}
+.storycard .sc-result.lose{background:rgba(220,55,55,.12);border:1px solid rgba(220,55,55,.35);color:#fca5a5;}
+.storycard .sc-result.none{background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--muted);font-weight:700;}
+.storycard .sc-progress{width:100%;height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;}
+.storycard .sc-progress .bar{height:100%;background:linear-gradient(90deg,#22c55e,#fbbf24,#dc4545);transition:width .25s linear;}
 .tscore{font-size:1.5rem;font-weight:900;color:#fff;min-width:1.2em;text-align:center;padding:0 4px;}
 .tscore-live{color:#ffb1b1;}
 .score-in{display:flex;align-items:center;gap:6px;}
@@ -470,7 +493,12 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
     <button class="icon-btn" id="btnSettings2">⚙️</button>
   </div>
   <div class="section-title">🏅 الترتيب</div>
+  <div class="sub-tabs">
+    <button class="sub-tab active" data-leadsub="predict">التوقعات</button>
+    <button class="sub-tab" data-leadsub="story">قصة منتخب</button>
+  </div>
   <div id="leaderList" style="width:100%;display:flex;flex-direction:column;gap:10px;"></div>
+  <div id="storyLeader" style="width:100%;display:none;flex-direction:column;gap:10px;"></div>
 </div>
 
 <!-- GROUPS & SCORERS -->
@@ -939,6 +967,224 @@ var editingMatch=null;
 var draft={}; // matchId -> {h,a}
 var draftEdited={}; // matchId -> true once the user has touched the draft this session
 var predsLoaded=false; // flips to true after the first predictions snapshot lands
+var storyScores={}; // userKey -> { 'YYYY-MM-DD': {pts:0/5/10, won, idx} }
+// ===== "قصة منتخب" daily game =====
+// One national-team story per day, two hints (hard then medium), 30s per
+// hint, max 2 guesses total. 10 pts if correct on hint 1, 5 pts on hint 2.
+var STORY_DAY0='2026-06-16'; // STORIES[0] runs on this date
+var STORIES=[
+  {team:'السعودية',aliases:['السعوديه','المنتخب السعودي','المملكه العربيه السعوديه','المملكة العربية السعودية','saudi arabia','saudi','ksa'],hint1:'خرج من دور الـ ١٦ في تأهّله الأول لكأس العالم على يد منتخب اسكندنافي بـ ١-٣.',hint2:'صدم منتخب أمريكا الجنوبية المتوَّج لاحقًا بالبطولة في الجولة الأولى من مونديال قطر.'},
+  {team:'البرازيل',aliases:['برازيل','السامبا','السيليساو','brazil','brasil'],hint1:'خسر لقب أحد مونديالاته على أرضه بعد أن كان يحتاج للتعادل فقط في الجولة الأخيرة.',hint2:'المنتخب الوحيد الذي شارك في كل بطولات كأس العالم منذ ١٩٣٠.'},
+  {team:'ألمانيا',aliases:['المانيا','المانيا الغربيه','germany','deutschland'],hint1:'قاد سيب هيربيرغر تتويجه التاريخي بمونديال "معجزة برن" ١٩٥٤ أمام المجر.',hint2:'ودّع دور المجموعات في مونديالَي ٢٠١٨ و٢٠٢٢ على التوالي.'},
+  {team:'الأرجنتين',aliases:['الارجنتين','ارجنتين','التانغو','argentina'],hint1:'قاد سيزار لويس مينوتي تتويجه بأول لقب على أرضه أمام هولندا.',hint2:'تأهّل ١٨ مرة لكأس العالم وتوّج في ٣ نسخ منها.'},
+  {team:'إيطاليا',aliases:['ايطاليا','الازوري','italy','italia'],hint1:'تحت قيادة فيتوريو بوزو فاز بمونديالين متتاليين (١٩٣٤ على أرضه و١٩٣٨ في فرنسا).',hint2:'غاب عن مونديالات ٢٠١٨ و٢٠٢٢ و٢٠٢٦ رغم تتويجه بيورو ٢٠٢٠.'},
+  {team:'فرنسا',aliases:['france','les bleus','الديكه'],hint1:'رئيس اتحاده جول ريميه هو من اقترح فكرة كأس العالم، وسُمّيت أول كأس باسمه.',hint2:'وصل لـ ٤ نهائيات مونديال منذ ١٩٩٨ وفاز بنصفها.'},
+  {team:'إنجلترا',aliases:['انجلترا','الاسود الثلاثه','england'],hint1:'حصد لقبه الوحيد على أرضه ضد ألمانيا الغربية بعد امتداد للوقت الإضافي ٤-٢.',hint2:'لم يتجاوز نصف النهائي في تاريخ كأس العالم سوى ثلاث مرات.'},
+  {team:'إسبانيا',aliases:['اسبانيا','لاروخا','spain','espana'],hint1:'المنتخب الوحيد الذي بدأ نسخة كأس عالم بخسارة وانتهى متوَّجًا باللقب في النسخة نفسها.',hint2:'توّج بلقبه المونديالي الأول والوحيد في حقبة "التيكي-تاكا".'},
+  {team:'الأوروغواي',aliases:['الاوروغواي','اوروغواي','اوروجواي','التشاروا','uruguay'],hint1:'حصد لقبه الأول على أرضه أمام جاره التقليدي في أول كأس عالم على الإطلاق.',hint2:'حلّ رابعًا في مونديال جنوب أفريقيا ٢٠١٠ بأفضل نتيجة له منذ الخمسينات.'},
+  {team:'هولندا',aliases:['الطواحين','holland','netherlands'],hint1:'خسر نهائيين متتاليين في السبعينات أمام بطلَي العالم على أرضهما.',hint2:'وصل لـ ٣ نهائيات كأس عالم وخسرها جميعًا.'},
+  {team:'البرتغال',aliases:['برتغال','portugal','os navegadores'],hint1:'في أول ظهور مونديالي له عام ١٩٦٦ تألق مهاجمه وأحرز ٩ أهداف ليفوز بلقب الهداف.',hint2:'حلّ ثالثًا في إنجلترا ١٩٦٦ بأفضل ترتيب في تاريخه.'},
+  {team:'بلجيكا',aliases:['الشياطين الحمر','belgium'],hint1:'حلّ رابعًا في مونديال المكسيك ١٩٨٦ بعد خسارته من الأرجنتين في نصف النهائي.',hint2:'حلّ ثالثًا في مونديال روسيا ٢٠١٨ بأفضل نتيجة له.'},
+  {team:'السويد',aliases:['سويد','الفايكنغ','sweden'],hint1:'استضاف مونديال ١٩٥٨ وخسر النهائي على أرضه أمام البرازيل ٢-٥.',hint2:'حلّ ثالثًا في مونديال الولايات المتحدة ١٩٩٤.'},
+  {team:'المجر',aliases:['مجر','هنغاريا','الفريق الذهبي','hungary'],hint1:'خسر "الفريق الذهبي" نهائي مونديال ١٩٥٤ من ألمانيا الغربية في "معجزة برن".',hint2:'لم يتأهل لمونديال منذ عام ١٩٨٦.'},
+  {team:'بلغاريا',aliases:['bulgaria'],hint1:'في مونديال ١٩٩٤ بأمريكا أقصى ألمانيا بطلة العالم في ربع النهائي ٢-١.',hint2:'أفضل ترتيب له في تاريخ المونديال كان المركز الرابع.'},
+  {team:'الكاميرون',aliases:['كاميرون','الاسود التي لا تقهر','cameroon'],hint1:'في حفل افتتاح إحدى نسخ كأس العالم صدم بطلة العالم وفاز ١-٠ رغم إنهاء المباراة بـ ٩ لاعبين.',hint2:'أول منتخب أفريقي يصل لربع نهائي كأس العالم.'},
+  {team:'كوريا الجنوبية',aliases:['كوريا الجنوبيه','كوريا','south korea','korea'],hint1:'في أول مشاركة له عام ١٩٥٤ خسر ٠-٩ من المجر و٠-٧ من تركيا.',hint2:'استضاف مع اليابان مونديال ٢٠٠٢ ووصل لنصف النهائي.'},
+  {team:'كرواتيا',aliases:['كرواتيا','croatia','hrvatska'],hint1:'في أول مشاركة مستقلة عام ١٩٩٨ حلّ ثالثًا، وكان هدّاف البطولة من صفوفه.',hint2:'خسر نهائي مونديال ٢٠١٨ من فرنسا ٢-٤.'},
+  {team:'السنغال',aliases:['سنغال','اسود التيرانغا','senegal'],hint1:'في أول مشاركة مونديالية له صدم بطلة العالم في مباراة الافتتاح بفوز ١-٠.',hint2:'وصل لربع نهائي مونديال ٢٠٠٢.'},
+  {team:'كوستاريكا',aliases:['كوستا ريكا','costa rica'],hint1:'في مونديال ٢٠١٤ تصدّر "مجموعة الموت" التي ضمت إنجلترا وإيطاليا والأوروغواي.',hint2:'وصل لربع نهائي مونديال ٢٠١٤ قبل أن يخرج بضربات الترجيح أمام هولندا.'},
+  {team:'إيران',aliases:['ايران','iran','team melli'],hint1:'في أول مشاركة بمونديال ١٩٧٨ تعادل ١-١ مع اسكتلندا، أول نقطة لمنتخب آسيوي في كأس العالم.',hint2:'تأهّل لـ ٦ بطولات كأس عالم في تاريخه.'},
+  {team:'غانا',aliases:['النجوم السوداء','ghana'],hint1:'في ربع نهائي مونديال جنوب أفريقيا أهدر ركلة جزاء في الدقائق الأخيرة بعد إخراج مهاجم الخصم للكرة بيده.',hint2:'ثاني منتخب أفريقي يصل لربع نهائي كأس العالم.'},
+  {team:'نيجيريا',aliases:['نيجريا','النسور الخضراء','nigeria'],hint1:'في أول مشاركة له ١٩٩٤ تصدّر مجموعة ضمت الأرجنتين قبل خروجه أمام إيطاليا.',hint2:'فاز بكأس أمم أفريقيا ٣ مرات بين ١٩٨٠ و٢٠١٣.'},
+  {team:'كوريا الشمالية',aliases:['كوريا الشماليه','north korea'],hint1:'في مونديال ١٩٦٦ أقصى إيطاليا ١-٠ ووصل لربع النهائي.',hint2:'شارك في كأس العالم مرتين فقط في تاريخه.'},
+  {team:'تونس',aliases:['نسور قرطاج','tunisia'],hint1:'في مونديال ١٩٧٨ بالأرجنتين فاز على المكسيك ٣-١ في أول فوز لمنتخب أفريقي في كأس العالم.',hint2:'شارك في ٦ بطولات كأس عالم.'},
+  {team:'الجزائر',aliases:['جزائر','الخضر','algeria'],hint1:'في مونديال ١٩٨٢ فاز على ألمانيا الغربية بطلة أوروبا ٢-١، أول فوز أفريقي على بطل أوروبي.',hint2:'تأهّل لدور الـ ١٦ في مونديال البرازيل ٢٠١٤.'},
+  {team:'العراق',aliases:['عراق','اسود الرافدين','iraq'],hint1:'تأهّل لأول مرة لمونديال المكسيك ١٩٨٦ بقيادة المدرب البرازيلي إيفاريستو دي ماسيدو.',hint2:'فاز بكأس آسيا ٢٠٠٧ في إنجاز تاريخي.'},
+  {team:'أستراليا',aliases:['استراليا','السوكاروز','australia'],hint1:'في أول مشاركة له بمونديال ١٩٧٤ بألمانيا الغربية خرج بنقطة واحدة من تعادل سلبي مع تشيلي.',hint2:'انتقل من اتحاد أوقيانوسيا إلى الاتحاد الآسيوي عام ٢٠٠٦.'},
+  {team:'اليابان',aliases:['يابان','الساموراي الازرق','japan'],hint1:'في أول مشاركة له بمونديال ١٩٩٨ بفرنسا خسر كل مبارياته الثلاث.',hint2:'استضاف مع كوريا الجنوبية مونديال ٢٠٠٢.'},
+  {team:'الولايات المتحدة',aliases:['امريكا','الولايات المتحده','usa','united states','america'],hint1:'صدم منتخبًا أوروبيًا مخضرمًا بهدف وحيد في "ملحمة بيلو هوريزونتي".',hint2:'حلّ ثالثًا في أول كأس عالم على الإطلاق عام ١٩٣٠.'},
+  {team:'المكسيك',aliases:['مكسيك','el tri','mexico'],hint1:'استضاف مونديالَي ١٩٧٠ و١٩٨٦ ولم يتجاوز ربع النهائي في أيٍّ منهما.',hint2:'خرج من دور الـ ١٦ في ٧ مونديالات متتالية بين ١٩٩٤ و٢٠١٨.'},
+  {team:'روسيا',aliases:['الاتحاد السوفيتي','الاتحاد السوفييتي','soviet union','russia'],hint1:'تحت اسم "الاتحاد السوفيتي" حلّ رابعًا في مونديال ١٩٦٦ بأفضل نتيجة في تاريخه.',hint2:'استضاف كأس العالم عام ٢٠١٨.'},
+  {team:'تركيا',aliases:['تركيه','turkey','turkiye'],hint1:'في مباراة المركز الثالث بمونديال ٢٠٠٢ سجّل أسرع هدف في تاريخ كأس العالم بعد ١٠.٨ ثانية.',hint2:'حلّ ثالثًا في مونديال ٢٠٠٢ بأفضل نتيجة له.'},
+  {team:'المغرب',aliases:['مغرب','اسود الاطلس','morocco'],hint1:'في مونديال ١٩٨٦ بالمكسيك صار أول منتخب أفريقي يتصدّر مجموعته في كأس العالم.',hint2:'أول منتخب أفريقي وعربي يصل نصف نهائي كأس العالم في قطر ٢٠٢٢.'}
+];
+function _ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function todayKey(){return _ymd(new Date());}
+function storyForDate(d){
+  var d0=new Date(STORY_DAY0+'T00:00:00');
+  var dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  var diff=Math.round((dd-d0)/(24*60*60*1000));
+  if(diff<0||diff>=STORIES.length) return null;
+  return {idx:diff, story:STORIES[diff]};
+}
+function todayStory(){return storyForDate(new Date());}
+function normalizeGuess(s){
+  return (s||'').toString().trim().toLowerCase()
+    .replace(/[ً-ٰٟ]/g,'')
+    .replace(/[إأآا]/g,'ا')
+    .replace(/ة/g,'ه')
+    .replace(/ى/g,'ي')
+    .replace(/ؤ/g,'و')
+    .replace(/ئ/g,'ي')
+    .replace(/\s+/g,' ');
+}
+function storyMatches(story,guess){
+  var n=normalizeGuess(guess); if(!n) return false;
+  if(normalizeGuess(story.team)===n) return true;
+  return (story.aliases||[]).some(function(a){return normalizeGuess(a)===n;});
+}
+// In-memory game state for today's story — never persisted while in play.
+// Persisted result (pts, won, idx) lives in Firebase under storyScores.
+var __storyGame=null;
+function _userStoryRec(){
+  var t=todayKey(); var rec=(storyScores[myKey]&&storyScores[myKey][t])||null; return rec;
+}
+function saveStoryResult(pts,won,idx){
+  if(!myKey) return;
+  var t=todayKey();
+  ROOT.child('storyScores/'+myKey+'/'+t).set({pts:pts,won:!!won,idx:idx,ts:Date.now()});
+}
+function dailyStoryCard(){
+  var t=todayStory(); if(!t) return null; // no story for today (before/after WC window)
+  var card=document.createElement('div'); card.className='storycard';
+  var head=document.createElement('div'); head.className='sc-head';
+  head.innerHTML='<div class="sc-title">📜 قصة منتخب اليوم</div><div class="sc-status"></div>';
+  card.appendChild(head);
+  var rec=_userStoryRec();
+  if(rec){
+    // already played today — show result
+    var msg=rec.won
+      ? '✓ مبروك! +'+rec.pts+' نقاط — الإجابة كانت '+STORIES[rec.idx].team
+      : '✗ ما خمّنت — الإجابة كانت '+STORIES[rec.idx].team;
+    var res=document.createElement('div'); res.className='sc-result '+(rec.won?'win':'lose'); res.textContent=msg;
+    card.appendChild(res);
+    var foot=document.createElement('div'); foot.className='sc-tries'; foot.textContent='قصة جديدة بكرة 👋';
+    card.appendChild(foot);
+    return card;
+  }
+  if(__storyGame && __storyGame.idx===t.idx){
+    return renderStoryPlayingCard(card, t);
+  }
+  // Not started yet
+  var intro=document.createElement('div'); intro.className='sc-hint';
+  intro.innerHTML='<span class="lbl">القواعد</span>هينتين، ٣٠ ثانية لكل وحدة، توقّعَين بحدّ أقصى. الإجابة الصحيحة على الهنت الأول = ١٠ نقاط، على الثاني = ٥ نقاط.';
+  card.appendChild(intro);
+  var btn=document.createElement('button'); btn.className='sc-start'; btn.textContent='ابدأ اللعبة';
+  btn.addEventListener('click',function(){
+    __storyGame={idx:t.idx, hintLevel:1, guessesLeft:2, startedAt:Date.now(), timeLeft:30, intervalId:null, ended:false};
+    renderMatches();
+    setTimeout(startStoryTick,30);
+  });
+  card.appendChild(btn);
+  return card;
+}
+function startStoryTick(){
+  if(!__storyGame||__storyGame.ended) return;
+  if(__storyGame.intervalId) clearInterval(__storyGame.intervalId);
+  __storyGame.intervalId=setInterval(function(){
+    if(!__storyGame||__storyGame.ended){ clearInterval(__storyGame.intervalId); return; }
+    __storyGame.timeLeft--;
+    if(__storyGame.timeLeft<=0){
+      if(__storyGame.hintLevel===1){
+        advanceStoryHint();
+      } else {
+        endStoryGame(false);
+      }
+    } else {
+      updateStoryTimer();
+    }
+  },1000);
+}
+function updateStoryTimer(){
+  var card=document.querySelector('.storycard'); if(!card) return;
+  var sec=card.querySelector('.sec'); if(sec) sec.textContent=__storyGame.timeLeft+' ثانية';
+  var bar=card.querySelector('.sc-progress .bar'); if(bar) bar.style.width=(100*__storyGame.timeLeft/30)+'%';
+}
+function advanceStoryHint(){
+  if(!__storyGame||__storyGame.ended) return;
+  if(__storyGame.guessesLeft<=0){ endStoryGame(false); return; }
+  __storyGame.hintLevel=2;
+  __storyGame.timeLeft=30;
+  renderMatches();
+  setTimeout(startStoryTick,30);
+}
+function endStoryGame(won){
+  if(!__storyGame) return;
+  __storyGame.ended=true;
+  if(__storyGame.intervalId) clearInterval(__storyGame.intervalId);
+  var pts = won ? (__storyGame.hintLevel===1 ? 10 : 5) : 0;
+  var idx = __storyGame.idx;
+  // Optimistic local update so the result card is shown instantly without
+  // waiting for the Firebase round-trip.
+  if(!storyScores[myKey]) storyScores[myKey]={};
+  storyScores[myKey][todayKey()]={pts:pts, won:!!won, idx:idx, ts:Date.now()};
+  saveStoryResult(pts, won, idx);
+  __storyGame=null;
+}
+function renderStoryPlayingCard(card, t){
+  var story=t.story;
+  var hintText=__storyGame.hintLevel===1 ? story.hint1 : story.hint2;
+  var hintLbl=__storyGame.hintLevel===1 ? '🔴 هنت ١ (صعب) — ١٠ نقاط' : '🟡 هنت ٢ (متوسط) — ٥ نقاط';
+  var hint=document.createElement('div'); hint.className='sc-hint';
+  hint.innerHTML='<span class="lbl">'+hintLbl+'</span>'+esc(hintText);
+  card.appendChild(hint);
+  var tim=document.createElement('div'); tim.className='sc-timer';
+  tim.innerHTML='<span>⏱️ <span class="sec">'+__storyGame.timeLeft+' ثانية</span></span><span class="sc-tries">المحاولات المتبقية: '+__storyGame.guessesLeft+'/٢</span>';
+  card.appendChild(tim);
+  var pr=document.createElement('div'); pr.className='sc-progress';
+  pr.innerHTML='<div class="bar" style="width:'+(100*__storyGame.timeLeft/30)+'%;"></div>';
+  card.appendChild(pr);
+  var row=document.createElement('div'); row.className='sc-input-row';
+  var input=document.createElement('input'); input.className='sc-input'; input.type='text'; input.placeholder='اكتب اسم المنتخب…'; input.autocomplete='off'; input.dir='rtl';
+  var go=document.createElement('button'); go.className='sc-go'; go.textContent='تأكيد';
+  function submit(){
+    var v=input.value.trim(); if(!v) return;
+    if(!__storyGame||__storyGame.ended) return;
+    if(storyMatches(story,v)){ endStoryGame(true); renderMatches(); return; }
+    __storyGame.guessesLeft--;
+    if(__storyGame.guessesLeft<=0){
+      if(__storyGame.hintLevel===1){ advanceStoryHint(); return; }
+      endStoryGame(false); renderMatches(); return;
+    }
+    input.value=''; toast('غلط — جرّب مرة ثانية');
+    renderMatches();
+    setTimeout(function(){var i=document.querySelector('.storycard .sc-input'); if(i)i.focus();},30);
+  }
+  go.addEventListener('click',submit);
+  input.addEventListener('keydown',function(e){if(e.key==='Enter')submit();});
+  row.appendChild(input); row.appendChild(go);
+  card.appendChild(row);
+  setTimeout(function(){input.focus();},50);
+  return card;
+}
+function renderStoryLeader(){
+  var v=document.getElementById('storyLeader'); if(!v) return;
+  v.innerHTML='';
+  var keys=Object.keys(usersData||{}).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
+  if(!keys.length){var em=document.createElement('div');em.className='empty';em.textContent='لا يوجد لاعبون بعد 🏟️';v.appendChild(em);return;}
+  var rows=keys.map(function(k){
+    var rec=storyScores[k]||{};
+    var total=0, plays=0, wins=0;
+    Object.keys(rec).forEach(function(d){var r=rec[d]; if(r&&typeof r.pts==='number'){total+=r.pts;plays++;if(r.won)wins++;}});
+    return {key:k,name:(usersData[k]&&usersData[k].name)||k,pts:total,plays:plays,wins:wins};
+  }).sort(function(a,b){return b.pts-a.pts||b.wins-a.wins;});
+  var hint=document.createElement('div'); hint.style.cssText='font-size:.72rem;color:var(--muted);text-align:center;padding:4px 0 6px;';
+  hint.textContent='قصة منتخب · ١٠ نقاط للهنت الأول، ٥ للثاني';
+  v.appendChild(hint);
+  rows.forEach(function(u,i){
+    var row=document.createElement('div'); row.className='lb-row';
+    row.style.cssText='display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;';
+    var rnk=document.createElement('div');
+    rnk.style.cssText='width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;'+(i===0?'background:var(--gold,#fbbf24);color:#0a2c20;':i===1?'background:#d1d5db;color:#0a2c20;':i===2?'background:#d79b63;color:#0a2c20;':'background:rgba(255,255,255,.10);color:#fff;');
+    rnk.textContent=(i+1);
+    var nm=document.createElement('div'); nm.style.cssText='flex:1;font-weight:700;color:#fff;'; nm.textContent=u.name+(u.key===myKey?' (أنت)':'');
+    var pt=document.createElement('div'); pt.style.cssText='display:flex;align-items:baseline;gap:6px;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.34);border-radius:999px;padding:6px 14px;color:#fde68a;font-weight:800;';
+    pt.innerHTML='<b style="font-size:1rem;">'+u.pts+'</b><span style="font-size:.7rem;">نقطة</span>';
+    var sub=document.createElement('div'); sub.style.cssText='font-size:.7rem;color:var(--muted);'; sub.textContent=u.wins+'/'+u.plays;
+    row.appendChild(rnk); row.appendChild(nm); row.appendChild(sub); row.appendChild(pt);
+    v.appendChild(row);
+  });
+}
 
 // ===== HELPERS =====
 function show(id){
@@ -1166,6 +1412,7 @@ function listen(){
   ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};predsLoaded=true;renderMatches();renderLeader();});
   ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   ROOT.child('live').on('value',function(s){liveData=s.val()||{};renderMatches();});
+  ROOT.child('storyScores').on('value',function(s){storyScores=s.val()||{};renderMatches();renderStoryLeader();});
   ROOT.child('teams').on('value',function(s){teamsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   var __myPicksDigest=null;
   ROOT.child('users').on('value',function(s){
@@ -1252,6 +1499,10 @@ function renderMatches(){
   var frag=document.createDocumentFragment();
   if(isAdmin) frag.appendChild(adminBar());
   if(isAdmin && tournamentLocked()) frag.appendChild(tournamentCard());
+  // Daily "قصة منتخب" card sits at the top of القادمة
+  if(currentFilter==='upcoming'){
+    var sc=dailyStoryCard(); if(sc) frag.appendChild(sc);
+  }
   var ms=filteredMatches();
   if(!ms.length){
     var e=document.createElement('div');e.className='empty';
@@ -2660,13 +2911,20 @@ function deletePlayer(key,name){
 
 // ===== TABS =====
 document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){show(t.dataset.tab);});});
-document.querySelectorAll('.sub-tab').forEach(function(b){b.addEventListener('click',function(){
+document.querySelectorAll('.sub-tab[data-sub]').forEach(function(b){b.addEventListener('click',function(){
   var s=b.dataset.sub;
-  document.querySelectorAll('.sub-tab').forEach(function(x){x.classList.toggle('active',x.dataset.sub===s);});
+  document.querySelectorAll('.sub-tab[data-sub]').forEach(function(x){x.classList.toggle('active',x.dataset.sub===s);});
   document.getElementById('standingsView').style.display=s==='standings'?'flex':'none';
   document.getElementById('scorersView').style.display=s==='scorers'?'flex':'none';
   document.getElementById('knockoutsView').style.display=s==='knockouts'?'flex':'none';
   if(s==='knockouts') renderKnockouts();
+});});
+document.querySelectorAll('.sub-tab[data-leadsub]').forEach(function(b){b.addEventListener('click',function(){
+  var s=b.dataset.leadsub;
+  document.querySelectorAll('.sub-tab[data-leadsub]').forEach(function(x){x.classList.toggle('active',x.dataset.leadsub===s);});
+  document.getElementById('leaderList').style.display=s==='predict'?'flex':'none';
+  document.getElementById('storyLeader').style.display=s==='story'?'flex':'none';
+  if(s==='story') renderStoryLeader();
 });});
 
 // ===== PWA: تسجيل service worker للتثبيت والعمل بدون شبكة =====
