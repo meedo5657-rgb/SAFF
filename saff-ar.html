@@ -1084,7 +1084,7 @@ function dailyStoryCard(){
       : '✗ إجاباتك خاطئة — الإجابة الصحيحة كانت '+STORIES[rec.idx].team;
     var res=document.createElement('div'); res.className='sc-result '+(rec.won?'win':'lose'); res.textContent=msg;
     card.appendChild(res);
-    var foot=document.createElement('div'); foot.className='sc-tries'; foot.textContent='قصة جديدة بكرة 👋';
+    var foot=document.createElement('div'); foot.className='sc-tries'; foot.textContent='نشوفك بكرة في قصة منتخب جديدة 👋';
     card.appendChild(foot);
     // Admin-only replay button so we can test the flow without waiting for
     // tomorrow's story.
