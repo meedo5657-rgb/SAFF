@@ -259,15 +259,121 @@ var ROUND_SECONDS = 30;           // مدة الجولة
 var PTS_PER_CORRECT = 10;         // نقاط كل توقّع صحيح
 
 // ===================== الموظفون =====================
-// ⚠️ بيانات مؤقتة — تنعبّى من موقع بورتاس (الاسم + رابط الصورة).
-// كل عنصر: { id:'معرّف فريد ثابت', name:'الاسم', role:'المسمى (اختياري)', photo:'رابط الصورة (اختياري)' }
+// 112 موظف من الهيكل التنظيمي لبورتاس (الصور في مجلد portas-people/).
+// كل عنصر: { id, name, role, photo }
 var EMPLOYEES = [
-  {id:'emp01', name:'موظف تجريبي ١', role:'قسم العمليات', photo:''},
-  {id:'emp02', name:'موظف تجريبي ٢', role:'قسم المبيعات', photo:''},
-  {id:'emp03', name:'موظف تجريبي ٣', role:'قسم التقنية', photo:''},
-  {id:'emp04', name:'موظف تجريبي ٤', role:'قسم الموارد البشرية', photo:''},
-  {id:'emp05', name:'موظف تجريبي ٥', role:'قسم المالية', photo:''},
-  {id:'emp06', name:'موظف تجريبي ٦', role:'قسم التسويق', photo:''}
+  {id:"p001", name:"Mohamad Rachid", role:"Dubai", photo:"portas-people/p001.jpg"},
+  {id:"p002", name:"David Portas", role:"Dubai", photo:"portas-people/p002.jpg"},
+  {id:"p003", name:"Donal McElwee", role:"Dubai", photo:"portas-people/p003.jpg"},
+  {id:"p004", name:"Marc Cordahi", role:"Dubai", photo:"portas-people/p004.jpg"},
+  {id:"p005", name:"Vidur Ahlowalia", role:"Dubai", photo:"portas-people/p005.jpg"},
+  {id:"p006", name:"Sameer Ahmed", role:"Dubai", photo:"portas-people/p006.jpg"},
+  {id:"p007", name:"Petra Santini", role:"Dubai", photo:"portas-people/p007.jpg"},
+  {id:"p008", name:"Alexandre Evrard", role:"Dubai", photo:"portas-people/p008.jpg"},
+  {id:"p009", name:"Nassib El Chaar", role:"Dubai", photo:"portas-people/p009.jpg"},
+  {id:"p010", name:"Ahmed Kadri", role:"Dubai", photo:"portas-people/p010.jpg"},
+  {id:"p011", name:"Guillermo Minguez Ochoa", role:"Dubai", photo:"portas-people/p011.jpg"},
+  {id:"p012", name:"Hamza Syed", role:"Dubai", photo:"portas-people/p012.jpg"},
+  {id:"p013", name:"Jordan Bohinc", role:"Dubai", photo:"portas-people/p013.jpg"},
+  {id:"p014", name:"Maksymilian Bielak", role:"Dubai", photo:"portas-people/p014.jpg"},
+  {id:"p015", name:"Felicien Dillard", role:"Dubai", photo:"portas-people/p015.jpg"},
+  {id:"p016", name:"Ali Abbas", role:"Dubai", photo:"portas-people/p016.jpg"},
+  {id:"p017", name:"Saidja Drentje", role:"Dubai", photo:"portas-people/p017.jpg"},
+  {id:"p018", name:"Reem Khaled", role:"Global HR Director", photo:"portas-people/p018.jpg"},
+  {id:"p019", name:"Xedessa Enopia", role:"Global Recruitment Executive", photo:"portas-people/p019.jpg"},
+  {id:"p020", name:"Dmitri Aprelikov", role:"Dubai", photo:"portas-people/p020.jpg"},
+  {id:"p021", name:"Henri Langlois D’estaintot", role:"Dubai", photo:"portas-people/p021.jpg"},
+  {id:"p022", name:"Emma Johnston", role:"Executive Assistant", photo:"portas-people/p022.jpg"},
+  {id:"p023", name:"Pol Garcia Casas", role:"Dubai", photo:"portas-people/p023.jpg"},
+  {id:"p024", name:"Mohamed Abdelrhman", role:"Dubai", photo:"portas-people/p024.jpg"},
+  {id:"p025", name:"Line Zaylaa", role:"Dubai", photo:"portas-people/p025.jpg"},
+  {id:"p026", name:"Rehan D'Mello", role:"Dubai", photo:"portas-people/p026.jpg"},
+  {id:"p027", name:"Hanna Riehle", role:"Riyadh", photo:"portas-people/p027.jpg"},
+  {id:"p028", name:"Rami Gharzeddine", role:"Riyadh", photo:"portas-people/p028.jpg"},
+  {id:"p029", name:"Omar Harb", role:"Riyadh", photo:"portas-people/p029.jpg"},
+  {id:"p030", name:"Rayan Shayya", role:"Riyadh", photo:"portas-people/p030.jpg"},
+  {id:"p031", name:"Rory West", role:"Riyadh", photo:"portas-people/p031.jpg"},
+  {id:"p032", name:"Elie Deeb", role:"Riyadh", photo:"portas-people/p032.jpg"},
+  {id:"p033", name:"Abdullah Anwar", role:"Riyadh", photo:"portas-people/p033.jpg"},
+  {id:"p034", name:"Houssam Echrigui", role:"Riyadh", photo:"portas-people/p034.jpg"},
+  {id:"p035", name:"Chris Tamari", role:"Riyadh", photo:"portas-people/p035.jpg"},
+  {id:"p036", name:"Goncalo Branco", role:"Riyadh", photo:"portas-people/p036.jpg"},
+  {id:"p037", name:"Marawan Saad Eldin", role:"Riyadh", photo:"portas-people/p037.jpg"},
+  {id:"p038", name:"Taalqan Chaudhary", role:"Riyadh", photo:"portas-people/p038.jpg"},
+  {id:"p039", name:"Karim El Aridi", role:"Riyadh", photo:"portas-people/p039.jpg"},
+  {id:"p040", name:"Sarjun Sangha", role:"Riyadh", photo:"portas-people/p040.jpg"},
+  {id:"p041", name:"Mohamed Rafia", role:"Riyadh", photo:"portas-people/p041.jpg"},
+  {id:"p042", name:"Patrick Raupach", role:"Riyadh", photo:"portas-people/p042.jpg"},
+  {id:"p043", name:"Wissam Khalaf", role:"Riyadh", photo:"portas-people/p043.jpg"},
+  {id:"p044", name:"Abdullah Alharbi", role:"Riyadh", photo:"portas-people/p044.jpg"},
+  {id:"p045", name:"Conor Smith", role:"Riyadh", photo:"portas-people/p045.jpg"},
+  {id:"p046", name:"Zoe Portman", role:"Riyadh", photo:"portas-people/p046.jpg"},
+  {id:"p047", name:"Nour Nasrallah", role:"Riyadh", photo:"portas-people/p047.jpg"},
+  {id:"p048", name:"Marc Mano Simon", role:"Riyadh", photo:"portas-people/p048.jpg"},
+  {id:"p049", name:"Fahad AlSaud", role:"Riyadh", photo:"portas-people/p049.jpg"},
+  {id:"p050", name:"Ahmed Albalawi", role:"Riyadh", photo:"portas-people/p050.jpg"},
+  {id:"p051", name:"Deep Kalwani", role:"Riyadh", photo:"portas-people/p051.jpg"},
+  {id:"p052", name:"Luca Hofmeister", role:"Riyadh", photo:"portas-people/p052.jpg"},
+  {id:"p053", name:"Omar Alfozan", role:"Riyadh", photo:"portas-people/p053.jpg"},
+  {id:"p054", name:"Raed Jamjoon", role:"Riyadh", photo:"portas-people/p054.jpg"},
+  {id:"p055", name:"Yusof Elsherbiny", role:"Riyadh", photo:"portas-people/p055.jpg"},
+  {id:"p056", name:"Nicole Parodi", role:"Riyadh", photo:"portas-people/p056.jpg"},
+  {id:"p057", name:"Mohamad Atallah", role:"Riyadh", photo:"portas-people/p057.jpg"},
+  {id:"p058", name:"Muhammad AlNajjar", role:"Riyadh", photo:"portas-people/p058.jpg"},
+  {id:"p059", name:"Abdulaziz Albalawi", role:"Riyadh", photo:"portas-people/p059.jpg"},
+  {id:"p060", name:"Nagham Akl", role:"Finance and Operations Manager", photo:"portas-people/p060.jpg"},
+  {id:"p061", name:"Tarfah Alnemer", role:"Senior Translator", photo:"portas-people/p061.jpg"},
+  {id:"p062", name:"Baraah Hijazi", role:"Senior Translator", photo:"portas-people/p062.jpg"},
+  {id:"p063", name:"Malek Sadi", role:"Riyadh", photo:"portas-people/p063.jpg"},
+  {id:"p064", name:"Sami Alskity", role:"HR Executive", photo:"portas-people/p064.jpg"},
+  {id:"p065", name:"Mohammed Silsilah", role:"Riyadh", photo:"portas-people/p065.jpg"},
+  {id:"p066", name:"Shahad Ghosheh", role:"Riyadh", photo:"portas-people/p066.jpg"},
+  {id:"p067", name:"Muhammed AlAnsari", role:"Riyadh", photo:"portas-people/p067.jpg"},
+  {id:"p068", name:"Adam Elziq", role:"Riyadh", photo:"portas-people/p068.jpg"},
+  {id:"p069", name:"Peter Whight", role:"London", photo:"portas-people/p069.jpg"},
+  {id:"p070", name:"Matt Welsh", role:"London", photo:"portas-people/p070.jpg"},
+  {id:"p071", name:"Oliver Robinson", role:"London", photo:"portas-people/p071.jpg"},
+  {id:"p072", name:"Sophie Finegan", role:"London", photo:"portas-people/p072.jpg"},
+  {id:"p073", name:"Hannah Coles", role:"London", photo:"portas-people/p073.jpg"},
+  {id:"p074", name:"Jamie Osrin", role:"London", photo:"portas-people/p074.jpg"},
+  {id:"p075", name:"Jon Culligan", role:"London", photo:"portas-people/p075.jpg"},
+  {id:"p076", name:"Dominic Howell", role:"London", photo:"portas-people/p076.jpg"},
+  {id:"p077", name:"Lucy Ashcroft", role:"London", photo:"portas-people/p077.jpg"},
+  {id:"p078", name:"Ben Payne", role:"London", photo:"portas-people/p078.jpg"},
+  {id:"p079", name:"Sophie Tomlinson", role:"London", photo:"portas-people/p079.jpg"},
+  {id:"p080", name:"Taha Zafar", role:"London", photo:"portas-people/p080.jpg"},
+  {id:"p081", name:"George Ball", role:"London", photo:"portas-people/p081.jpg"},
+  {id:"p082", name:"Emma Griffiths", role:"London", photo:"portas-people/p082.jpg"},
+  {id:"p083", name:"Stephen Parker", role:"London", photo:"portas-people/p083.jpg"},
+  {id:"p084", name:"Mary Serafin", role:"London", photo:"portas-people/p084.jpg"},
+  {id:"p085", name:"Sacha Brunet", role:"London", photo:"portas-people/p085.jpg"},
+  {id:"p086", name:"Solomon Tomlin-Kent", role:"London", photo:"portas-people/p086.jpg"},
+  {id:"p087", name:"Patrick Massey", role:"London", photo:"portas-people/p087.jpg"},
+  {id:"p088", name:"Lynn Clarke", role:"Group Financial Controller", photo:"portas-people/p088.jpg"},
+  {id:"p089", name:"Eleanor Conboy", role:"Global Commercial Accountant", photo:"portas-people/p089.jpg"},
+  {id:"p090", name:"Danny Willmen", role:"Global Programme Manager", photo:"portas-people/p090.jpg"},
+  {id:"p091", name:"Andrew Poxon", role:"Group Finance Director", photo:"portas-people/p091.jpg"},
+  {id:"p092", name:"Thomas Walsh", role:"London", photo:"portas-people/p092.jpg"},
+  {id:"p093", name:"Margot Fourcade", role:"London", photo:"portas-people/p093.jpg"},
+  {id:"p094", name:"Georgeina Baker", role:"Global Digital Workplace Manager", photo:"portas-people/p094.jpg"},
+  {id:"p095", name:"Ella Stadler", role:"London", photo:"portas-people/p095.jpg"},
+  {id:"p096", name:"Christopher Samen", role:"London", photo:"portas-people/p096.jpg"},
+  {id:"p097", name:"Jessica Cullen", role:"London", photo:"portas-people/p097.jpg"},
+  {id:"p098", name:"Ammandeep Balrow", role:"Global Professional Development Manager", photo:"portas-people/p098.jpg"},
+  {id:"p099", name:"Lydia March", role:"Accounts Payable Specialist", photo:"portas-people/p099.jpg"},
+  {id:"p100", name:"David Tongeren", role:"Senior Commercial Accountant", photo:"portas-people/p100.jpg"},
+  {id:"p101", name:"Asahi Takano", role:"Partner", photo:"portas-people/p101.jpg"},
+  {id:"p102", name:"Richard Davies", role:"Singapore", photo:"portas-people/p102.jpg"},
+  {id:"p103", name:"Teck Yin Lim", role:"Expert Partner", photo:"portas-people/p103.jpg"},
+  {id:"p104", name:"Ashley Fok", role:"Singapore", photo:"portas-people/p104.jpg"},
+  {id:"p105", name:"Alexander Seow", role:"Singapore", photo:"portas-people/p105.jpg"},
+  {id:"p106", name:"Regina Ho", role:"Singapore", photo:"portas-people/p106.jpg"},
+  {id:"p107", name:"Bryce Wong", role:"Singapore", photo:"portas-people/p107.jpg"},
+  {id:"p108", name:"Ray Png", role:"Singapore", photo:"portas-people/p108.jpg"},
+  {id:"p109", name:"Zikai Chua", role:"Singapore", photo:"portas-people/p109.jpg"},
+  {id:"p110", name:"Sam Lake", role:"Singapore", photo:"portas-people/p110.jpg"},
+  {id:"p111", name:"Chiaki Inoue", role:"Japan Office Leader", photo:"portas-people/p111.jpg"},
+  {id:"p112", name:"Yoko Shibata", role:"Japan", photo:"portas-people/p112.jpg"}
 ];
 
 var CHOICES = {
@@ -283,6 +389,7 @@ var myName='', myKey='', isAdmin=false;
 var allUsers={}, allPreds={}, results={};   // allPreds[empId][userKey]=choice ; results[empId]=choice
 var myPreds={};                              // empId -> choice (الجولة الحالية)
 var gameIdx=0, timeLeft=ROUND_SECONDS, timerHandle=null, playing=false;
+var ROUND=[];   // ترتيب الموظفين المخلوط لهذه الجولة
 
 if(configReady){
   firebase.initializeApp(firebaseConfig);
@@ -353,23 +460,21 @@ if(configReady){
 // ===================== ENTER + LIVE DATA =====================
 var booted=false;
 function enter(){
-  if(myName==='Mnajjar3' || myName===ADMIN_NAME) {} // admin sees gear; toggled below
   $('meName').textContent=myName; $('meName2').textContent=myName; $('meName3').textContent=myName;
   applyAdminUI();
   show('sIntro');
   if(booted)return; booted=true;
   ROOT.child('users').on('value',function(s){allUsers=s.val()||{};renderLeader();});
-  ROOT.child('predictions').on('value',function(s){allPreds=s.val()||{};renderLeader();renderSummary();});
+  ROOT.child('predictions').on('value',function(s){allPreds=s.val()||{};syncMyPreds();renderLeader();renderSummary();updatePlayedHint();});
   ROOT.child('results').on('value',function(s){results=s.val()||{};renderSummary();renderLeader();renderAdmin();updatePlayedHint();});
-  // حمّل توقعاتي السابقة
-  loadMyPreds();
 }
-function loadMyPreds(){
+// اشتق توقّعاتي السابقة من بيانات التوقّعات (بدون قراءات منفصلة لكل موظف)
+function syncMyPreds(){
+  if(playing)return; // لا تلمس توقّعات الجولة الجارية
   myPreds={};
   EMPLOYEES.forEach(function(e){
-    ROOT.child('predictions/'+e.id+'/'+myKey).once('value').then(function(s){
-      var v=s.val(); if(v) myPreds[e.id]=v; updatePlayedHint();
-    });
+    var v=allPreds[e.id] && allPreds[e.id][myKey];
+    if(v) myPreds[e.id]=v;
   });
 }
 function updatePlayedHint(){
@@ -389,6 +494,8 @@ $('btnSkipToBoard').addEventListener('click',function(){show('sLeader');});
 
 function startGame(){
   if(!EMPLOYEES.length){toast('لا يوجد موظفون بعد');return;}
+  ROUND=EMPLOYEES.slice();
+  for(var i=ROUND.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=ROUND[i];ROUND[i]=ROUND[j];ROUND[j]=tmp;} // خلط عشوائي
   gameIdx=0; timeLeft=ROUND_SECONDS; playing=true;
   show('sGame');
   renderCard();
@@ -406,11 +513,11 @@ function startTimer(){
 function paintTimer(){
   var n=$('timerNum'); n.textContent=timeLeft; n.classList.toggle('low',timeLeft<=10);
   $('timerBar').style.width=(timeLeft/ROUND_SECONDS*100)+'%';
-  $('progTxt').textContent=Math.min(gameIdx, EMPLOYEES.length)+' / '+EMPLOYEES.length;
+  $('progTxt').textContent=Math.min(gameIdx, ROUND.length)+' / '+ROUND.length;
 }
 function renderCard(){
-  if(gameIdx>=EMPLOYEES.length){endGame();return;}
-  var e=EMPLOYEES[gameIdx];
+  if(gameIdx>=ROUND.length){endGame();return;}
+  var e=ROUND[gameIdx];
   var photo = e.photo
     ? '<img class="emp-photo" src="'+esc(e.photo)+'" alt="'+esc(e.name)+'" onerror="this.outerHTML=\'<div class=&quot;emp-photo ph&quot;>'+esc(initials(e.name))+'</div>\'">'
     : '<div class="emp-photo ph">'+esc(initials(e.name))+'</div>';
@@ -443,7 +550,7 @@ function pick(empId, choice){
 function nextCard(){
   gameIdx++;
   if(!playing)return;
-  if(gameIdx>=EMPLOYEES.length){endGame();return;}
+  if(gameIdx>=ROUND.length){endGame();return;}
   renderCard();
 }
 function endGame(){
