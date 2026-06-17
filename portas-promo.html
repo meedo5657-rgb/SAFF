@@ -9,7 +9,9 @@
 <title>توقّعات بورتاس — مين بيترقّى؟</title>
 <link rel="apple-touch-icon" href="icon-en-192.png">
 <link rel="icon" type="image/png" href="icon-en-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -140,6 +142,29 @@ body.has-tabs.has-submit{padding-bottom:165px;}
 .setup-banner{width:100%;background:rgba(225,29,72,.08);border:1px solid rgba(225,29,72,.3);border-radius:14px;padding:14px;font-size:.82rem;color:#fecdd3;line-height:1.8;display:none;}
 .setup-banner.show{display:block;}
 .setup-banner code{background:rgba(0,0,0,.3);padding:1px 6px;border-radius:6px;}
+
+/* ===== ×2 double card ===== */
+.x2btn{position:absolute;top:8px;left:8px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--muted);font-family:'Poppins';font-weight:800;font-size:.78rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3;transition:transform .07s;}
+.x2btn:active{transform:scale(.88);}
+.pcard{position:relative;}
+.pcard.x2 .x2btn{background:linear-gradient(135deg,#fbbf24,#d4990a);border-color:#fbbf24;color:#3a2c00;}
+.pcard.x2{border-color:#fbbf24;box-shadow:0 0 0 1px #fbbf24 inset;}
+.x2-note{width:100%;font-size:.78rem;color:#fcd34d;text-align:center;font-weight:700;}
+
+/* ===== announcement poster (off-screen, rasterised) ===== */
+#posterRoot{position:fixed;left:0;top:0;pointer-events:none;opacity:0;z-index:-1;transform:translateZ(0);}
+#posterRoot .poster{
+  --pred-red:#e11d48; --pred-red2:#ff3b63; --pnavy:#0e1630; --pblue:#7aa6ee;
+  --pmute:rgba(255,255,255,.6); --pline:rgba(255,255,255,.14);
+  width:1080px;min-height:1180px;position:relative;overflow:hidden;box-sizing:border-box;
+  background:radial-gradient(125% 80% at 72% 2%, #213360 0%, #18244b 42%, #0e1630 100%);
+  color:#fff;direction:rtl;
+  font-family:'Tajawal',-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro',system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+}
+#posterRoot .poster *{box-sizing:border-box;margin:0;padding:0;}
+#posterRoot .poster .arcs{position:absolute;inset:0;pointer-events:none;z-index:0;}
+#posterRoot .poster .pad{position:relative;padding:70px 66px 56px;display:flex;flex-direction:column;z-index:2;min-height:1180px;}
+#posterRoot .poster .pp{font-family:'Poppins',sans-serif;}
 </style>
 </head>
 <body>
@@ -170,7 +195,7 @@ body.has-tabs.has-submit{padding-bottom:165px;}
     <button class="icon-btn" id="btnAdmin">⚙️</button>
   </div>
   <div class="section-title">🔮 مين بيترقّى؟</div>
-  <div class="hint">اضغط زر <b>⬆️ يترقّى</b> تحت كل واحد <b>تتوقّع</b> إنه بيترقّى وبعدين اضغط <b>احفظ التوقّعات</b>.<br>كل توقّع صحيح <b>+10</b> · كل توقّع خاطئ <b>−5</b> 🎯</div>
+  <div class="hint">اضغط زر <b>⬆️ يترقّى</b> تحت كل واحد <b>تتوقّع</b> إنه بيترقّى وبعدين اضغط <b>احفظ التوقّعات</b>.<br>كل توقّع صحيح <b>+10</b> · كل توقّع خاطئ <b>−5</b> · زر <b style="color:#fcd34d">×2</b> يضاعف نقاط موظف واحد (ربح أو خسارة) 🎯</div>
   <div id="officeList" style="width:100%;display:flex;flex-direction:column;gap:18px;"></div>
 </div>
 
@@ -211,6 +236,7 @@ body.has-tabs.has-submit{padding-bottom:165px;}
     <div class="section-title">🔐 الأدمن</div>
     <button class="icon-btn" id="btnAdminClose">✕</button>
   </div>
+  <button class="btn btn-grad" id="btnPoster" style="max-width:none">📢 إنشاء إعلان للمشاركة</button>
   <div class="section-title" style="font-size:1rem;margin-top:4px">👥 اللاعبون</div>
   <div id="playerList" style="width:100%;display:flex;flex-direction:column;gap:8px;"></div>
   <div class="section-title" style="font-size:1rem;margin-top:10px">🧑‍💼 الموظفون</div>
@@ -226,6 +252,7 @@ body.has-tabs.has-submit{padding-bottom:165px;}
   <button class="tab" data-screen="sLeader"><span class="ico">🏅</span>المتصدرين</button>
 </div>
 
+<div id="posterRoot" aria-hidden="true"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -372,8 +399,9 @@ var SECTION_AR={"Team":"أخرى","Support Team":"فريق الدعم"};
 var configReady = firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('YOUR_')!==0;
 var db, auth, ROOT, myUid='', authError='';
 var myName='', myKey='', isAdmin=false;
-var allUsers={}, allPreds={}, results={}, excluded={}, sectionOverrides={};
+var allUsers={}, allPreds={}, results={}, excluded={}, sectionOverrides={}, allDoubles={};
 var myPreds={};        // id -> 'up' (توقّعت ترقيته)
+var myDouble='';       // معرّف الموظف اللي تتضاعف نقاطه ×2 (واحد فقط)
 var prefilled=false;
 var PTS_WRONG=-5;      // خصم كل توقّع خاطئ
 
@@ -458,6 +486,7 @@ function enter(){
   ROOT.child('results').on('value',function(s){results=s.val()||{};renderSummary();renderLeader();renderAdmin($('admSearch').value.trim());});
   ROOT.child('excluded').on('value',function(s){excluded=s.val()||{};renderPlay();renderSummary();renderLeader();renderAdmin($('admSearch').value.trim());});
   ROOT.child('section').on('value',function(s){sectionOverrides=s.val()||{};renderPlay();renderAdmin($('admSearch').value.trim());});
+  ROOT.child('doubles').on('value',function(s){allDoubles=s.val()||{};if(!myDouble&&allDoubles[myKey]){myDouble=allDoubles[myKey];renderPlay();}renderLeader();renderSummary();});
   renderPlay();
 }
 function prefillMyPreds(){
@@ -465,6 +494,7 @@ function prefillMyPreds(){
     var v=allPreds[e.id] && allPreds[e.id][myKey];
     if(v) myPreds[e.id]=v;
   });
+  if(allDoubles[myKey]) myDouble=allDoubles[myKey];
 }
 function applyAdminUI(){
   [$('btnAdmin'),$('btnAdmin2')].forEach(function(b){if(b){b.style.display=isAdmin?'':'none';b.classList.toggle('admin-on',isAdmin);}});
@@ -494,8 +524,11 @@ function renderPlay(){
     html+='<div class="office"><div class="office-hd"><span class="ttl">'+esc(secLabel(sec))+'</span><span class="cnt">'+emps.length+'</span><span class="ln"></span></div><div class="grid">';
     emps.forEach(function(e){
       var sel=myPreds[e.id]==='up';
+      var dbl=myDouble===e.id;
       var sub=e.title||(OFFICE_AR[e.office]||e.office);
-      html+='<div class="pcard'+(sel?' sel':'')+'" id="card-'+e.id+'">'+photoHTML(e,'pphoto')+
+      html+='<div class="pcard'+(sel?' sel':'')+(dbl?' x2':'')+'" id="card-'+e.id+'">'+
+        '<button class="x2btn" data-x2="'+e.id+'" title="ضاعف نقاط هذا الموظف ×2">×2</button>'+
+        photoHTML(e,'pphoto')+
         '<div class="pname">'+esc(e.name)+'</div>'+
         '<div class="ptitle">'+esc(sub)+'</div>'+
         '<button class="upbtn" data-id="'+e.id+'">⬆️ يترقّى</button></div>';
@@ -506,6 +539,16 @@ function renderPlay(){
   updateSubmitProg();
 }
 $('officeList').addEventListener('click',function(ev){
+  var x2=ev.target.closest('.x2btn');
+  if(x2){
+    var xid=x2.dataset.x2;
+    var prev=myDouble;
+    myDouble = (myDouble===xid)?'':xid;
+    if(prev && $('card-'+prev)) $('card-'+prev).classList.remove('x2');
+    var c=$('card-'+xid); if(c)c.classList.toggle('x2',myDouble===xid);
+    updateSubmitProg();
+    return;
+  }
   var b=ev.target.closest('.upbtn'); if(!b)return;
   var id=b.dataset.id;
   if(myPreds[id]==='up') delete myPreds[id]; else myPreds[id]='up';
@@ -513,8 +556,9 @@ $('officeList').addEventListener('click',function(ev){
   updateSubmitProg();
 });
 function updateSubmitProg(){
-  var n=Object.keys(myPreds).filter(function(id){return !excluded[id];}).length;
-  $('submitProg').textContent='توقّعت ترقية '+n;
+  var n=Object.keys(myPreds).filter(function(id){return myPreds[id]==='up' && !excluded[id];}).length;
+  var dn=myDouble?' · ×2 مفعّل':'';
+  $('submitProg').textContent='توقّعت ترقية '+n+dn;
 }
 $('btnSubmit').addEventListener('click',function(){
   var upd={}, n=0;
@@ -522,6 +566,7 @@ $('btnSubmit').addEventListener('click',function(){
     if(myPreds[e.id]==='up'){ upd['predictions/'+e.id+'/'+myKey]='up'; n++; }
     else { upd['predictions/'+e.id+'/'+myKey]=null; } // امسح أي توقّع قديم بترقيته
   });
+  upd['doubles/'+myKey] = myDouble || null;   // كرت ×2 (موظف واحد)
   $('btnSubmit').disabled=true; $('btnSubmit').textContent='جاري الحفظ…';
   ROOT.update(upd).then(function(){
     $('btnSubmit').disabled=false; $('btnSubmit').textContent='احفظ التوقّعات';
@@ -538,12 +583,14 @@ $('btnSubmit').addEventListener('click',function(){
 // تُحسب النقاط على اللي ضغطت عليهم فقط: صح +10 ، غلط -5.
 function resultsPublished(){return Object.keys(results).length>0;}
 function actualUp(id){return results[id]==='up';}
-function scoreForPreds(predUpSet){
+function scoreForPreds(predUpSet, doubleId){
   if(!resultsPublished())return null;
   var pts=0;
   activeEmps().forEach(function(e){
     if(!predUpSet[e.id])return;                 // ما توقّع له ترقية = لا حساب
-    pts += actualUp(e.id) ? PTS_PER_CORRECT : PTS_WRONG;
+    var p = actualUp(e.id) ? PTS_PER_CORRECT : PTS_WRONG;
+    if(doubleId && e.id===doubleId) p*=2;        // كرت ×2: يضاعف الربح أو الخسارة
+    pts += p;
   });
   return pts;
 }
@@ -552,19 +599,20 @@ function scoreForPreds(predUpSet){
 function renderSummary(){
   var pub=resultsPublished();
   var myUpSet={}; activeEmps().forEach(function(e){if(myPreds[e.id]==='up')myUpSet[e.id]=1;});
-  $('sumScore').textContent = pub ? scoreForPreds(myUpSet) : '—';
-  $('sumLbl').textContent = pub ? 'نقطتك (صح +'+PTS_PER_CORRECT+' · غلط '+PTS_WRONG+')' : 'بانتظار إعلان الترقيات';
+  $('sumScore').textContent = pub ? scoreForPreds(myUpSet, myDouble) : '—';
+  $('sumLbl').textContent = pub ? 'نقطتك (صح +'+PTS_PER_CORRECT+' · غلط '+PTS_WRONG+' · ×2)' : 'بانتظار إعلان الترقيات';
   var picked=activeEmps().filter(function(e){return myPreds[e.id]==='up';});
   if(!picked.length){$('sumList').innerHTML='';return;}
   $('sumList').innerHTML=picked.map(function(e){
     var sub=(e.title?e.title+' · ':'')+(OFFICE_AR[e.office]||e.office);
+    var x2 = (myDouble===e.id) ? ' <span class="res-badge" style="background:rgba(251,191,36,.18);color:#fcd34d">×2</span>' : '';
     var mark='', rTxt='';
     if(pub){
       var ok=actualUp(e.id);
       mark=ok?'<span class="res-mark">✅</span>':'<span class="res-mark">❌</span>';
       rTxt='<div class="res-pending">'+(ok?'ترقّى فعلاً':'ما ترقّى')+'</div>';
     }
-    return '<div class="res-row">'+photoHTML(e,'res-photo')+'<div class="res-name">'+esc(e.name)+'<small>'+esc(sub)+'</small>'+rTxt+'</div><span class="res-badge b-up">توقّعت ترقيته</span>'+mark+'</div>';
+    return '<div class="res-row">'+photoHTML(e,'res-photo')+'<div class="res-name">'+esc(e.name)+'<small>'+esc(sub)+'</small>'+rTxt+'</div><span class="res-badge b-up">توقّعت ترقيته</span>'+x2+mark+'</div>';
   }).join('');
 }
 
@@ -581,7 +629,7 @@ function renderLeader(){
   Object.keys(allUsers).forEach(function(k){
     if(allUsers[k]&&allUsers[k].removed)return;
     var cnt=predCount(k); if(cnt===0 && k!==myKey)return;
-    rows.push({key:k,name:(allUsers[k]&&allUsers[k].name)||k,pts:scoreForPreds(predUpSetFor(k))||0,cnt:cnt});
+    rows.push({key:k,name:(allUsers[k]&&allUsers[k].name)||k,pts:scoreForPreds(predUpSetFor(k), allDoubles[k])||0,cnt:cnt});
   });
   rows.sort(function(a,b){return b.pts-a.pts||b.cnt-a.cnt||a.name.localeCompare(b.name,'ar');});
   if(!rows.length){$('leaderList').innerHTML='<div class="empty">لا يوجد لاعبون بعد. كن أول من يلعب! 🎮</div>';return;}
@@ -664,6 +712,95 @@ function renderAdmin(q){
       var op = (val===orig) ? ROOT.child('section/'+emp).remove() : ROOT.child('section/'+emp).set(val);
       op.then(function(){toast('تم تغيير المنصب');}).catch(function(e){toast('فشل: '+errTxt(e));});
     });
+  });
+}
+
+// ===================== ANNOUNCEMENT POSTER =====================
+$('btnPoster').addEventListener('click',genAnnouncementPoster);
+function genAnnouncementPoster(){
+  toast('جاري تجهيز الإعلان…');
+  var total=EMPLOYEES.length;
+  // decorative crimson arcs, top-right corner
+  var rings=[[1500,150,.16],[1230,120,.13],[980,100,.10],[740,82,.075],[520,64,.05]];
+  var arcs='<svg class="arcs" viewBox="0 0 1080 1180" preserveAspectRatio="xMidYMid slice">';
+  rings.forEach(function(g){arcs+='<circle cx="1180" cy="-60" r="'+g[0]+'" fill="none" stroke="#e11d48" stroke-width="'+g[1]+'" stroke-opacity="'+g[2]+'"/>';});
+  arcs+='</svg>';
+
+  var header='<div style="display:flex;align-items:center;gap:22px;">'
+    +'<div class="pp" style="line-height:.86;">'
+    +  '<div style="font-weight:800;font-size:30px;color:#e11d48;letter-spacing:1px;">CAA</div>'
+    +  '<div style="font-weight:800;font-size:50px;color:#fff;letter-spacing:.5px;margin-top:-4px;">portas</div>'
+    +'</div>'
+    +'<div style="width:2px;height:62px;background:rgba(255,255,255,.28);"></div>'
+    +'<div style="text-align:right;line-height:1.3;">'
+    +  '<div style="font-weight:900;font-size:30px;color:#fff;">لعبة بورتاس</div>'
+    +  '<div class="pp" style="font-weight:700;font-size:18px;color:var(--pblue);letter-spacing:3px;margin-top:2px;">PROMOTION PREDICTIONS</div>'
+    +'</div></div>';
+
+  var eyebrow='<div style="font-weight:800;font-size:27px;color:var(--pblue);letter-spacing:1px;margin-top:54px;">'
+    +total+' موظف · ٥ مكاتب · جدول واحد</div>';
+
+  var title='<h1 style="font-weight:900;line-height:.96;margin-top:26px;margin-bottom:30px;">'
+    +'<div style="font-size:150px;color:#fff;">توقّع</div>'
+    +'<div style="font-size:150px;color:#fff;">كل</div>'
+    +'<div style="font-size:150px;color:var(--pred-red2);">ترقية.</div>'
+    +'</h1>';
+
+  // up-arrow badge (instead of trophy)
+  var badge='<div style="position:absolute;left:70px;top:470px;width:300px;height:300px;border-radius:50%;'
+    +'background:radial-gradient(circle at 40% 30%, rgba(225,29,72,.35), rgba(225,29,72,.06) 70%);'
+    +'display:flex;align-items:center;justify-content:center;z-index:1;">'
+    +'<svg width="190" height="190" viewBox="0 0 24 24" fill="none" stroke="#ff3b63" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+    +'<line x1="12" y1="20" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/></svg></div>';
+
+  var boxes='<div style="display:flex;gap:22px;margin-top:8px;">'
+    +'<div style="flex:1;background:#e11d48;border-radius:18px;padding:34px 30px;">'
+    +  '<div class="pp" style="font-weight:900;font-size:78px;line-height:.9;color:#fff;">+10</div>'
+    +  '<div style="font-weight:800;font-size:26px;color:#fff;letter-spacing:1px;margin-top:8px;">توقّع صحيح</div>'
+    +'</div>'
+    +'<div style="flex:1;background:transparent;border:1.5px solid var(--pline);border-radius:18px;padding:34px 30px;">'
+    +  '<div class="pp" style="font-weight:900;font-size:78px;line-height:.9;color:#fff;">−5</div>'
+    +  '<div style="font-weight:800;font-size:26px;color:var(--pmute);letter-spacing:1px;margin-top:8px;">توقّع خاطئ</div>'
+    +'</div></div>';
+
+  var footer='<div style="margin-top:34px;">'
+    +'<div style="font-weight:800;font-size:25px;color:#fff;">+ كرت <b style="color:#fbbf24;">×2</b> تضاعف فيه توقّع موظف واحد</div>'
+    +'<div style="font-weight:700;font-size:21px;color:var(--pmute);margin-top:12px;">اضغط ⬆️ على كل موظف تتوقّع ترقيته · بدون وقت · النتائج تُعلن لاحقًا</div>'
+    +'</div>';
+
+  var html='<div class="poster">'+arcs+badge+'<div class="pad">'+header+eyebrow+title+'<div style="flex:1;"></div>'+boxes+footer+'</div></div>';
+  var root=$('posterRoot'); root.innerHTML=html;
+  var fname='portas-promotions-announcement.png';
+  function shareCanvas(cv){
+    toast('2/3: جاري التحويل…');
+    try{
+      cv.toBlob(function(blob){
+        if(!blob){toast('فشل: الصورة فاضية');root.innerHTML='';return;}
+        toast('3/3: جاري المشاركة…');
+        var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
+        if(file && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'لعبة بورتاس — مين بيترقّى؟'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
+        } else { dl(); }
+        function dl(){var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');}
+        root.innerHTML='';
+      },'image/png');
+    }catch(e){toast('فشل: '+(e&&e.message||e));root.innerHTML='';}
+  }
+  var fontsReady=Promise.race([(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve(),new Promise(function(r){setTimeout(r,1500);})]);
+  fontsReady.then(function(){
+    var target=root.querySelector('.poster');
+    if(!target){toast('فشل: قالب الإعلان غير موجود');root.innerHTML='';return;}
+    var rect=target.getBoundingClientRect(), h=Math.max(1180,Math.round(rect.height));
+    toast('1/3: جاري الرسم…');
+    var to=setTimeout(function(){toast('التحويل تأخّر · جرّب ثاني');root.innerHTML='';},20000);
+    if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
+      htmlToImage.toBlob(target,{backgroundColor:null,cacheBust:true,pixelRatio:Math.min(2,window.devicePixelRatio||1),width:1080,height:h,skipFonts:true}).then(function(blob){
+        clearTimeout(to);if(!blob){toast('فشل توليد الصورة');root.innerHTML='';return;}
+        shareCanvas({toBlob:function(cb){cb(blob);}});
+      }).catch(function(e){clearTimeout(to);root.innerHTML='';toast('فشل: '+(e&&e.message||e));});
+    } else if(typeof html2canvas==='function'){
+      html2canvas(target,{backgroundColor:null,scale:1,useCORS:true,allowTaint:false,imageTimeout:5000,logging:false,width:1080,height:h,windowWidth:1080,windowHeight:h}).then(function(cv){clearTimeout(to);shareCanvas(cv);}).catch(function(e){clearTimeout(to);root.innerHTML='';toast('فشل: '+(e&&e.message||e));});
+    } else { clearTimeout(to); root.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
   });
 }
 

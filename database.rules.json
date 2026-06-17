@@ -43,6 +43,13 @@
           ".write": "auth != null",
           ".validate": "newData.isString() && newData.val().length <= 40"
         }
+      },
+
+      "doubles": {
+        "$key": {
+          ".write": "auth != null",
+          ".validate": "newData.isString() && newData.val().length <= 20"
+        }
       }
     },
 
