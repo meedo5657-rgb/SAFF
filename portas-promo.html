@@ -555,7 +555,7 @@ function renderSummary(){
   $('sumScore').textContent = pub ? scoreForPreds(myUpSet) : '—';
   $('sumLbl').textContent = pub ? 'نقطتك (صح +'+PTS_PER_CORRECT+' · غلط '+PTS_WRONG+')' : 'بانتظار إعلان الترقيات';
   var picked=activeEmps().filter(function(e){return myPreds[e.id]==='up';});
-  if(!picked.length){$('sumList').innerHTML='<div class="empty">ما توقّعت ترقية أحد بعد. ارجع واضغط ⬆️ على اللي تتوقّعه. 🔮</div>';return;}
+  if(!picked.length){$('sumList').innerHTML='';return;}
   $('sumList').innerHTML=picked.map(function(e){
     var sub=(e.title?e.title+' · ':'')+(OFFICE_AR[e.office]||e.office);
     var mark='', rTxt='';
