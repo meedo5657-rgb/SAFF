@@ -29,6 +29,13 @@
           ".write": "auth != null",
           ".validate": "newData.isString() && (newData.val() === 'up' || newData.val() === 'out' || newData.val() === 'stay')"
         }
+      },
+
+      "excluded": {
+        "$emp": {
+          ".write": "auth != null",
+          ".validate": "newData.isBoolean()"
+        }
       }
     },
 
