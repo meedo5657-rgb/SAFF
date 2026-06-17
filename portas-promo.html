@@ -117,6 +117,8 @@ body.has-submit{padding-bottom:96px;}
 .adm-seg button.up.on{background:var(--up);color:#06281a;border-color:var(--up);}
 .adm-seg button.hide.on{background:var(--accent1);color:#fff;border-color:var(--accent1);}
 .adm-search{width:100%;}
+.adm-sec{width:100%;font-size:.86rem;font-weight:700;padding:9px 11px;}
+select.field{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(12px) calc(1em + 2px),calc(12px + 5px) calc(1em + 2px);background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
 
 .tabbar{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,#1a2750,#0c1430);border-top:2px solid #e11d48;box-shadow:0 -10px 30px rgba(0,0,0,.55);display:none;justify-content:center;gap:4px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:50;}
 .tabbar.show{display:flex;}
@@ -163,7 +165,7 @@ body.has-tabs.has-submit{padding-bottom:150px;}
     <button class="icon-btn" id="btnAdmin">⚙️</button>
   </div>
   <div class="section-title">🔮 مين بيترقّى؟</div>
-  <div class="hint">اضغط زر <b>⬆️ يترقّى</b> تحت كل واحد <b>تتوقّع</b> إنه بيترقّى. اللي ما تضغطه = توقّعك إنه ما يترقّى. بالآخر اضغط <b>احفظ التوقّعات</b>.</div>
+  <div class="hint">اضغط زر <b>⬆️ يترقّى</b> تحت كل واحد <b>تتوقّع</b> إنه بيترقّى، وبالآخر اضغط <b>احفظ التوقّعات</b>.<br>كل توقّع صحيح <b>+10</b> · كل توقّع خاطئ <b>−5</b> 🎯</div>
   <div id="officeList" style="width:100%;display:flex;flex-direction:column;gap:18px;"></div>
 </div>
 
@@ -238,129 +240,134 @@ var PTS_PER_CORRECT = 10;
 var EMPLOYEES = [
   {id:"p002", name:"David Portas", office:"Dubai", section:"Executive Chairman", title:"", photo:"portas-people/p002.jpg"},
   {id:"p003", name:"Donal McElwee", office:"Dubai", section:"Managing Partner", title:"", photo:"portas-people/p003.jpg"},
+  {id:"p101", name:"Asahi Takano", office:"Singapore", section:"Partner", title:"Partner", photo:"portas-people/p101.jpg"},
+  {id:"p103", name:"Teck Yin Lim", office:"Singapore", section:"Expert Partner", title:"Expert Partner", photo:"portas-people/p103.jpg"},
+  {id:"p075", name:"Jon Culligan", office:"London", section:"Associate Partners", title:"", photo:"portas-people/p075.jpg"},
+  {id:"p069", name:"Peter Whight", office:"London", section:"Associate Partners", title:"", photo:"portas-people/p069.jpg"},
   {id:"p007", name:"Petra Santini", office:"Dubai", section:"Associate Partners", title:"", photo:"portas-people/p007.jpg"},
   {id:"p006", name:"Sameer Ahmed", office:"Dubai", section:"Associate Partners", title:"", photo:"portas-people/p006.jpg"},
+  {id:"p083", name:"Stephen Parker", office:"London", section:"Associate Partners", title:"", photo:"portas-people/p083.jpg"},
   {id:"p008", name:"Alexandre Evrard", office:"Dubai", section:"Senior Consultants", title:"", photo:"portas-people/p008.jpg"},
+  {id:"p076", name:"Dominic Howell", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p076.jpg"},
+  {id:"p032", name:"Elie Deeb", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p032.jpg"},
   {id:"p011", name:"Guillermo Minguez Ochoa", office:"Dubai", section:"Senior Consultants", title:"", photo:"portas-people/p011.jpg"},
   {id:"p012", name:"Hamza Syed", office:"Dubai", section:"Senior Consultants", title:"", photo:"portas-people/p012.jpg"},
+  {id:"p027", name:"Hanna Riehle", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p027.jpg"},
+  {id:"p073", name:"Hannah Coles", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p073.jpg"},
+  {id:"p074", name:"Jamie Osrin", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p074.jpg"},
+  {id:"p037", name:"Marawan Saad Eldin", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p037.jpg"},
   {id:"p004", name:"Marc Cordahi", office:"Dubai", section:"Senior Consultants", title:"", photo:"portas-people/p004.jpg"},
-  {id:"p020", name:"Dmitri Aprelikov", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p020.jpg"},
-  {id:"p021", name:"Henri Langlois Destaintot", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p021.jpg"},
-  {id:"p024", name:"Mohamed Abdelrhman", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p024.jpg"},
-  {id:"p023", name:"Pol Garcia Casas", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p023.jpg"},
+  {id:"p084", name:"Mary Serafin", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p084.jpg"},
+  {id:"p070", name:"Matt Welsh", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p070.jpg"},
+  {id:"p071", name:"Oliver Robinson", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p071.jpg"},
+  {id:"p030", name:"Rayan Shayya", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p030.jpg"},
+  {id:"p085", name:"Sacha Brunet", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p085.jpg"},
+  {id:"p109", name:"Zikai Chua", office:"Singapore", section:"Senior Consultants", title:"", photo:"portas-people/p109.jpg"},
   {id:"p014", name:"Maksymilian Bielak", office:"Dubai", section:"Senior Project Managers", title:"", photo:"portas-people/p014.jpg"},
   {id:"p001", name:"Mohamad Rachid", office:"Dubai", section:"Senior Project Managers", title:"", photo:"portas-people/p001.jpg"},
   {id:"p005", name:"Vidur Ahlowalia", office:"Dubai", section:"Senior Project Managers", title:"", photo:"portas-people/p005.jpg"},
   {id:"p010", name:"Ahmed Kadri", office:"Dubai", section:"Project Managers", title:"", photo:"portas-people/p010.jpg"},
+  {id:"p082", name:"Emma Griffiths", office:"London", section:"Project Managers", title:"", photo:"portas-people/p082.jpg"},
   {id:"p013", name:"Jordan Bohinc", office:"Dubai", section:"Project Managers", title:"", photo:"portas-people/p013.jpg"},
   {id:"p009", name:"Nassib El Chaar", office:"Dubai", section:"Project Managers", title:"", photo:"portas-people/p009.jpg"},
-  {id:"p022", name:"Emma Johnston", office:"Dubai", section:"Senior Business Analysts", title:"Executive Assistant", photo:"portas-people/p022.jpg"},
-  {id:"p025", name:"Line Zaylaa", office:"Dubai", section:"Senior Business Analysts", title:"", photo:"portas-people/p025.jpg"},
-  {id:"p018", name:"Reem Khaled", office:"Dubai", section:"Senior Business Analysts", title:"Global HR Director", photo:"portas-people/p018.jpg"},
-  {id:"p026", name:"Rehan D'Mello", office:"Dubai", section:"Senior Business Analysts", title:"", photo:"portas-people/p026.jpg"},
-  {id:"p019", name:"Xedessa Enopia", office:"Dubai", section:"Senior Business Analysts", title:"Global Recruitment Executive", photo:"portas-people/p019.jpg"},
-  {id:"p016", name:"Ali Abbas", office:"Dubai", section:"Team", title:"", photo:"portas-people/p016.jpg"},
-  {id:"p015", name:"Felicien Dillard", office:"Dubai", section:"Team", title:"", photo:"portas-people/p015.jpg"},
-  {id:"p017", name:"Saidja Drentje", office:"Dubai", section:"Team", title:"", photo:"portas-people/p017.jpg"},
-  {id:"p032", name:"Elie Deeb", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p032.jpg"},
-  {id:"p027", name:"Hanna Riehle", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p027.jpg"},
-  {id:"p037", name:"Marawan Saad Eldin", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p037.jpg"},
-  {id:"p030", name:"Rayan Shayya", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p030.jpg"},
-  {id:"p033", name:"Abdullah Anwar", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p033.jpg"},
-  {id:"p051", name:"Deep Kalwani", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p051.jpg"},
-  {id:"p036", name:"Goncalo Branco", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p036.jpg"},
-  {id:"p039", name:"Karim El Aridi", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p039.jpg"},
-  {id:"p057", name:"Mohamad Atallah", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p057.jpg"},
-  {id:"p041", name:"Mohamed Rafia", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p041.jpg"},
-  {id:"p040", name:"Sarjun Sangha", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p040.jpg"},
-  {id:"p038", name:"Taalqan Chaudhary", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p038.jpg"},
   {id:"p029", name:"Omar Harb", office:"Riyadh", section:"Project Managers", title:"", photo:"portas-people/p029.jpg"},
   {id:"p028", name:"Rami Gharzeddine", office:"Riyadh", section:"Project Managers", title:"", photo:"portas-people/p028.jpg"},
+  {id:"p102", name:"Richard Davies", office:"Singapore", section:"Project Managers", title:"", photo:"portas-people/p102.jpg"},
   {id:"p031", name:"Rory West", office:"Riyadh", section:"Project Managers", title:"", photo:"portas-people/p031.jpg"},
+  {id:"p033", name:"Abdullah Anwar", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p033.jpg"},
+  {id:"p107", name:"Bryce Wong", office:"Singapore", section:"Consultants", title:"", photo:"portas-people/p107.jpg"},
+  {id:"p051", name:"Deep Kalwani", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p051.jpg"},
+  {id:"p020", name:"Dmitri Aprelikov", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p020.jpg"},
+  {id:"p036", name:"Goncalo Branco", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p036.jpg"},
+  {id:"p021", name:"Henri Langlois Destaintot", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p021.jpg"},
+  {id:"p039", name:"Karim El Aridi", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p039.jpg"},
+  {id:"p057", name:"Mohamad Atallah", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p057.jpg"},
+  {id:"p024", name:"Mohamed Abdelrhman", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p024.jpg"},
+  {id:"p041", name:"Mohamed Rafia", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p041.jpg"},
+  {id:"p023", name:"Pol Garcia Casas", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p023.jpg"},
+  {id:"p108", name:"Ray Png", office:"Singapore", section:"Consultants", title:"", photo:"portas-people/p108.jpg"},
+  {id:"p040", name:"Sarjun Sangha", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p040.jpg"},
+  {id:"p072", name:"Sophie Finegan", office:"London", section:"Consultants", title:"", photo:"portas-people/p072.jpg"},
+  {id:"p038", name:"Taalqan Chaudhary", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p038.jpg"},
   {id:"p044", name:"Abdullah Alharbi", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p044.jpg"},
   {id:"p050", name:"Ahmed Albalawi", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p050.jpg"},
+  {id:"p078", name:"Ben Payne", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p078.jpg"},
   {id:"p045", name:"Conor Smith", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p045.jpg"},
+  {id:"p025", name:"Line Zaylaa", office:"Dubai", section:"Senior Business Analysts", title:"", photo:"portas-people/p025.jpg"},
+  {id:"p077", name:"Lucy Ashcroft", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p077.jpg"},
   {id:"p048", name:"Marc Mano Simon", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p048.jpg"},
+  {id:"p093", name:"Margot Fourcade", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p093.jpg"},
   {id:"p058", name:"Muhammad AlNajjar", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p058.jpg"},
   {id:"p056", name:"Nicole Parodi", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p056.jpg"},
   {id:"p047", name:"Nour Nasrallah", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p047.jpg"},
   {id:"p053", name:"Omar Alfozan", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p053.jpg"},
+  {id:"p106", name:"Regina Ho", office:"Singapore", section:"Senior Business Analysts", title:"", photo:"portas-people/p106.jpg"},
+  {id:"p026", name:"Rehan D'Mello", office:"Dubai", section:"Senior Business Analysts", title:"", photo:"portas-people/p026.jpg"},
+  {id:"p086", name:"Solomon Tomlin-Kent", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p086.jpg"},
+  {id:"p092", name:"Thomas Walsh", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p092.jpg"},
   {id:"p046", name:"Zoe Portman", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p046.jpg"},
   {id:"p059", name:"Abdulaziz Albalawi", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p059.jpg"},
   {id:"p068", name:"Adam Elziq", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p068.jpg"},
-  {id:"p062", name:"Baraah Hijazi", office:"Riyadh", section:"Business Analysts", title:"Senior Translator", photo:"portas-people/p062.jpg"},
+  {id:"p105", name:"Alexander Seow", office:"Singapore", section:"Business Analysts", title:"", photo:"portas-people/p105.jpg"},
+  {id:"p104", name:"Ashley Fok", office:"Singapore", section:"Business Analysts", title:"", photo:"portas-people/p104.jpg"},
+  {id:"p095", name:"Ella Stadler", office:"London", section:"Business Analysts", title:"", photo:"portas-people/p095.jpg"},
   {id:"p049", name:"Fahad AlSaud", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p049.jpg"},
+  {id:"p097", name:"Jessica Cullen", office:"London", section:"Business Analysts", title:"", photo:"portas-people/p097.jpg"},
   {id:"p052", name:"Luca Hofmeister", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p052.jpg"},
   {id:"p063", name:"Malek Sadi", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p063.jpg"},
   {id:"p065", name:"Mohammed Silsilah", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p065.jpg"},
   {id:"p067", name:"Muhammed AlAnsari", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p067.jpg"},
-  {id:"p060", name:"Nagham Akl", office:"Riyadh", section:"Business Analysts", title:"Finance and Operations Manager", photo:"portas-people/p060.jpg"},
   {id:"p054", name:"Raed Jamjoon", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p054.jpg"},
-  {id:"p064", name:"Sami Alskity", office:"Riyadh", section:"Business Analysts", title:"HR Executive", photo:"portas-people/p064.jpg"},
   {id:"p066", name:"Shahad Ghosheh", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p066.jpg"},
-  {id:"p061", name:"Tarfah Alnemer", office:"Riyadh", section:"Business Analysts", title:"Senior Translator", photo:"portas-people/p061.jpg"},
   {id:"p055", name:"Yusof Elsherbiny", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p055.jpg"},
-  {id:"p035", name:"Chris Tamari", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p035.jpg"},
-  {id:"p034", name:"Houssam Echrigui", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p034.jpg"},
-  {id:"p042", name:"Patrick Raupach", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p042.jpg"},
-  {id:"p043", name:"Wissam Khalaf", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p043.jpg"},
-  {id:"p075", name:"Jon Culligan", office:"London", section:"Associate Partners", title:"", photo:"portas-people/p075.jpg"},
-  {id:"p069", name:"Peter Whight", office:"London", section:"Associate Partners", title:"", photo:"portas-people/p069.jpg"},
-  {id:"p083", name:"Stephen Parker", office:"London", section:"Associate Partners", title:"", photo:"portas-people/p083.jpg"},
-  {id:"p076", name:"Dominic Howell", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p076.jpg"},
-  {id:"p073", name:"Hannah Coles", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p073.jpg"},
-  {id:"p074", name:"Jamie Osrin", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p074.jpg"},
-  {id:"p084", name:"Mary Serafin", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p084.jpg"},
-  {id:"p070", name:"Matt Welsh", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p070.jpg"},
-  {id:"p071", name:"Oliver Robinson", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p071.jpg"},
-  {id:"p085", name:"Sacha Brunet", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p085.jpg"},
-  {id:"p072", name:"Sophie Finegan", office:"London", section:"Consultants", title:"", photo:"portas-people/p072.jpg"},
-  {id:"p082", name:"Emma Griffiths", office:"London", section:"Project Managers", title:"", photo:"portas-people/p082.jpg"},
-  {id:"p098", name:"Ammandeep Balrow", office:"London", section:"Senior Business Analysts", title:"Global Professional Development Manager", photo:"portas-people/p098.jpg"},
-  {id:"p091", name:"Andrew Poxon", office:"London", section:"Senior Business Analysts", title:"Group Finance Director", photo:"portas-people/p091.jpg"},
-  {id:"p078", name:"Ben Payne", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p078.jpg"},
-  {id:"p090", name:"Danny Willmen", office:"London", section:"Senior Business Analysts", title:"Global Programme Manager", photo:"portas-people/p090.jpg"},
-  {id:"p100", name:"David Tongeren", office:"London", section:"Senior Business Analysts", title:"Senior Commercial Accountant", photo:"portas-people/p100.jpg"},
-  {id:"p089", name:"Eleanor Conboy", office:"London", section:"Senior Business Analysts", title:"Global Commercial Accountant", photo:"portas-people/p089.jpg"},
-  {id:"p094", name:"Georgeina Baker", office:"London", section:"Senior Business Analysts", title:"Global Digital Workplace Manager", photo:"portas-people/p094.jpg"},
-  {id:"p077", name:"Lucy Ashcroft", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p077.jpg"},
-  {id:"p099", name:"Lydia March", office:"London", section:"Senior Business Analysts", title:"Accounts Payable Specialist", photo:"portas-people/p099.jpg"},
-  {id:"p088", name:"Lynn Clarke", office:"London", section:"Senior Business Analysts", title:"Group Financial Controller", photo:"portas-people/p088.jpg"},
-  {id:"p093", name:"Margot Fourcade", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p093.jpg"},
-  {id:"p086", name:"Solomon Tomlin-Kent", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p086.jpg"},
-  {id:"p092", name:"Thomas Walsh", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p092.jpg"},
-  {id:"p095", name:"Ella Stadler", office:"London", section:"Business Analysts", title:"", photo:"portas-people/p095.jpg"},
-  {id:"p097", name:"Jessica Cullen", office:"London", section:"Business Analysts", title:"", photo:"portas-people/p097.jpg"},
   {id:"p080", name:"Taha Zafar", office:"London", section:"Data Analysts", title:"", photo:"portas-people/p080.jpg"},
   {id:"p081", name:"George Ball", office:"London", section:"Data Scientist", title:"", photo:"portas-people/p081.jpg"},
   {id:"p079", name:"Sophie Tomlinson", office:"London", section:"DS&A Lead", title:"", photo:"portas-people/p079.jpg"},
-  {id:"p096", name:"Christopher Samen", office:"London", section:"Team", title:"", photo:"portas-people/p096.jpg"},
-  {id:"p087", name:"Patrick Massey", office:"London", section:"Team", title:"", photo:"portas-people/p087.jpg"},
-  {id:"p101", name:"Asahi Takano", office:"Singapore", section:"Partner", title:"Partner", photo:"portas-people/p101.jpg"},
-  {id:"p103", name:"Teck Yin Lim", office:"Singapore", section:"Expert Partner", title:"Expert Partner", photo:"portas-people/p103.jpg"},
-  {id:"p109", name:"Zikai Chua", office:"Singapore", section:"Senior Consultant", title:"", photo:"portas-people/p109.jpg"},
-  {id:"p107", name:"Bryce Wong", office:"Singapore", section:"Consultant", title:"", photo:"portas-people/p107.jpg"},
-  {id:"p108", name:"Ray Png", office:"Singapore", section:"Consultant", title:"", photo:"portas-people/p108.jpg"},
-  {id:"p102", name:"Richard Davies", office:"Singapore", section:"Project Manager", title:"", photo:"portas-people/p102.jpg"},
-  {id:"p106", name:"Regina Ho", office:"Singapore", section:"Senior Business Analysts", title:"", photo:"portas-people/p106.jpg"},
-  {id:"p105", name:"Alexander Seow", office:"Singapore", section:"Business Analysts", title:"", photo:"portas-people/p105.jpg"},
-  {id:"p104", name:"Ashley Fok", office:"Singapore", section:"Business Analysts", title:"", photo:"portas-people/p104.jpg"},
-  {id:"p110", name:"Sam Lake", office:"Singapore", section:"Team", title:"", photo:"portas-people/p110.jpg"},
+  {id:"p098", name:"Ammandeep Balrow", office:"London", section:"Support Team", title:"Global Professional Development Manager", photo:"portas-people/p098.jpg"},
+  {id:"p091", name:"Andrew Poxon", office:"London", section:"Support Team", title:"Group Finance Director", photo:"portas-people/p091.jpg"},
+  {id:"p062", name:"Baraah Hijazi", office:"Riyadh", section:"Support Team", title:"Senior Translator", photo:"portas-people/p062.jpg"},
   {id:"p111", name:"Chiaki Inoue", office:"Japan", section:"Support Team", title:"Japan Office Leader", photo:"portas-people/p111.jpg"},
+  {id:"p090", name:"Danny Willmen", office:"London", section:"Support Team", title:"Global Programme Manager", photo:"portas-people/p090.jpg"},
+  {id:"p100", name:"David Tongeren", office:"London", section:"Support Team", title:"Senior Commercial Accountant", photo:"portas-people/p100.jpg"},
+  {id:"p089", name:"Eleanor Conboy", office:"London", section:"Support Team", title:"Global Commercial Accountant", photo:"portas-people/p089.jpg"},
+  {id:"p022", name:"Emma Johnston", office:"Dubai", section:"Support Team", title:"Executive Assistant", photo:"portas-people/p022.jpg"},
+  {id:"p094", name:"Georgeina Baker", office:"London", section:"Support Team", title:"Global Digital Workplace Manager", photo:"portas-people/p094.jpg"},
+  {id:"p099", name:"Lydia March", office:"London", section:"Support Team", title:"Accounts Payable Specialist", photo:"portas-people/p099.jpg"},
+  {id:"p088", name:"Lynn Clarke", office:"London", section:"Support Team", title:"Group Financial Controller", photo:"portas-people/p088.jpg"},
+  {id:"p060", name:"Nagham Akl", office:"Riyadh", section:"Support Team", title:"Finance and Operations Manager", photo:"portas-people/p060.jpg"},
+  {id:"p018", name:"Reem Khaled", office:"Dubai", section:"Support Team", title:"Global HR Director", photo:"portas-people/p018.jpg"},
+  {id:"p064", name:"Sami Alskity", office:"Riyadh", section:"Support Team", title:"HR Executive", photo:"portas-people/p064.jpg"},
+  {id:"p061", name:"Tarfah Alnemer", office:"Riyadh", section:"Support Team", title:"Senior Translator", photo:"portas-people/p061.jpg"},
+  {id:"p019", name:"Xedessa Enopia", office:"Dubai", section:"Support Team", title:"Global Recruitment Executive", photo:"portas-people/p019.jpg"},
+  {id:"p016", name:"Ali Abbas", office:"Dubai", section:"Team", title:"", photo:"portas-people/p016.jpg"},
+  {id:"p035", name:"Chris Tamari", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p035.jpg"},
+  {id:"p096", name:"Christopher Samen", office:"London", section:"Team", title:"", photo:"portas-people/p096.jpg"},
+  {id:"p015", name:"Felicien Dillard", office:"Dubai", section:"Team", title:"", photo:"portas-people/p015.jpg"},
+  {id:"p034", name:"Houssam Echrigui", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p034.jpg"},
+  {id:"p087", name:"Patrick Massey", office:"London", section:"Team", title:"", photo:"portas-people/p087.jpg"},
+  {id:"p042", name:"Patrick Raupach", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p042.jpg"},
+  {id:"p017", name:"Saidja Drentje", office:"Dubai", section:"Team", title:"", photo:"portas-people/p017.jpg"},
+  {id:"p110", name:"Sam Lake", office:"Singapore", section:"Team", title:"", photo:"portas-people/p110.jpg"},
+  {id:"p043", name:"Wissam Khalaf", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p043.jpg"},
   {id:"p112", name:"Yoko Shibata", office:"Japan", section:"Team", title:"", photo:"portas-people/p112.jpg"}
 ];
 
-var OFFICE_ORDER=["Dubai","Riyadh","London","Singapore","Japan"];
 var OFFICE_AR={Dubai:"🇦🇪 دبي",Riyadh:"🇸🇦 الرياض",London:"🇬🇧 لندن",Singapore:"🇸🇬 سنغافورة",Japan:"🇯🇵 اليابان"};
+// ترتيب المناصب (Project Managers و Senior Project Managers فوق Consultants)
+var SECTIONS=["Executive Chairman","Managing Partner","Partner","Expert Partner","Associate Partners",
+"Senior Consultants","Senior Project Managers","Project Managers","Consultants",
+"Senior Business Analysts","Business Analysts","Data Analysts","Data Scientist","DS&A Lead",
+"Head of ME","Support Team","Team"];
 var SECTION_AR={"Team":"أخرى","Support Team":"فريق الدعم"};
 
 // ===================== STATE =====================
 var configReady = firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('YOUR_')!==0;
 var db, auth, ROOT, myUid='', authError='';
 var myName='', myKey='', isAdmin=false;
-var allUsers={}, allPreds={}, results={}, excluded={};
+var allUsers={}, allPreds={}, results={}, excluded={}, sectionOverrides={};
 var myPreds={};        // id -> 'up' (توقّعت ترقيته)
 var prefilled=false;
+var PTS_WRONG=-5;      // خصم كل توقّع خاطئ
 
 if(configReady){
   firebase.initializeApp(firebaseConfig);
@@ -442,6 +449,7 @@ function enter(){
   ROOT.child('predictions').on('value',function(s){allPreds=s.val()||{};if(!prefilled){prefillMyPreds();prefilled=true;renderPlay();}renderLeader();renderSummary();});
   ROOT.child('results').on('value',function(s){results=s.val()||{};renderSummary();renderLeader();renderAdmin($('admSearch').value.trim());});
   ROOT.child('excluded').on('value',function(s){excluded=s.val()||{};renderPlay();renderSummary();renderLeader();renderAdmin($('admSearch').value.trim());});
+  ROOT.child('section').on('value',function(s){sectionOverrides=s.val()||{};renderPlay();renderAdmin($('admSearch').value.trim());});
   renderPlay();
 }
 function prefillMyPreds(){
@@ -461,29 +469,31 @@ function photoHTML(e,cls){
   return '<div class="'+cls+' ph">'+esc(initials(e.name))+'</div>';
 }
 function secLabel(s){return SECTION_AR[s]||s;}
+function effSection(e){return sectionOverrides[e.id]||e.section;}
+// كل الأقسام الموجودة مرتّبة حسب SECTIONS ثم أي قسم غير معروف بالآخر
+function orderedSections(emps){
+  var present={}; emps.forEach(function(e){present[effSection(e)]=1;});
+  var ord=SECTIONS.filter(function(s){return present[s];});
+  Object.keys(present).forEach(function(s){if(SECTIONS.indexOf(s)<0)ord.push(s);});
+  return ord;
+}
 function renderPlay(){
   var list=activeEmps();
   var html='';
-  OFFICE_ORDER.forEach(function(off){
-    var emps=list.filter(function(e){return e.office===off;});
+  orderedSections(list).forEach(function(sec){
+    var emps=list.filter(function(e){return effSection(e)===sec;})
+                 .sort(function(a,b){return a.name.localeCompare(b.name);});
     if(!emps.length)return;
-    html+='<div class="office"><div class="office-hd"><span class="ttl">'+(OFFICE_AR[off]||off)+'</span><span class="cnt">'+emps.length+'</span><span class="ln"></span></div>';
-    var curSec=null, gridOpen=false;
+    html+='<div class="office"><div class="office-hd"><span class="ttl">'+esc(secLabel(sec))+'</span><span class="cnt">'+emps.length+'</span><span class="ln"></span></div><div class="grid">';
     emps.forEach(function(e){
-      if(e.section!==curSec){
-        if(gridOpen){html+='</div>';}            // اقفل شبكة القسم السابق
-        curSec=e.section;
-        html+='<div class="sec-hd">'+esc(secLabel(curSec))+'</div><div class="grid">';
-        gridOpen=true;
-      }
       var sel=myPreds[e.id]==='up';
+      var sub=e.title||(OFFICE_AR[e.office]||e.office);
       html+='<div class="pcard'+(sel?' sel':'')+'" id="card-'+e.id+'">'+photoHTML(e,'pphoto')+
         '<div class="pname">'+esc(e.name)+'</div>'+
-        (e.title?'<div class="ptitle">'+esc(e.title)+'</div>':'')+
+        '<div class="ptitle">'+esc(sub)+'</div>'+
         '<button class="upbtn" data-id="'+e.id+'">⬆️ يترقّى</button></div>';
     });
-    if(gridOpen){html+='</div>';}                 // اقفل آخر شبكة
-    html+='</div>';                               // اقفل المكتب
+    html+='</div></div>';
   });
   $('officeList').innerHTML=html;
   updateSubmitProg();
@@ -518,14 +528,15 @@ $('btnSubmit').addEventListener('click',function(){
 
 // ===================== SCORING =====================
 // النتائج منشورة لو الأدمن حدّد ترقية واحدة على الأقل. عندها: من ليس في results = ما ترقّى.
+// تُحسب النقاط على اللي ضغطت عليهم فقط: صح +10 ، غلط -5.
 function resultsPublished(){return Object.keys(results).length>0;}
 function actualUp(id){return results[id]==='up';}
 function scoreForPreds(predUpSet){
   if(!resultsPublished())return null;
   var pts=0;
   activeEmps().forEach(function(e){
-    var predUp=!!predUpSet[e.id];
-    if(predUp===actualUp(e.id)) pts+=PTS_PER_CORRECT;
+    if(!predUpSet[e.id])return;                 // ما توقّع له ترقية = لا حساب
+    pts += actualUp(e.id) ? PTS_PER_CORRECT : PTS_WRONG;
   });
   return pts;
 }
@@ -535,7 +546,7 @@ function renderSummary(){
   var pub=resultsPublished();
   var myUpSet={}; activeEmps().forEach(function(e){if(myPreds[e.id]==='up')myUpSet[e.id]=1;});
   $('sumScore').textContent = pub ? scoreForPreds(myUpSet) : '—';
-  $('sumLbl').textContent = pub ? 'نقطتك (كل توقّع صحيح = '+PTS_PER_CORRECT+')' : 'بانتظار إعلان الترقيات';
+  $('sumLbl').textContent = pub ? 'نقطتك (صح +'+PTS_PER_CORRECT+' · غلط '+PTS_WRONG+')' : 'بانتظار إعلان الترقيات';
   var picked=activeEmps().filter(function(e){return myPreds[e.id]==='up';});
   if(!picked.length){$('sumList').innerHTML='<div class="empty">ما توقّعت ترقية أحد بعد. ارجع واضغط ⬆️ على اللي تتوقّعه. 🔮</div>';return;}
   $('sumList').innerHTML=picked.map(function(e){
@@ -594,15 +605,21 @@ function renderAdmin(q){
   if(!isAdmin)return;
   q=(q||'').toLowerCase();
   var list=EMPLOYEES.filter(function(e){return !q || e.name.toLowerCase().indexOf(q)>=0;});
+  // قائمة الأقسام للاختيار
+  var allSecs=SECTIONS.slice();
   $('adminList').innerHTML=list.map(function(e){
     var up=results[e.id]==='up', hid=!!excluded[e.id];
-    var sub=(e.title?e.title:secLabel(e.section))+' · '+(OFFICE_AR[e.office]||e.office);
+    var cur=effSection(e);
+    if(allSecs.indexOf(cur)<0) allSecs.push(cur);
+    var opts=allSecs.map(function(s){return '<option value="'+esc(s)+'"'+(s===cur?' selected':'')+'>'+esc(secLabel(s))+'</option>';}).join('');
+    var sub=(e.title?e.title+' · ':'')+(OFFICE_AR[e.office]||e.office);
     return '<div class="adm-row'+(hid?' excl':'')+'"><div class="adm-head">'+photoHTML(e,'res-photo')+
       '<b>'+esc(e.name)+'</b><span class="tag">'+esc(sub)+'</span></div>'+
+      '<select class="adm-sec field" data-emp="'+e.id+'">'+opts+'</select>'+
       '<div class="adm-seg"><button class="up'+(up?' on':'')+'" data-emp="'+e.id+'" data-act="up">✅ ترقّى</button>'+
       '<button class="hide'+(hid?' on':'')+'" data-emp="'+e.id+'" data-act="hide">'+(hid?'↩︎ رجّعه':'🚫 إخفاء')+'</button></div></div>';
   }).join('') || '<div class="empty">ما فيه نتيجة مطابقة.</div>';
-  $('adminList').querySelectorAll('button').forEach(function(b){
+  $('adminList').querySelectorAll('.adm-seg button').forEach(function(b){
     b.addEventListener('click',function(){
       var emp=b.dataset.emp,act=b.dataset.act;
       if(act==='up'){
@@ -612,6 +629,14 @@ function renderAdmin(q){
         if(excluded[emp]) ROOT.child('excluded/'+emp).remove();
         else ROOT.child('excluded/'+emp).set(true).catch(function(e){toast('فشل: '+errTxt(e));});
       }
+    });
+  });
+  $('adminList').querySelectorAll('.adm-sec').forEach(function(sel){
+    sel.addEventListener('change',function(){
+      var emp=sel.dataset.emp, val=sel.value;
+      var orig=(EMPLOYEES.filter(function(e){return e.id===emp;})[0]||{}).section;
+      var op = (val===orig) ? ROOT.child('section/'+emp).remove() : ROOT.child('section/'+emp).set(val);
+      op.then(function(){toast('تم تغيير المنصب');}).catch(function(e){toast('فشل: '+errTxt(e));});
     });
   });
 }
