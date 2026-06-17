@@ -2015,6 +2015,9 @@ function adminBar(){
   var sb=document.createElement('button');sb.className='btn-summary';sb.textContent='📸 ملخّص اليوم';
   sb.addEventListener('click',genDailySummary);
   bar.appendChild(sb);
+  var sb2=document.createElement('button');sb2.className='btn-summary';sb2.style.cssText='background:linear-gradient(135deg,#d4af37,#8b6914);';sb2.textContent='📜 إعلان قصة منتخب';
+  sb2.addEventListener('click',genStoryAnnouncementPoster);
+  bar.appendChild(sb2);
   bar.appendChild(fdTokenRow());
   var n=Object.keys(resultsData||{}).length;
   var b=document.createElement('button');b.className='btn-clear-all';
@@ -2415,6 +2418,98 @@ function genDailySummary(){
       });
     }
   }).catch(function(e){toast('فشل تحميل الخط: '+(e&&e.message||e));});
+}
+// ===== "قصة منتخب" launch announcement poster — same identity as daily summary =====
+function genStoryAnnouncementPoster(){
+  toast('جاري تجهيز الإعلان…');
+  var arcRings=[[1450,140,.12],[1200,120,.10],[950,100,.08],[700,80,.06]];
+  var arcsHtml='<svg class="arcs" viewBox="0 0 1080 2180" preserveAspectRatio="xMidYMid slice">';
+  arcRings.forEach(function(g){arcsHtml+='<circle cx="-100" cy="-70" r="'+g[0]+'" fill="none" stroke="#E6CC78" stroke-width="'+g[1]+'" stroke-opacity="'+g[2]+'"/>';});
+  arcsHtml+='</svg>';
+
+  var brand1='دوري التوقّعات', brand2='كأس العالم 2026';
+  var headerHtml='\
+<div style="display:flex;justify-content:space-between;align-items:center;">\
+  <div style="display:flex;align-items:center;gap:20px;">\
+    <div role="img" aria-label="" style="width:79px;height:78px;background-image:url('+SAFF_LOGO_DATA+');background-size:contain;background-repeat:no-repeat;background-position:center;flex-shrink:0;"></div>\
+    <div style="width:2px;height:56px;background:rgba(255,255,255,.28);"></div>\
+    <div style="text-align:right;line-height:1.25;">\
+      <div style="font-size:24px;font-weight:900;color:#fff;">'+esc(brand1)+'</div>\
+      <div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">'+esc(brand2)+'</div>\
+    </div>\
+  </div>\
+  <div class="kick" style="font-size:21px;color:var(--mute);">ميزة جديدة</div>\
+</div>';
+
+  // big eyebrow + title
+  var eyebrow='<div style="font-weight:800;font-size:30px;color:var(--gold);letter-spacing:1px;margin-top:60px;">🆕 ميزة جديدة</div>';
+  var titleHtml='<h1 class="disp" style="font-size:110px;margin-top:14px;margin-bottom:24px;line-height:1;">قصة <span style="color:var(--gold);">منتخب</span></h1>';
+  var sub='<div style="font-weight:700;font-size:30px;color:var(--mute);margin-bottom:46px;line-height:1.5;">لعبة يومية — خمّن منتخب اليوم من معلومتين فقط</div>';
+
+  // rules section
+  var rules=''
+    +'<div class="shead"><span class="lbl">القواعد</span><span class="ln"></span></div>'
+    +'<div style="display:flex;flex-direction:column;gap:18px;margin-top:14px;">'
+    +  '<div style="display:flex;gap:18px;align-items:flex-start;background:var(--row);border:1px solid var(--row-edge);border-radius:14px;padding:22px 26px;">'
+    +    '<div style="font-size:36px;line-height:1;color:var(--gold);">🌍</div>'
+    +    '<div style="font-weight:700;font-size:28px;color:#fff;line-height:1.5;flex:1;">خمّن منتخب اليوم، اللي ممكن يكون أي منتخب شارك في كأس العالم على مرّ التاريخ</div>'
+    +  '</div>'
+    +  '<div style="display:flex;gap:18px;align-items:flex-start;background:var(--row);border:1px solid var(--row-edge);border-radius:14px;padding:22px 26px;">'
+    +    '<div style="font-size:36px;line-height:1;color:var(--gold);">⏱️</div>'
+    +    '<div style="font-weight:700;font-size:28px;color:#fff;line-height:1.5;flex:1;">بتطلع معلومتين عن المنتخب، وفيه ٣٠ ثانية لكل واحدة، وتوقعين كحد أقصى مجملًا</div>'
+    +  '</div>'
+    +  '<div style="display:flex;gap:18px;align-items:flex-start;background:var(--row);border:1px solid var(--row-edge);border-radius:14px;padding:22px 26px;">'
+    +    '<div style="font-size:36px;line-height:1;color:var(--gold);">🏆</div>'
+    +    '<div style="font-weight:700;font-size:28px;color:#fff;line-height:1.5;flex:1;">المعلومة الأولى = ٣ نقاط · الثانية = نقطة واحدة <span style="color:var(--mute);font-size:22px;display:block;margin-top:6px;font-weight:600;">للقصة ترتيب منفصل عن ترتيب التوقعات</span></div>'
+    +  '</div>'
+    +'</div>';
+
+  // launch CTA box
+  var cta='<div style="margin-top:50px;padding:34px 30px;border-radius:18px;background:linear-gradient(150deg, rgba(230,204,120,.20), rgba(230,204,120,.05));border:1.5px solid rgba(230,204,120,.55);text-align:center;">'
+    +'<div style="font-weight:800;font-size:24px;color:var(--gold);letter-spacing:1px;margin-bottom:10px;">⏰ تنطلق</div>'
+    +'<div style="font-weight:900;font-size:54px;color:#fff;line-height:1.2;">الأربعاء ١٧ يونيو</div>'
+    +'<div style="font-weight:800;font-size:38px;color:var(--gold);margin-top:6px;">الساعة ١٢ ظهرًا</div>'
+    +'<div style="font-weight:700;font-size:22px;color:var(--mute);margin-top:14px;">قصة جديدة كل يوم لين نهاية المونديال</div>'
+    +'</div>';
+
+  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+rules+cta+'</div></div>';
+  var posterRoot=document.getElementById('posterRoot');
+  posterRoot.innerHTML=posterHtml;
+
+  var fname='wc2026-story-launch.png';
+  function shareCanvas(cv){
+    toast('2/3: جاري التحويل…');
+    try{
+      cv.toBlob(function(blob){
+        if(!blob){toast('فشل: blob فاضي');posterRoot.innerHTML='';return;}
+        toast('3/3: جاري المشاركة…');
+        var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
+        if(file && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'قصة منتخب'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
+        } else { dl(); }
+        function dl(){
+          var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');
+        }
+        posterRoot.innerHTML='';
+      },'image/png');
+    }catch(e){toast('فشل toBlob: '+(e&&e.message||e));posterRoot.innerHTML='';}
+  }
+  var fontsReady=Promise.race([(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve(),new Promise(function(r){setTimeout(r,1500);})]);
+  fontsReady.then(function(){
+    var target=posterRoot.querySelector('.poster');
+    if(!target){toast('فشل: قالب البوستر غير موجود');posterRoot.innerHTML='';return;}
+    var rect=target.getBoundingClientRect(), h=Math.max(1200,Math.round(rect.height));
+    toast('1/3: جاري الرسم…');
+    var to=setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';},20000);
+    if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
+      htmlToImage.toBlob(target,{backgroundColor:null,cacheBust:true,pixelRatio:Math.min(2,window.devicePixelRatio||1),width:1080,height:h,skipFonts:true}).then(function(blob){
+        clearTimeout(to);if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
+        shareCanvas({toBlob:function(cb){cb(blob);}});
+      }).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html-to-image: '+(e&&e.message||e));});
+    } else if(typeof html2canvas==='function'){
+      html2canvas(target,{backgroundColor:null,scale:1,useCORS:true,allowTaint:false,imageTimeout:5000,logging:false,width:1080,height:h,windowWidth:1080,windowHeight:h}).then(function(cv){clearTimeout(to);shareCanvas(cv);}).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html2canvas: '+(e&&e.message||e));});
+    } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
+  });
 }
 // ===== "قائمة الخونة" — share-poster for users who picked the losing side =====
 // Same green/gold palette as the daily summary so the brand is consistent.
