@@ -36,6 +36,13 @@
           ".write": "auth != null",
           ".validate": "newData.isBoolean()"
         }
+      },
+
+      "section": {
+        "$emp": {
+          ".write": "auth != null",
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        }
       }
     },
 
