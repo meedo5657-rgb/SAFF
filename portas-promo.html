@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>توقّعات بورتاس — يترقّى أو ينطرد؟</title>
+<title>توقّعات بورتاس — مين بيترقّى؟</title>
 <link rel="apple-touch-icon" href="icon-en-192.png">
 <link rel="icon" type="image/png" href="icon-en-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -19,15 +19,14 @@
   --accent1:#e11d48; --accent2:#fb7185; --accent3:#c2123f;
   --gold:#e11d48; --text:#eef1fb; --muted:#9aa6c7;
   --line:rgba(255,255,255,.08);
-  --up:#34d399; --stay:#fbbf24; --out:#fb7185;
+  --up:#34d399; --no:#94a3b8;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{scroll-behavior:smooth;}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:18px 14px 40px;overflow-x:hidden;}
-.screen{display:none;width:100%;max-width:560px;flex-direction:column;align-items:center;gap:14px;}
+.screen{display:none;width:100%;max-width:580px;flex-direction:column;align-items:center;gap:14px;}
 .screen.active{display:flex;}
 
-/* brand */
 .cobrand{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:8px;}
 .cb-logo{height:58px;width:auto;}
 .brandline{font-family:'Poppins',sans-serif;font-weight:800;letter-spacing:.5px;color:#fff;font-size:1.05rem;}
@@ -43,7 +42,6 @@ input.field::placeholder{color:var(--muted);}
 .btn:active:not(:disabled){transform:scale(.97);opacity:.9;}
 .btn:disabled{background:#222c54!important;color:var(--muted)!important;cursor:default;}
 .btn-grad{background:linear-gradient(135deg,#fb7185,#e11d48);}
-.btn-ghost{background:rgba(255,255,255,.08);border:1px solid var(--line);}
 .err{font-size:.85rem;color:#fca5a5;text-align:center;min-height:18px;}
 .hint{width:100%;font-size:.82rem;color:var(--muted);line-height:1.9;text-align:center;}
 
@@ -56,46 +54,35 @@ input.field::placeholder{color:var(--muted);}
 .admin-on{border-color:var(--accent1)!important;color:var(--text)!important;}
 .section-title{width:100%;font-size:1.15rem;font-weight:900;color:var(--text);}
 
-/* legend */
-.legend{width:100%;display:flex;gap:14px;justify-content:center;flex-wrap:wrap;font-size:.78rem;color:var(--muted);font-weight:700;}
-.legend span{display:inline-flex;align-items:center;gap:5px;}
-.legend i{width:11px;height:11px;border-radius:3px;display:inline-block;}
-.lg-up{background:var(--up);}.lg-stay{background:var(--stay);}.lg-out{background:var(--out);}
-
-/* office groups */
-.office{width:100%;display:flex;flex-direction:column;gap:10px;}
-.office-hd{display:flex;align-items:center;gap:10px;width:100%;margin-top:6px;}
-.office-hd .ttl{font-size:1.05rem;font-weight:900;color:#fff;}
+/* office + section groups */
+.office{width:100%;display:flex;flex-direction:column;gap:8px;}
+.office-hd{display:flex;align-items:center;gap:10px;width:100%;margin-top:8px;}
+.office-hd .ttl{font-size:1.15rem;font-weight:900;color:#fff;}
 .office-hd .cnt{font-size:.74rem;color:var(--muted);font-weight:700;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:3px 10px;}
 .office-hd .ln{flex:1;height:1px;background:var(--line);}
+.sec-hd{width:100%;font-size:.84rem;font-weight:800;color:var(--accent2);background:rgba(225,29,72,.12);border:1px solid rgba(225,29,72,.25);border-radius:9px;padding:6px 12px;margin-top:6px;}
 .grid{width:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
 
-.pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:border-color .15s;}
-.pcard.done{border-color:rgba(255,255,255,.22);}
-.pcard.s-up{border-color:var(--up);box-shadow:0 0 0 1px var(--up) inset;}
-.pcard.s-stay{border-color:var(--stay);box-shadow:0 0 0 1px var(--stay) inset;}
-.pcard.s-out{border-color:var(--out);box-shadow:0 0 0 1px var(--out) inset;}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:border-color .15s,box-shadow .15s;}
+.pcard.sel{border-color:var(--up);box-shadow:0 0 0 1px var(--up) inset;}
 .pphoto{width:66px;height:66px;border-radius:50%;object-fit:cover;background:var(--surface);border:2px solid rgba(255,255,255,.15);}
+.pcard.sel .pphoto{border-color:var(--up);}
 .pphoto.ph{display:flex;align-items:center;justify-content:center;font-family:'Poppins';font-weight:800;color:#fff;font-size:1.3rem;background:linear-gradient(135deg,#fb7185,#9c0f33);}
 .pname{font-size:.86rem;font-weight:800;color:#fff;text-align:center;line-height:1.25;}
-.ptitle{font-size:.68rem;color:var(--muted);text-align:center;line-height:1.3;margin-top:-4px;min-height:0;}
-.pchoices{display:flex;gap:5px;width:100%;margin-top:2px;}
-.pchoices button{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:9px;padding:7px 0;font-size:.95rem;cursor:pointer;transition:transform .07s,background .12s,border-color .12s;}
-.pchoices button:active{transform:scale(.92);}
-.pchoices button.on.b-up{background:var(--up);border-color:var(--up);}
-.pchoices button.on.b-stay{background:var(--stay);border-color:var(--stay);}
-.pchoices button.on.b-out{background:var(--out);border-color:var(--out);}
+.ptitle{font-size:.66rem;color:var(--muted);text-align:center;line-height:1.3;margin-top:-4px;}
+.upbtn{width:100%;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:10px;padding:8px 4px;font-family:'Tajawal';font-weight:800;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:transform .07s,background .12s,border-color .12s,color .12s;}
+.upbtn:active{transform:scale(.95);}
+.pcard.sel .upbtn{background:var(--up);border-color:var(--up);color:#06281a;}
 
 /* sticky submit */
 .submitbar{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(20,29,59,.4),#0c1430 40%);padding:10px 14px calc(12px + env(safe-area-inset-bottom));display:none;justify-content:center;z-index:60;}
 .submitbar.show{display:flex;}
-.submitbar .inner{width:100%;max-width:560px;display:flex;gap:10px;align-items:center;}
+.submitbar .inner{width:100%;max-width:580px;display:flex;gap:10px;align-items:center;}
 .submit-prog{font-size:.82rem;color:var(--muted);font-weight:700;white-space:nowrap;}
 .btn-submit{flex:1;padding:14px;border-radius:13px;border:none;font-family:'Tajawal';font-weight:900;font-size:1.05rem;color:#fff;background:linear-gradient(135deg,#fb7185,#e11d48);cursor:pointer;}
 .btn-submit:disabled{background:#222c54;color:var(--muted);cursor:default;}
 body.has-submit{padding-bottom:96px;}
 
-/* SUMMARY / RESULTS */
 .sum-hero{width:100%;background:linear-gradient(160deg,rgba(225,29,72,.18),rgba(27,38,74,.7));border:1px solid rgba(225,29,72,.4);border-radius:20px;padding:22px;text-align:center;display:flex;flex-direction:column;gap:6px;}
 .sum-hero .big{font-family:'Poppins',sans-serif;font-size:2.6rem;font-weight:800;color:#fff;}
 .sum-hero .lbl{color:var(--muted);font-size:.95rem;font-weight:700;}
@@ -103,15 +90,12 @@ body.has-submit{padding-bottom:96px;}
 .res-photo{width:46px;height:46px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:'Poppins';font-weight:800;color:#fff;font-size:1.1rem;}
 .res-name{flex:1;min-width:0;font-weight:800;font-size:.95rem;}
 .res-name small{display:block;font-weight:600;color:var(--muted);font-size:.72rem;}
-.res-badge{font-size:.78rem;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.res-badge{font-size:.76rem;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap;}
 .b-up{background:rgba(52,211,153,.18);color:#6ee7b7;}
-.b-stay{background:rgba(251,191,36,.18);color:#fcd34d;}
-.b-out{background:rgba(251,113,133,.18);color:#fda4af;}
-.b-none{background:rgba(255,255,255,.08);color:var(--muted);}
+.b-no{background:rgba(148,163,184,.18);color:#cbd5e1;}
 .res-mark{font-size:1.1rem;flex-shrink:0;}
 .res-pending{font-size:.72rem;color:var(--muted);}
 
-/* LEADERBOARD */
 .sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;}
 .sc-rank{font-family:'Poppins';font-weight:800;color:var(--muted);min-width:26px;text-align:center;font-size:1rem;}
 .sc-row:nth-child(1) .sc-rank{color:#fcd34d;}
@@ -123,17 +107,17 @@ body.has-submit{padding-bottom:96px;}
 
 /* ADMIN */
 .adm-row{width:100%;display:flex;flex-direction:column;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;}
+.adm-row.excl{opacity:.55;}
 .adm-head{display:flex;align-items:center;gap:10px;}
 .adm-head .res-photo{width:40px;height:40px;}
-.adm-head b{font-size:.95rem;}
+.adm-head b{font-size:.95rem;flex:1;}
+.adm-head .tag{font-size:.66rem;color:var(--muted);}
 .adm-seg{display:flex;gap:6px;}
-.adm-seg button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:'Tajawal';font-weight:800;font-size:.85rem;cursor:pointer;}
-.adm-seg button.on.s-up{background:var(--up);color:#06281a;border-color:var(--up);}
-.adm-seg button.on.s-stay{background:var(--stay);color:#3a2c00;border-color:var(--stay);}
-.adm-seg button.on.s-out{background:var(--out);color:#3a0d16;border-color:var(--out);}
+.adm-seg button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:'Tajawal';font-weight:800;font-size:.84rem;cursor:pointer;}
+.adm-seg button.up.on{background:var(--up);color:#06281a;border-color:var(--up);}
+.adm-seg button.hide.on{background:var(--accent1);color:#fff;border-color:var(--accent1);}
 .adm-search{width:100%;}
 
-/* tabs */
 .tabbar{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,#1a2750,#0c1430);border-top:2px solid #e11d48;box-shadow:0 -10px 30px rgba(0,0,0,.55);display:none;justify-content:center;gap:4px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:50;}
 .tabbar.show{display:flex;}
 .tab{flex:1;max-width:150px;background:none;border:none;color:rgba(255,255,255,.7);font-family:'Tajawal';font-size:.78rem;font-weight:800;cursor:pointer;padding:8px 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:3px;}
@@ -158,10 +142,10 @@ body.has-tabs.has-submit{padding-bottom:150px;}
     <img class="cb-logo" src="logo-dark.png" alt="Portas" onerror="this.style.display='none'">
     <span class="brandline">PORTAS</span>
   </div>
-  <div class="subtitle">يترقّى، <span class="hl">ينطرد</span>، أو يبقى؟</div>
-  <div class="tagline">توقّع مصير كل موظف في بورتاس 🔮</div>
+  <div class="subtitle">مين <span class="hl">بيترقّى</span>؟</div>
+  <div class="tagline">توقّع مين من موظفين بورتاس بيترقّى السنة 🔮</div>
   <div class="setup-banner" id="setupBanner">
-    ⚙️ <b>إعداد مطلوب:</b> أضف إعدادات Firebase الخاصة بك في الكود (ابحث عن <code>firebaseConfig</code>) عشان تنحفظ التوقّعات وتنشارك.
+    ⚙️ <b>إعداد مطلوب:</b> أضف إعدادات Firebase في الكود (<code>firebaseConfig</code>) عشان تنحفظ التوقّعات.
   </div>
   <div class="box">
     <input class="field" id="nameInput" placeholder="اسمك" maxlength="20" autocomplete="off">
@@ -172,26 +156,20 @@ body.has-tabs.has-submit{padding-bottom:150px;}
   <div class="err" id="loginErr"></div>
 </div>
 
-<!-- ===== PLAY (all employees grid) ===== -->
+<!-- ===== PLAY ===== -->
 <div class="screen" id="sPlay">
   <div class="topbar">
     <div class="me-chip" id="meChip">👤 <b id="meName">--</b> · خروج</div>
     <button class="icon-btn" id="btnAdmin">⚙️</button>
   </div>
-  <div class="section-title">🔮 توقّع مصير كل موظف</div>
-  <div class="hint">اضغط تحت كل موظف: <b>⬆️ يترقّى</b> · <b>➡️ يبقى</b> · <b>❌ ينطرد</b>. تقدر تختار اللي تبيه بس، وبالآخر اضغط <b>احفظ التوقّعات</b>.</div>
-  <div class="legend">
-    <span><i class="lg-up"></i> يترقّى</span>
-    <span><i class="lg-stay"></i> يبقى</span>
-    <span><i class="lg-out"></i> ينطرد</span>
-  </div>
+  <div class="section-title">🔮 مين بيترقّى؟</div>
+  <div class="hint">اضغط زر <b>⬆️ يترقّى</b> تحت كل واحد <b>تتوقّع</b> إنه بيترقّى. اللي ما تضغطه = توقّعك إنه ما يترقّى. بالآخر اضغط <b>احفظ التوقّعات</b>.</div>
   <div id="officeList" style="width:100%;display:flex;flex-direction:column;gap:18px;"></div>
 </div>
 
-<!-- sticky submit -->
 <div class="submitbar" id="submitBar">
   <div class="inner">
-    <span class="submit-prog" id="submitProg">0 / 0</span>
+    <span class="submit-prog" id="submitProg">توقّعت ترقية 0</span>
     <button class="btn-submit" id="btnSubmit">احفظ التوقّعات</button>
   </div>
 </div>
@@ -204,9 +182,9 @@ body.has-tabs.has-submit{padding-bottom:150px;}
   </div>
   <div class="sum-hero">
     <div class="big" id="sumScore">0</div>
-    <div class="lbl" id="sumLbl">نقطتك من التوقّعات</div>
+    <div class="lbl" id="sumLbl">نقطتك</div>
   </div>
-  <div class="section-title">📋 توقّعاتك</div>
+  <div class="section-title">📋 اللي توقّعت ترقيتهم</div>
   <div id="sumList" style="width:100%;display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
@@ -223,10 +201,10 @@ body.has-tabs.has-submit{padding-bottom:150px;}
 <!-- ===== ADMIN ===== -->
 <div class="screen" id="sAdmin">
   <div class="topbar">
-    <div class="section-title">🔐 النتائج الفعلية</div>
+    <div class="section-title">🔐 الأدمن</div>
     <button class="icon-btn" id="btnAdminClose">✕</button>
   </div>
-  <div class="hint" style="text-align:right">حدّد المصير الفعلي لكل موظف. بمجرد ما تحدد، تنحسب نقاط كل اللاعبين تلقائياً.</div>
+  <div class="hint" style="text-align:right">✅ <b>ترقّى</b> = حدّد مين ترقّى فعلاً (الباقي يُحسب إنه ما ترقّى). 🚫 <b>إخفاء</b> = شيل الموظف من التصويت نهائياً.</div>
   <input class="field adm-search" id="admSearch" placeholder="🔎 ابحث باسم الموظف…" autocomplete="off">
   <div id="adminList" style="width:100%;display:flex;flex-direction:column;gap:10px;"></div>
 </div>
@@ -256,139 +234,132 @@ var ADMIN_NAME = "Mnajjar3";
 var PTS_PER_CORRECT = 10;
 
 // ===================== الموظفون =====================
-// 112 موظف من الهيكل التنظيمي لبورتاس، مقسّمين بالمكتب (الصور في portas-people/).
+// 112 موظف من الهيكل التنظيمي، مقسّمين بالمكتب ثم المنصب (الصور في portas-people/).
 var EMPLOYEES = [
-  {id:"p001", name:"Mohamad Rachid", office:"Dubai", title:"", photo:"portas-people/p001.jpg"},
-  {id:"p002", name:"David Portas", office:"Dubai", title:"", photo:"portas-people/p002.jpg"},
-  {id:"p003", name:"Donal McElwee", office:"Dubai", title:"", photo:"portas-people/p003.jpg"},
-  {id:"p004", name:"Marc Cordahi", office:"Dubai", title:"", photo:"portas-people/p004.jpg"},
-  {id:"p005", name:"Vidur Ahlowalia", office:"Dubai", title:"", photo:"portas-people/p005.jpg"},
-  {id:"p006", name:"Sameer Ahmed", office:"Dubai", title:"", photo:"portas-people/p006.jpg"},
-  {id:"p007", name:"Petra Santini", office:"Dubai", title:"", photo:"portas-people/p007.jpg"},
-  {id:"p008", name:"Alexandre Evrard", office:"Dubai", title:"", photo:"portas-people/p008.jpg"},
-  {id:"p009", name:"Nassib El Chaar", office:"Dubai", title:"", photo:"portas-people/p009.jpg"},
-  {id:"p010", name:"Ahmed Kadri", office:"Dubai", title:"", photo:"portas-people/p010.jpg"},
-  {id:"p011", name:"Guillermo Minguez Ochoa", office:"Dubai", title:"", photo:"portas-people/p011.jpg"},
-  {id:"p012", name:"Hamza Syed", office:"Dubai", title:"", photo:"portas-people/p012.jpg"},
-  {id:"p013", name:"Jordan Bohinc", office:"Dubai", title:"", photo:"portas-people/p013.jpg"},
-  {id:"p014", name:"Maksymilian Bielak", office:"Dubai", title:"", photo:"portas-people/p014.jpg"},
-  {id:"p015", name:"Felicien Dillard", office:"Dubai", title:"", photo:"portas-people/p015.jpg"},
-  {id:"p016", name:"Ali Abbas", office:"Dubai", title:"", photo:"portas-people/p016.jpg"},
-  {id:"p017", name:"Saidja Drentje", office:"Dubai", title:"", photo:"portas-people/p017.jpg"},
-  {id:"p018", name:"Reem Khaled", office:"Dubai", title:"Global HR Director", photo:"portas-people/p018.jpg"},
-  {id:"p019", name:"Xedessa Enopia", office:"Dubai", title:"Global Recruitment Executive", photo:"portas-people/p019.jpg"},
-  {id:"p020", name:"Dmitri Aprelikov", office:"Dubai", title:"", photo:"portas-people/p020.jpg"},
-  {id:"p021", name:"Henri Langlois D’estaintot", office:"Dubai", title:"", photo:"portas-people/p021.jpg"},
-  {id:"p022", name:"Emma Johnston", office:"Dubai", title:"Executive Assistant", photo:"portas-people/p022.jpg"},
-  {id:"p023", name:"Pol Garcia Casas", office:"Dubai", title:"", photo:"portas-people/p023.jpg"},
-  {id:"p024", name:"Mohamed Abdelrhman", office:"Dubai", title:"", photo:"portas-people/p024.jpg"},
-  {id:"p025", name:"Line Zaylaa", office:"Dubai", title:"", photo:"portas-people/p025.jpg"},
-  {id:"p026", name:"Rehan D'Mello", office:"Dubai", title:"", photo:"portas-people/p026.jpg"},
-  {id:"p027", name:"Hanna Riehle", office:"Riyadh", title:"", photo:"portas-people/p027.jpg"},
-  {id:"p028", name:"Rami Gharzeddine", office:"Riyadh", title:"", photo:"portas-people/p028.jpg"},
-  {id:"p029", name:"Omar Harb", office:"Riyadh", title:"", photo:"portas-people/p029.jpg"},
-  {id:"p030", name:"Rayan Shayya", office:"Riyadh", title:"", photo:"portas-people/p030.jpg"},
-  {id:"p031", name:"Rory West", office:"Riyadh", title:"", photo:"portas-people/p031.jpg"},
-  {id:"p032", name:"Elie Deeb", office:"Riyadh", title:"", photo:"portas-people/p032.jpg"},
-  {id:"p033", name:"Abdullah Anwar", office:"Riyadh", title:"", photo:"portas-people/p033.jpg"},
-  {id:"p034", name:"Houssam Echrigui", office:"Riyadh", title:"", photo:"portas-people/p034.jpg"},
-  {id:"p035", name:"Chris Tamari", office:"Riyadh", title:"", photo:"portas-people/p035.jpg"},
-  {id:"p036", name:"Goncalo Branco", office:"Riyadh", title:"", photo:"portas-people/p036.jpg"},
-  {id:"p037", name:"Marawan Saad Eldin", office:"Riyadh", title:"", photo:"portas-people/p037.jpg"},
-  {id:"p038", name:"Taalqan Chaudhary", office:"Riyadh", title:"", photo:"portas-people/p038.jpg"},
-  {id:"p039", name:"Karim El Aridi", office:"Riyadh", title:"", photo:"portas-people/p039.jpg"},
-  {id:"p040", name:"Sarjun Sangha", office:"Riyadh", title:"", photo:"portas-people/p040.jpg"},
-  {id:"p041", name:"Mohamed Rafia", office:"Riyadh", title:"", photo:"portas-people/p041.jpg"},
-  {id:"p042", name:"Patrick Raupach", office:"Riyadh", title:"", photo:"portas-people/p042.jpg"},
-  {id:"p043", name:"Wissam Khalaf", office:"Riyadh", title:"", photo:"portas-people/p043.jpg"},
-  {id:"p044", name:"Abdullah Alharbi", office:"Riyadh", title:"", photo:"portas-people/p044.jpg"},
-  {id:"p045", name:"Conor Smith", office:"Riyadh", title:"", photo:"portas-people/p045.jpg"},
-  {id:"p046", name:"Zoe Portman", office:"Riyadh", title:"", photo:"portas-people/p046.jpg"},
-  {id:"p047", name:"Nour Nasrallah", office:"Riyadh", title:"", photo:"portas-people/p047.jpg"},
-  {id:"p048", name:"Marc Mano Simon", office:"Riyadh", title:"", photo:"portas-people/p048.jpg"},
-  {id:"p049", name:"Fahad AlSaud", office:"Riyadh", title:"", photo:"portas-people/p049.jpg"},
-  {id:"p050", name:"Ahmed Albalawi", office:"Riyadh", title:"", photo:"portas-people/p050.jpg"},
-  {id:"p051", name:"Deep Kalwani", office:"Riyadh", title:"", photo:"portas-people/p051.jpg"},
-  {id:"p052", name:"Luca Hofmeister", office:"Riyadh", title:"", photo:"portas-people/p052.jpg"},
-  {id:"p053", name:"Omar Alfozan", office:"Riyadh", title:"", photo:"portas-people/p053.jpg"},
-  {id:"p054", name:"Raed Jamjoon", office:"Riyadh", title:"", photo:"portas-people/p054.jpg"},
-  {id:"p055", name:"Yusof Elsherbiny", office:"Riyadh", title:"", photo:"portas-people/p055.jpg"},
-  {id:"p056", name:"Nicole Parodi", office:"Riyadh", title:"", photo:"portas-people/p056.jpg"},
-  {id:"p057", name:"Mohamad Atallah", office:"Riyadh", title:"", photo:"portas-people/p057.jpg"},
-  {id:"p058", name:"Muhammad AlNajjar", office:"Riyadh", title:"", photo:"portas-people/p058.jpg"},
-  {id:"p059", name:"Abdulaziz Albalawi", office:"Riyadh", title:"", photo:"portas-people/p059.jpg"},
-  {id:"p060", name:"Nagham Akl", office:"Riyadh", title:"Finance and Operations Manager", photo:"portas-people/p060.jpg"},
-  {id:"p061", name:"Tarfah Alnemer", office:"Riyadh", title:"Senior Translator", photo:"portas-people/p061.jpg"},
-  {id:"p062", name:"Baraah Hijazi", office:"Riyadh", title:"Senior Translator", photo:"portas-people/p062.jpg"},
-  {id:"p063", name:"Malek Sadi", office:"Riyadh", title:"", photo:"portas-people/p063.jpg"},
-  {id:"p064", name:"Sami Alskity", office:"Riyadh", title:"HR Executive", photo:"portas-people/p064.jpg"},
-  {id:"p065", name:"Mohammed Silsilah", office:"Riyadh", title:"", photo:"portas-people/p065.jpg"},
-  {id:"p066", name:"Shahad Ghosheh", office:"Riyadh", title:"", photo:"portas-people/p066.jpg"},
-  {id:"p067", name:"Muhammed AlAnsari", office:"Riyadh", title:"", photo:"portas-people/p067.jpg"},
-  {id:"p068", name:"Adam Elziq", office:"Riyadh", title:"", photo:"portas-people/p068.jpg"},
-  {id:"p069", name:"Peter Whight", office:"London", title:"", photo:"portas-people/p069.jpg"},
-  {id:"p070", name:"Matt Welsh", office:"London", title:"", photo:"portas-people/p070.jpg"},
-  {id:"p071", name:"Oliver Robinson", office:"London", title:"", photo:"portas-people/p071.jpg"},
-  {id:"p072", name:"Sophie Finegan", office:"London", title:"", photo:"portas-people/p072.jpg"},
-  {id:"p073", name:"Hannah Coles", office:"London", title:"", photo:"portas-people/p073.jpg"},
-  {id:"p074", name:"Jamie Osrin", office:"London", title:"", photo:"portas-people/p074.jpg"},
-  {id:"p075", name:"Jon Culligan", office:"London", title:"", photo:"portas-people/p075.jpg"},
-  {id:"p076", name:"Dominic Howell", office:"London", title:"", photo:"portas-people/p076.jpg"},
-  {id:"p077", name:"Lucy Ashcroft", office:"London", title:"", photo:"portas-people/p077.jpg"},
-  {id:"p078", name:"Ben Payne", office:"London", title:"", photo:"portas-people/p078.jpg"},
-  {id:"p079", name:"Sophie Tomlinson", office:"London", title:"", photo:"portas-people/p079.jpg"},
-  {id:"p080", name:"Taha Zafar", office:"London", title:"", photo:"portas-people/p080.jpg"},
-  {id:"p081", name:"George Ball", office:"London", title:"", photo:"portas-people/p081.jpg"},
-  {id:"p082", name:"Emma Griffiths", office:"London", title:"", photo:"portas-people/p082.jpg"},
-  {id:"p083", name:"Stephen Parker", office:"London", title:"", photo:"portas-people/p083.jpg"},
-  {id:"p084", name:"Mary Serafin", office:"London", title:"", photo:"portas-people/p084.jpg"},
-  {id:"p085", name:"Sacha Brunet", office:"London", title:"", photo:"portas-people/p085.jpg"},
-  {id:"p086", name:"Solomon Tomlin-Kent", office:"London", title:"", photo:"portas-people/p086.jpg"},
-  {id:"p087", name:"Patrick Massey", office:"London", title:"", photo:"portas-people/p087.jpg"},
-  {id:"p088", name:"Lynn Clarke", office:"London", title:"Group Financial Controller", photo:"portas-people/p088.jpg"},
-  {id:"p089", name:"Eleanor Conboy", office:"London", title:"Global Commercial Accountant", photo:"portas-people/p089.jpg"},
-  {id:"p090", name:"Danny Willmen", office:"London", title:"Global Programme Manager", photo:"portas-people/p090.jpg"},
-  {id:"p091", name:"Andrew Poxon", office:"London", title:"Group Finance Director", photo:"portas-people/p091.jpg"},
-  {id:"p092", name:"Thomas Walsh", office:"London", title:"", photo:"portas-people/p092.jpg"},
-  {id:"p093", name:"Margot Fourcade", office:"London", title:"", photo:"portas-people/p093.jpg"},
-  {id:"p094", name:"Georgeina Baker", office:"London", title:"Global Digital Workplace Manager", photo:"portas-people/p094.jpg"},
-  {id:"p095", name:"Ella Stadler", office:"London", title:"", photo:"portas-people/p095.jpg"},
-  {id:"p096", name:"Christopher Samen", office:"London", title:"", photo:"portas-people/p096.jpg"},
-  {id:"p097", name:"Jessica Cullen", office:"London", title:"", photo:"portas-people/p097.jpg"},
-  {id:"p098", name:"Ammandeep Balrow", office:"London", title:"Global Professional Development Manager", photo:"portas-people/p098.jpg"},
-  {id:"p099", name:"Lydia March", office:"London", title:"Accounts Payable Specialist", photo:"portas-people/p099.jpg"},
-  {id:"p100", name:"David Tongeren", office:"London", title:"Senior Commercial Accountant", photo:"portas-people/p100.jpg"},
-  {id:"p101", name:"Asahi Takano", office:"Singapore", title:"Partner", photo:"portas-people/p101.jpg"},
-  {id:"p102", name:"Richard Davies", office:"Singapore", title:"", photo:"portas-people/p102.jpg"},
-  {id:"p103", name:"Teck Yin Lim", office:"Singapore", title:"Expert Partner", photo:"portas-people/p103.jpg"},
-  {id:"p104", name:"Ashley Fok", office:"Singapore", title:"", photo:"portas-people/p104.jpg"},
-  {id:"p105", name:"Alexander Seow", office:"Singapore", title:"", photo:"portas-people/p105.jpg"},
-  {id:"p106", name:"Regina Ho", office:"Singapore", title:"", photo:"portas-people/p106.jpg"},
-  {id:"p107", name:"Bryce Wong", office:"Singapore", title:"", photo:"portas-people/p107.jpg"},
-  {id:"p108", name:"Ray Png", office:"Singapore", title:"", photo:"portas-people/p108.jpg"},
-  {id:"p109", name:"Zikai Chua", office:"Singapore", title:"", photo:"portas-people/p109.jpg"},
-  {id:"p110", name:"Sam Lake", office:"Singapore", title:"", photo:"portas-people/p110.jpg"},
-  {id:"p111", name:"Chiaki Inoue", office:"Japan", title:"Japan Office Leader", photo:"portas-people/p111.jpg"},
-  {id:"p112", name:"Yoko Shibata", office:"Japan", title:"", photo:"portas-people/p112.jpg"}
+  {id:"p002", name:"David Portas", office:"Dubai", section:"Executive Chairman", title:"", photo:"portas-people/p002.jpg"},
+  {id:"p003", name:"Donal McElwee", office:"Dubai", section:"Managing Partner", title:"", photo:"portas-people/p003.jpg"},
+  {id:"p007", name:"Petra Santini", office:"Dubai", section:"Associate Partners", title:"", photo:"portas-people/p007.jpg"},
+  {id:"p006", name:"Sameer Ahmed", office:"Dubai", section:"Associate Partners", title:"", photo:"portas-people/p006.jpg"},
+  {id:"p008", name:"Alexandre Evrard", office:"Dubai", section:"Senior Consultants", title:"", photo:"portas-people/p008.jpg"},
+  {id:"p011", name:"Guillermo Minguez Ochoa", office:"Dubai", section:"Senior Consultants", title:"", photo:"portas-people/p011.jpg"},
+  {id:"p012", name:"Hamza Syed", office:"Dubai", section:"Senior Consultants", title:"", photo:"portas-people/p012.jpg"},
+  {id:"p004", name:"Marc Cordahi", office:"Dubai", section:"Senior Consultants", title:"", photo:"portas-people/p004.jpg"},
+  {id:"p020", name:"Dmitri Aprelikov", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p020.jpg"},
+  {id:"p021", name:"Henri Langlois Destaintot", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p021.jpg"},
+  {id:"p024", name:"Mohamed Abdelrhman", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p024.jpg"},
+  {id:"p023", name:"Pol Garcia Casas", office:"Dubai", section:"Consultants", title:"", photo:"portas-people/p023.jpg"},
+  {id:"p014", name:"Maksymilian Bielak", office:"Dubai", section:"Senior Project Managers", title:"", photo:"portas-people/p014.jpg"},
+  {id:"p001", name:"Mohamad Rachid", office:"Dubai", section:"Senior Project Managers", title:"", photo:"portas-people/p001.jpg"},
+  {id:"p005", name:"Vidur Ahlowalia", office:"Dubai", section:"Senior Project Managers", title:"", photo:"portas-people/p005.jpg"},
+  {id:"p010", name:"Ahmed Kadri", office:"Dubai", section:"Project Managers", title:"", photo:"portas-people/p010.jpg"},
+  {id:"p013", name:"Jordan Bohinc", office:"Dubai", section:"Project Managers", title:"", photo:"portas-people/p013.jpg"},
+  {id:"p009", name:"Nassib El Chaar", office:"Dubai", section:"Project Managers", title:"", photo:"portas-people/p009.jpg"},
+  {id:"p025", name:"Line Zaylaa", office:"Dubai", section:"Senior Business Analysts", title:"", photo:"portas-people/p025.jpg"},
+  {id:"p026", name:"Rehan D'Mello", office:"Dubai", section:"Senior Business Analysts", title:"", photo:"portas-people/p026.jpg"},
+  {id:"p022", name:"Emma Johnston", office:"Dubai", section:"Support Team", title:"Executive Assistant", photo:"portas-people/p022.jpg"},
+  {id:"p018", name:"Reem Khaled", office:"Dubai", section:"Support Team", title:"Global HR Director", photo:"portas-people/p018.jpg"},
+  {id:"p019", name:"Xedessa Enopia", office:"Dubai", section:"Support Team", title:"Global Recruitment Executive", photo:"portas-people/p019.jpg"},
+  {id:"p016", name:"Ali Abbas", office:"Dubai", section:"Team", title:"", photo:"portas-people/p016.jpg"},
+  {id:"p015", name:"Felicien Dillard", office:"Dubai", section:"Team", title:"", photo:"portas-people/p015.jpg"},
+  {id:"p017", name:"Saidja Drentje", office:"Dubai", section:"Team", title:"", photo:"portas-people/p017.jpg"},
+  {id:"p032", name:"Elie Deeb", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p032.jpg"},
+  {id:"p027", name:"Hanna Riehle", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p027.jpg"},
+  {id:"p037", name:"Marawan Saad Eldin", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p037.jpg"},
+  {id:"p030", name:"Rayan Shayya", office:"Riyadh", section:"Senior Consultants", title:"", photo:"portas-people/p030.jpg"},
+  {id:"p033", name:"Abdullah Anwar", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p033.jpg"},
+  {id:"p051", name:"Deep Kalwani", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p051.jpg"},
+  {id:"p036", name:"Goncalo Branco", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p036.jpg"},
+  {id:"p039", name:"Karim El Aridi", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p039.jpg"},
+  {id:"p057", name:"Mohamad Atallah", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p057.jpg"},
+  {id:"p041", name:"Mohamed Rafia", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p041.jpg"},
+  {id:"p040", name:"Sarjun Sangha", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p040.jpg"},
+  {id:"p038", name:"Taalqan Chaudhary", office:"Riyadh", section:"Consultants", title:"", photo:"portas-people/p038.jpg"},
+  {id:"p029", name:"Omar Harb", office:"Riyadh", section:"Project Managers", title:"", photo:"portas-people/p029.jpg"},
+  {id:"p028", name:"Rami Gharzeddine", office:"Riyadh", section:"Project Managers", title:"", photo:"portas-people/p028.jpg"},
+  {id:"p031", name:"Rory West", office:"Riyadh", section:"Project Managers", title:"", photo:"portas-people/p031.jpg"},
+  {id:"p044", name:"Abdullah Alharbi", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p044.jpg"},
+  {id:"p050", name:"Ahmed Albalawi", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p050.jpg"},
+  {id:"p045", name:"Conor Smith", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p045.jpg"},
+  {id:"p048", name:"Marc Mano Simon", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p048.jpg"},
+  {id:"p058", name:"Muhammad AlNajjar", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p058.jpg"},
+  {id:"p056", name:"Nicole Parodi", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p056.jpg"},
+  {id:"p047", name:"Nour Nasrallah", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p047.jpg"},
+  {id:"p053", name:"Omar Alfozan", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p053.jpg"},
+  {id:"p046", name:"Zoe Portman", office:"Riyadh", section:"Senior Business Analysts", title:"", photo:"portas-people/p046.jpg"},
+  {id:"p059", name:"Abdulaziz Albalawi", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p059.jpg"},
+  {id:"p068", name:"Adam Elziq", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p068.jpg"},
+  {id:"p049", name:"Fahad AlSaud", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p049.jpg"},
+  {id:"p052", name:"Luca Hofmeister", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p052.jpg"},
+  {id:"p063", name:"Malek Sadi", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p063.jpg"},
+  {id:"p065", name:"Mohammed Silsilah", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p065.jpg"},
+  {id:"p067", name:"Muhammed AlAnsari", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p067.jpg"},
+  {id:"p054", name:"Raed Jamjoon", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p054.jpg"},
+  {id:"p066", name:"Shahad Ghosheh", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p066.jpg"},
+  {id:"p055", name:"Yusof Elsherbiny", office:"Riyadh", section:"Business Analysts", title:"", photo:"portas-people/p055.jpg"},
+  {id:"p062", name:"Baraah Hijazi", office:"Riyadh", section:"Support Team", title:"Senior Translator", photo:"portas-people/p062.jpg"},
+  {id:"p060", name:"Nagham Akl", office:"Riyadh", section:"Support Team", title:"Finance and Operations Manager", photo:"portas-people/p060.jpg"},
+  {id:"p064", name:"Sami Alskity", office:"Riyadh", section:"Support Team", title:"HR Executive", photo:"portas-people/p064.jpg"},
+  {id:"p061", name:"Tarfah Alnemer", office:"Riyadh", section:"Support Team", title:"Senior Translator", photo:"portas-people/p061.jpg"},
+  {id:"p035", name:"Chris Tamari", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p035.jpg"},
+  {id:"p034", name:"Houssam Echrigui", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p034.jpg"},
+  {id:"p042", name:"Patrick Raupach", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p042.jpg"},
+  {id:"p043", name:"Wissam Khalaf", office:"Riyadh", section:"Team", title:"", photo:"portas-people/p043.jpg"},
+  {id:"p075", name:"Jon Culligan", office:"London", section:"Associate Partners", title:"", photo:"portas-people/p075.jpg"},
+  {id:"p069", name:"Peter Whight", office:"London", section:"Associate Partners", title:"", photo:"portas-people/p069.jpg"},
+  {id:"p083", name:"Stephen Parker", office:"London", section:"Associate Partners", title:"", photo:"portas-people/p083.jpg"},
+  {id:"p076", name:"Dominic Howell", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p076.jpg"},
+  {id:"p073", name:"Hannah Coles", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p073.jpg"},
+  {id:"p074", name:"Jamie Osrin", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p074.jpg"},
+  {id:"p084", name:"Mary Serafin", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p084.jpg"},
+  {id:"p070", name:"Matt Welsh", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p070.jpg"},
+  {id:"p071", name:"Oliver Robinson", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p071.jpg"},
+  {id:"p085", name:"Sacha Brunet", office:"London", section:"Senior Consultants", title:"", photo:"portas-people/p085.jpg"},
+  {id:"p072", name:"Sophie Finegan", office:"London", section:"Consultants", title:"", photo:"portas-people/p072.jpg"},
+  {id:"p082", name:"Emma Griffiths", office:"London", section:"Project Managers", title:"", photo:"portas-people/p082.jpg"},
+  {id:"p078", name:"Ben Payne", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p078.jpg"},
+  {id:"p077", name:"Lucy Ashcroft", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p077.jpg"},
+  {id:"p093", name:"Margot Fourcade", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p093.jpg"},
+  {id:"p086", name:"Solomon Tomlin-Kent", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p086.jpg"},
+  {id:"p092", name:"Thomas Walsh", office:"London", section:"Senior Business Analysts", title:"", photo:"portas-people/p092.jpg"},
+  {id:"p095", name:"Ella Stadler", office:"London", section:"Business Analysts", title:"", photo:"portas-people/p095.jpg"},
+  {id:"p097", name:"Jessica Cullen", office:"London", section:"Business Analysts", title:"", photo:"portas-people/p097.jpg"},
+  {id:"p080", name:"Taha Zafar", office:"London", section:"Data Analysts", title:"", photo:"portas-people/p080.jpg"},
+  {id:"p081", name:"George Ball", office:"London", section:"Data Scientist", title:"", photo:"portas-people/p081.jpg"},
+  {id:"p079", name:"Sophie Tomlinson", office:"London", section:"DS&A Lead", title:"", photo:"portas-people/p079.jpg"},
+  {id:"p098", name:"Ammandeep Balrow", office:"London", section:"Support Team", title:"Global Professional Development Manager", photo:"portas-people/p098.jpg"},
+  {id:"p091", name:"Andrew Poxon", office:"London", section:"Support Team", title:"Group Finance Director", photo:"portas-people/p091.jpg"},
+  {id:"p090", name:"Danny Willmen", office:"London", section:"Support Team", title:"Global Programme Manager", photo:"portas-people/p090.jpg"},
+  {id:"p100", name:"David Tongeren", office:"London", section:"Support Team", title:"Senior Commercial Accountant", photo:"portas-people/p100.jpg"},
+  {id:"p089", name:"Eleanor Conboy", office:"London", section:"Support Team", title:"Global Commercial Accountant", photo:"portas-people/p089.jpg"},
+  {id:"p094", name:"Georgeina Baker", office:"London", section:"Support Team", title:"Global Digital Workplace Manager", photo:"portas-people/p094.jpg"},
+  {id:"p099", name:"Lydia March", office:"London", section:"Support Team", title:"Accounts Payable Specialist", photo:"portas-people/p099.jpg"},
+  {id:"p088", name:"Lynn Clarke", office:"London", section:"Support Team", title:"Group Financial Controller", photo:"portas-people/p088.jpg"},
+  {id:"p096", name:"Christopher Samen", office:"London", section:"Team", title:"", photo:"portas-people/p096.jpg"},
+  {id:"p087", name:"Patrick Massey", office:"London", section:"Team", title:"", photo:"portas-people/p087.jpg"},
+  {id:"p109", name:"Zikai Chua", office:"Singapore", section:"Senior Consultant", title:"", photo:"portas-people/p109.jpg"},
+  {id:"p107", name:"Bryce Wong", office:"Singapore", section:"Consultant", title:"", photo:"portas-people/p107.jpg"},
+  {id:"p108", name:"Ray Png", office:"Singapore", section:"Consultant", title:"", photo:"portas-people/p108.jpg"},
+  {id:"p102", name:"Richard Davies", office:"Singapore", section:"Project Manager", title:"", photo:"portas-people/p102.jpg"},
+  {id:"p106", name:"Regina Ho", office:"Singapore", section:"Senior Business Analysts", title:"", photo:"portas-people/p106.jpg"},
+  {id:"p105", name:"Alexander Seow", office:"Singapore", section:"Business Analysts", title:"", photo:"portas-people/p105.jpg"},
+  {id:"p104", name:"Ashley Fok", office:"Singapore", section:"Business Analysts", title:"", photo:"portas-people/p104.jpg"},
+  {id:"p101", name:"Asahi Takano", office:"Singapore", section:"Support Team", title:"Partner", photo:"portas-people/p101.jpg"},
+  {id:"p103", name:"Teck Yin Lim", office:"Singapore", section:"Support Team", title:"Expert Partner", photo:"portas-people/p103.jpg"},
+  {id:"p110", name:"Sam Lake", office:"Singapore", section:"Team", title:"", photo:"portas-people/p110.jpg"},
+  {id:"p111", name:"Chiaki Inoue", office:"Japan", section:"Support Team", title:"Japan Office Leader", photo:"portas-people/p111.jpg"},
+  {id:"p112", name:"Yoko Shibata", office:"Japan", section:"Team", title:"", photo:"portas-people/p112.jpg"}
 ];
 
-// ترتيب المكاتب للعرض
 var OFFICE_ORDER=["Dubai","Riyadh","London","Singapore","Japan"];
 var OFFICE_AR={Dubai:"🇦🇪 دبي",Riyadh:"🇸🇦 الرياض",London:"🇬🇧 لندن",Singapore:"🇸🇬 سنغافورة",Japan:"🇯🇵 اليابان"};
-
-var CHOICES = {
-  up:  {label:'يترقّى',     em:'⬆️', badge:'b-up'},
-  stay:{label:'يبقى',       em:'➡️', badge:'b-stay'},
-  out: {label:'ينطرد',      em:'❌', badge:'b-out'}
-};
-var CHOICE_KEYS=['up','stay','out'];
+var SECTION_AR={"Team":"أخرى","Support Team":"فريق الدعم"};
 
 // ===================== STATE =====================
 var configReady = firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('YOUR_')!==0;
 var db, auth, ROOT, myUid='', authError='';
 var myName='', myKey='', isAdmin=false;
-var allUsers={}, allPreds={}, results={};
-var myPreds={};        // الاختيارات الحالية (تنحفظ عند Submit)
+var allUsers={}, allPreds={}, results={}, excluded={};
+var myPreds={};        // id -> 'up' (توقّعت ترقيته)
 var prefilled=false;
 
 if(configReady){
@@ -414,6 +385,7 @@ function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clear
 function sanitize(s){return s.replace(/[.#$\[\]\/]/g,'_').trim();}
 function initials(name){var p=(name||'').trim().split(/\s+/);return ((p[0]||'')[0]||'?')+((p[1]||'')[0]||'');}
 function esc(s){return (s==null?'':''+s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function activeEmps(){return EMPLOYEES.filter(function(e){return !excluded[e.id];});}
 
 // ===================== LOGIN =====================
 function hashPin(s){var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h)+s.charCodeAt(i);h|=0;}return 'p'+(h>>>0).toString(36);}
@@ -454,7 +426,7 @@ if(configReady){
   });
   auth.signInAnonymously().catch(function(e){
     if(e&&e.code==='auth/operation-not-allowed') authError='تسجيل الدخول المجهول مغلق. فعّله من Firebase Console → Authentication → Anonymous.';
-    else authError='فشل الاتصال ('+((e&&e.code)||'unknown')+'). افتح الرابط المستضاف (https).';
+    else authError='فشل الاتصال ('+((e&&e.code)||'unknown')+').';
     $('loginErr').textContent=authError;
   });
 }
@@ -468,7 +440,8 @@ function enter(){
   if(booted){renderPlay();return;} booted=true;
   ROOT.child('users').on('value',function(s){allUsers=s.val()||{};renderLeader();});
   ROOT.child('predictions').on('value',function(s){allPreds=s.val()||{};if(!prefilled){prefillMyPreds();prefilled=true;renderPlay();}renderLeader();renderSummary();});
-  ROOT.child('results').on('value',function(s){results=s.val()||{};renderSummary();renderLeader();renderAdmin();});
+  ROOT.child('results').on('value',function(s){results=s.val()||{};renderSummary();renderLeader();renderAdmin($('admSearch').value.trim());});
+  ROOT.child('excluded').on('value',function(s){excluded=s.val()||{};renderPlay();renderSummary();renderLeader();renderAdmin($('admSearch').value.trim());});
   renderPlay();
 }
 function prefillMyPreds(){
@@ -483,63 +456,53 @@ function applyAdminUI(){
 }
 
 // ===================== PLAY GRID =====================
-function photoHTML(e,cls,sz){
+function photoHTML(e,cls){
   if(e.photo) return '<img class="'+cls+'" src="'+esc(e.photo)+'" alt="'+esc(e.name)+'" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;'+cls+' ph&quot;>'+esc(initials(e.name))+'</div>\'">';
   return '<div class="'+cls+' ph">'+esc(initials(e.name))+'</div>';
 }
+function secLabel(s){return SECTION_AR[s]||s;}
 function renderPlay(){
-  var byOffice={};
-  EMPLOYEES.forEach(function(e){(byOffice[e.office]=byOffice[e.office]||[]).push(e);});
+  var list=activeEmps();
   var html='';
   OFFICE_ORDER.forEach(function(off){
-    var list=byOffice[off]; if(!list||!list.length)return;
-    html+='<div class="office"><div class="office-hd"><span class="ttl">'+(OFFICE_AR[off]||off)+'</span><span class="cnt">'+list.length+'</span><span class="ln"></span></div><div class="grid">';
-    list.forEach(function(e){
-      var sel=myPreds[e.id];
-      var cardCls='pcard'+(sel?(' done s-'+sel):'');
-      var btns=CHOICE_KEYS.map(function(k){
-        return '<button class="b-'+k+(sel===k?' on':'')+'" data-id="'+e.id+'" data-k="'+k+'" title="'+CHOICES[k].label+'">'+CHOICES[k].em+'</button>';
-      }).join('');
-      html+='<div class="'+cardCls+'" id="card-'+e.id+'">'+photoHTML(e,'pphoto')+
+    var emps=list.filter(function(e){return e.office===off;});
+    if(!emps.length)return;
+    html+='<div class="office"><div class="office-hd"><span class="ttl">'+(OFFICE_AR[off]||off)+'</span><span class="cnt">'+emps.length+'</span><span class="ln"></span></div>';
+    var curSec=null;
+    emps.forEach(function(e){
+      if(e.section!==curSec){curSec=e.section;html+='<div class="sec-hd">'+esc(secLabel(curSec))+'</div><div class="grid">';}
+      var sel=myPreds[e.id]==='up';
+      html+='<div class="pcard'+(sel?' sel':'')+'" id="card-'+e.id+'">'+photoHTML(e,'pphoto')+
         '<div class="pname">'+esc(e.name)+'</div>'+
-        '<div class="ptitle">'+esc(e.title||'')+'</div>'+
-        '<div class="pchoices">'+btns+'</div></div>';
+        (e.title?'<div class="ptitle">'+esc(e.title)+'</div>':'')+
+        '<button class="upbtn" data-id="'+e.id+'">⬆️ يترقّى</button></div>';
     });
-    html+='</div></div>';
+    html+='</div></div>'; // close last grid + office
   });
   $('officeList').innerHTML=html;
   updateSubmitProg();
 }
-// event delegation for choice buttons
 $('officeList').addEventListener('click',function(ev){
-  var b=ev.target.closest('.pchoices button'); if(!b)return;
-  var id=b.dataset.id, k=b.dataset.k;
-  if(myPreds[id]===k){ delete myPreds[id]; } else { myPreds[id]=k; }
-  refreshCard(id);
+  var b=ev.target.closest('.upbtn'); if(!b)return;
+  var id=b.dataset.id;
+  if(myPreds[id]==='up') delete myPreds[id]; else myPreds[id]='up';
+  var card=$('card-'+id); if(card)card.classList.toggle('sel',myPreds[id]==='up');
   updateSubmitProg();
 });
-function refreshCard(id){
-  var card=$('card-'+id); if(!card)return;
-  var sel=myPreds[id];
-  card.className='pcard'+(sel?(' done s-'+sel):'');
-  card.querySelectorAll('.pchoices button').forEach(function(b){b.classList.toggle('on',b.dataset.k===sel);});
-}
 function updateSubmitProg(){
-  var n=Object.keys(myPreds).length;
-  $('submitProg').textContent=n+' / '+EMPLOYEES.length;
-  $('btnSubmit').disabled = (n===0);
+  var n=Object.keys(myPreds).filter(function(id){return !excluded[id];}).length;
+  $('submitProg').textContent='توقّعت ترقية '+n;
 }
 $('btnSubmit').addEventListener('click',function(){
-  var n=Object.keys(myPreds).length;
-  if(!n){toast('اختر توقّع واحد على الأقل');return;}
-  var upd={};
-  EMPLOYEES.forEach(function(e){
-    if(myPreds[e.id]) upd['predictions/'+e.id+'/'+myKey]=myPreds[e.id];
+  var upd={}, n=0;
+  activeEmps().forEach(function(e){
+    if(myPreds[e.id]==='up'){ upd['predictions/'+e.id+'/'+myKey]='up'; n++; }
+    else { upd['predictions/'+e.id+'/'+myKey]=null; } // امسح أي توقّع قديم بترقيته
   });
   $('btnSubmit').disabled=true; $('btnSubmit').textContent='جاري الحفظ…';
   ROOT.update(upd).then(function(){
-    $('btnSubmit').textContent='احفظ التوقّعات';
-    toast('انحفظت '+n+' توقّع ✅');
+    $('btnSubmit').disabled=false; $('btnSubmit').textContent='احفظ التوقّعات';
+    toast('انحفظت توقّعاتك ✅ ('+n+' ترقية)');
     renderSummary(); show('sSummary');
   }).catch(function(e){
     $('btnSubmit').disabled=false; $('btnSubmit').textContent='احفظ التوقّعات';
@@ -547,49 +510,60 @@ $('btnSubmit').addEventListener('click',function(){
   });
 });
 
-// ===================== SUMMARY =====================
-function myScore(){
+// ===================== SCORING =====================
+// النتائج منشورة لو الأدمن حدّد ترقية واحدة على الأقل. عندها: من ليس في results = ما ترقّى.
+function resultsPublished(){return Object.keys(results).length>0;}
+function actualUp(id){return results[id]==='up';}
+function scoreForPreds(predUpSet){
+  if(!resultsPublished())return null;
   var pts=0;
-  EMPLOYEES.forEach(function(e){var r=results[e.id],p=myPreds[e.id];if(r&&p&&r===p)pts+=PTS_PER_CORRECT;});
+  activeEmps().forEach(function(e){
+    var predUp=!!predUpSet[e.id];
+    if(predUp===actualUp(e.id)) pts+=PTS_PER_CORRECT;
+  });
   return pts;
 }
+
+// ===================== SUMMARY =====================
 function renderSummary(){
-  var anyResult=Object.keys(results).length>0;
-  $('sumScore').textContent=anyResult?myScore():'—';
-  $('sumLbl').textContent=anyResult?'نقطتك من التوقّعات':'بانتظار إدخال النتائج الفعلية';
-  var picked=EMPLOYEES.filter(function(e){return myPreds[e.id];});
-  if(!picked.length){$('sumList').innerHTML='<div class="empty">ما توقّعت لأحد بعد. ارجع لصفحة التوقّعات واختر. 🔮</div>';return;}
+  var pub=resultsPublished();
+  var myUpSet={}; activeEmps().forEach(function(e){if(myPreds[e.id]==='up')myUpSet[e.id]=1;});
+  $('sumScore').textContent = pub ? scoreForPreds(myUpSet) : '—';
+  $('sumLbl').textContent = pub ? 'نقطتك (كل توقّع صحيح = '+PTS_PER_CORRECT+')' : 'بانتظار إعلان الترقيات';
+  var picked=activeEmps().filter(function(e){return myPreds[e.id]==='up';});
+  if(!picked.length){$('sumList').innerHTML='<div class="empty">ما توقّعت ترقية أحد بعد. ارجع واضغط ⬆️ على اللي تتوقّعه. 🔮</div>';return;}
   $('sumList').innerHTML=picked.map(function(e){
-    var p=myPreds[e.id], r=results[e.id];
     var sub=(e.title?e.title+' · ':'')+(OFFICE_AR[e.office]||e.office);
-    var pBadge='<span class="res-badge '+CHOICES[p].badge+'">'+CHOICES[p].label+'</span>';
-    var mark='';
-    if(r) mark=(r===p)?'<span class="res-mark">✅</span>':'<span class="res-mark">❌</span>';
-    var rTxt=r?'<div class="res-pending">الفعلي: '+CHOICES[r].label+'</div>':'';
-    return '<div class="res-row">'+photoHTML(e,'res-photo')+'<div class="res-name">'+esc(e.name)+'<small>'+esc(sub)+'</small>'+rTxt+'</div>'+pBadge+mark+'</div>';
+    var mark='', rTxt='';
+    if(pub){
+      var ok=actualUp(e.id);
+      mark=ok?'<span class="res-mark">✅</span>':'<span class="res-mark">❌</span>';
+      rTxt='<div class="res-pending">'+(ok?'ترقّى فعلاً':'ما ترقّى')+'</div>';
+    }
+    return '<div class="res-row">'+photoHTML(e,'res-photo')+'<div class="res-name">'+esc(e.name)+'<small>'+esc(sub)+'</small>'+rTxt+'</div><span class="res-badge b-up">توقّعت ترقيته</span>'+mark+'</div>';
   }).join('');
 }
 
 // ===================== LEADERBOARD =====================
-function scoreFor(userKey){
-  var pts=0;
-  EMPLOYEES.forEach(function(e){var r=results[e.id];if(!r)return;var p=allPreds[e.id]&&allPreds[e.id][userKey];if(p&&p===r)pts+=PTS_PER_CORRECT;});
-  return pts;
+function predUpSetFor(userKey){
+  var set={};
+  activeEmps().forEach(function(e){if(allPreds[e.id] && allPreds[e.id][userKey]==='up')set[e.id]=1;});
+  return set;
 }
-function predCount(userKey){var n=0;EMPLOYEES.forEach(function(e){if(allPreds[e.id]&&allPreds[e.id][userKey])n++;});return n;}
+function predCount(userKey){var n=0;activeEmps().forEach(function(e){if(allPreds[e.id]&&allPreds[e.id][userKey])n++;});return n;}
 function renderLeader(){
+  var pub=resultsPublished();
   var rows=[];
   Object.keys(allUsers).forEach(function(k){
     if(allUsers[k]&&allUsers[k].removed)return;
     var cnt=predCount(k); if(cnt===0 && k!==myKey)return;
-    rows.push({key:k,name:(allUsers[k]&&allUsers[k].name)||k,pts:scoreFor(k),cnt:cnt});
+    rows.push({key:k,name:(allUsers[k]&&allUsers[k].name)||k,pts:scoreForPreds(predUpSetFor(k))||0,cnt:cnt});
   });
   rows.sort(function(a,b){return b.pts-a.pts||b.cnt-a.cnt||a.name.localeCompare(b.name,'ar');});
   if(!rows.length){$('leaderList').innerHTML='<div class="empty">لا يوجد لاعبون بعد. كن أول من يلعب! 🎮</div>';return;}
-  var anyResult=Object.keys(results).length>0;
   $('leaderList').innerHTML=rows.map(function(r,i){
     var me=r.key===myKey?' me':'';
-    var ptsTxt=anyResult?(r.pts+'<small>نقطة</small>'):(r.cnt+'<small>توقّع</small>');
+    var ptsTxt=pub?(r.pts+'<small>نقطة</small>'):(r.cnt+'<small>توقّع</small>');
     return '<div class="sc-row"><span class="sc-rank">'+(i+1)+'</span><span class="sc-name'+me+'">'+esc(r.name)+'</span><span class="sc-pts">'+ptsTxt+'</span></div>';
   }).join('');
 }
@@ -615,17 +589,23 @@ function renderAdmin(q){
   q=(q||'').toLowerCase();
   var list=EMPLOYEES.filter(function(e){return !q || e.name.toLowerCase().indexOf(q)>=0;});
   $('adminList').innerHTML=list.map(function(e){
-    var cur=results[e.id]||'';
-    var seg=CHOICE_KEYS.map(function(k){
-      return '<button class="s-'+k+(cur===k?' on s-'+k:'')+'" data-emp="'+e.id+'" data-set="'+k+'">'+CHOICES[k].label+'</button>';
-    }).join('');
-    return '<div class="adm-row"><div class="adm-head">'+photoHTML(e,'res-photo')+'<b>'+esc(e.name)+'</b></div><div class="adm-seg">'+seg+'</div></div>';
+    var up=results[e.id]==='up', hid=!!excluded[e.id];
+    var sub=(e.title?e.title:secLabel(e.section))+' · '+(OFFICE_AR[e.office]||e.office);
+    return '<div class="adm-row'+(hid?' excl':'')+'"><div class="adm-head">'+photoHTML(e,'res-photo')+
+      '<b>'+esc(e.name)+'</b><span class="tag">'+esc(sub)+'</span></div>'+
+      '<div class="adm-seg"><button class="up'+(up?' on':'')+'" data-emp="'+e.id+'" data-act="up">✅ ترقّى</button>'+
+      '<button class="hide'+(hid?' on':'')+'" data-emp="'+e.id+'" data-act="hide">'+(hid?'↩︎ رجّعه':'🚫 إخفاء')+'</button></div></div>';
   }).join('') || '<div class="empty">ما فيه نتيجة مطابقة.</div>';
-  $('adminList').querySelectorAll('.adm-seg button').forEach(function(b){
+  $('adminList').querySelectorAll('button').forEach(function(b){
     b.addEventListener('click',function(){
-      var emp=b.dataset.emp,set=b.dataset.set;
-      if(results[emp]===set){ROOT.child('results/'+emp).remove();}
-      else{ROOT.child('results/'+emp).set(set).catch(function(e){toast('فشل: '+errTxt(e));});}
+      var emp=b.dataset.emp,act=b.dataset.act;
+      if(act==='up'){
+        if(results[emp]==='up') ROOT.child('results/'+emp).remove();
+        else ROOT.child('results/'+emp).set('up').catch(function(e){toast('فشل: '+errTxt(e));});
+      }else{
+        if(excluded[emp]) ROOT.child('excluded/'+emp).remove();
+        else ROOT.child('excluded/'+emp).set(true).catch(function(e){toast('فشل: '+errTxt(e));});
+      }
     });
   });
 }
