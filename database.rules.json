@@ -1,5 +1,37 @@
 {
   "rules": {
+    "portas": {
+      ".read": "auth != null",
+
+      "users": {
+        "$key": {
+          ".write": "auth != null && newData.exists()",
+          "name": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
+          },
+          "ph": {
+            ".validate": "!data.exists() || newData.val() === data.val()"
+          }
+        }
+      },
+
+      "predictions": {
+        "$emp": {
+          "$key": {
+            ".write": "auth != null",
+            ".validate": "newData.isString() && (newData.val() === 'up' || newData.val() === 'out' || newData.val() === 'stay')"
+          }
+        }
+      },
+
+      "results": {
+        "$emp": {
+          ".write": "auth != null",
+          ".validate": "newData.isString() && (newData.val() === 'up' || newData.val() === 'out' || newData.val() === 'stay')"
+        }
+      }
+    },
+
     "wc2026": {
       ".read": "auth != null",
 

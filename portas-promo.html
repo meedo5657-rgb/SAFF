@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>توقّعات بورتاس — يترقّى أو ينطرد؟</title>
+<link rel="apple-touch-icon" href="icon-en-192.png">
+<link rel="icon" type="image/png" href="icon-en-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<style>
+:root{
+  --bg:#141d3b; --surface:#1f2a52; --card:#1b264a;
+  --accent1:#e11d48; --accent2:#fb7185; --accent3:#c2123f;
+  --gold:#e11d48; --text:#eef1fb; --muted:#9aa6c7;
+  --line:rgba(255,255,255,.08);
+  --up:#34d399; --stay:#fbbf24; --out:#fb7185;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:18px 14px 40px;overflow-x:hidden;}
+.screen{display:none;width:100%;max-width:480px;flex-direction:column;align-items:center;gap:14px;}
+.screen.active{display:flex;}
+
+/* brand */
+.cobrand{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:8px;}
+.cb-logo{height:58px;width:auto;}
+.brandline{font-family:'Poppins',sans-serif;font-weight:800;letter-spacing:.5px;color:#fff;font-size:1.05rem;}
+.subtitle{font-size:1.55rem;font-weight:900;color:#fff;text-align:center;margin-top:10px;line-height:1.3;}
+.subtitle .hl{color:var(--accent2);}
+.tagline{font-size:.9rem;color:var(--muted);text-align:center;line-height:1.8;}
+
+.box{width:100%;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 18px;display:flex;flex-direction:column;gap:12px;}
+input.field{width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:1rem;outline:none;text-align:right;}
+input.field:focus{border-color:var(--accent2);}
+input.field::placeholder{color:var(--muted);}
+.btn{width:100%;padding:14px;border-radius:13px;border:none;font-family:'Tajawal',sans-serif;font-size:1.05rem;font-weight:800;cursor:pointer;transition:opacity .2s,transform .1s;color:#fff;}
+.btn:active:not(:disabled){transform:scale(.97);opacity:.9;}
+.btn:disabled{background:#222c54!important;color:var(--muted)!important;cursor:default;}
+.btn-grad{background:linear-gradient(135deg,#fb7185,#e11d48);}
+.btn-gold{background:linear-gradient(135deg,#e11d48,#9c0f33);}
+.btn-ghost{background:rgba(255,255,255,.08);border:1px solid var(--line);}
+.err{font-size:.85rem;color:#fca5a5;text-align:center;min-height:18px;}
+.hint{width:100%;font-size:.8rem;color:var(--muted);line-height:1.9;text-align:center;}
+
+.topbar{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.me-chip{font-size:.88rem;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:7px 14px;display:flex;align-items:center;gap:6px;cursor:pointer;}
+.me-chip:hover{border-color:var(--accent1);}
+.me-chip b{color:#fff;}
+.icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:1.1rem;cursor:pointer;flex-shrink:0;}
+.icon-btn:hover{color:var(--text);border-color:var(--accent1);}
+.admin-on{border-color:var(--accent1)!important;color:var(--text)!important;}
+.section-title{width:100%;font-size:1.15rem;font-weight:900;color:var(--text);}
+
+/* INTRO */
+.intro-card{width:100%;background:linear-gradient(160deg,rgba(225,29,72,.16),rgba(27,38,74,.6));border:1px solid rgba(225,29,72,.4);border-radius:22px;padding:26px 20px;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;}
+.intro-card h2{font-size:1.5rem;font-weight:900;color:#fff;}
+.intro-steps{display:flex;flex-direction:column;gap:10px;width:100%;}
+.istep{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-align:right;}
+.istep .n{flex:0 0 34px;height:34px;border-radius:50%;background:var(--accent1);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.istep .t{font-size:.92rem;color:var(--text);line-height:1.6;}
+.btn-start{font-size:1.3rem;padding:18px;border-radius:18px;box-shadow:0 10px 30px rgba(225,29,72,.45);}
+
+/* GAME */
+.timer-wrap{width:100%;display:flex;flex-direction:column;gap:8px;}
+.timer-top{display:flex;justify-content:space-between;align-items:center;font-weight:800;}
+.timer-num{font-family:'Poppins',sans-serif;font-size:1.6rem;font-weight:800;color:#fff;}
+.timer-num.low{color:var(--out);}
+.timer-prog{font-size:.85rem;color:var(--muted);}
+.bar{width:100%;height:8px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden;}
+.bar > i{display:block;height:100%;background:linear-gradient(90deg,#fb7185,#e11d48);transition:width .25s linear;}
+
+.emp-stack{width:100%;position:relative;min-height:430px;}
+.emp-card{width:100%;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:pop .28s ease;}
+@keyframes pop{from{opacity:0;transform:translateY(18px) scale(.96);}to{opacity:1;transform:none;}}
+.emp-photo{width:160px;height:160px;border-radius:50%;object-fit:cover;border:3px solid var(--accent1);background:var(--surface);box-shadow:0 8px 26px rgba(0,0,0,.45);}
+.emp-photo.ph{display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:3rem;font-weight:800;color:#fff;background:linear-gradient(135deg,#fb7185,#9c0f33);}
+.emp-name{font-size:1.45rem;font-weight:900;color:#fff;text-align:center;line-height:1.3;}
+.emp-role{font-size:.92rem;color:var(--muted);text-align:center;margin-top:-6px;}
+.choices{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+.choice{width:100%;padding:15px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--text);font-family:'Tajawal',sans-serif;font-size:1.1rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .08s,border-color .15s,background .15s;}
+.choice:active{transform:scale(.97);}
+.choice .em{font-size:1.3rem;}
+.choice.c-up:hover,.choice.c-up.sel{border-color:var(--up);background:rgba(52,211,153,.16);color:#bbf7d8;}
+.choice.c-stay:hover,.choice.c-stay.sel{border-color:var(--stay);background:rgba(251,191,36,.16);color:#fde68a;}
+.choice.c-out:hover,.choice.c-out.sel{border-color:var(--out);background:rgba(251,113,133,.16);color:#fecdd3;}
+.skip-row{width:100%;display:flex;justify-content:center;margin-top:6px;}
+.skip-btn{background:none;border:none;color:var(--muted);font-family:'Tajawal',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;text-decoration:underline;}
+
+/* SUMMARY / RESULTS */
+.sum-hero{width:100%;background:linear-gradient(160deg,rgba(225,29,72,.18),rgba(27,38,74,.7));border:1px solid rgba(225,29,72,.4);border-radius:20px;padding:22px;text-align:center;display:flex;flex-direction:column;gap:6px;}
+.sum-hero .big{font-family:'Poppins',sans-serif;font-size:2.6rem;font-weight:800;color:#fff;}
+.sum-hero .lbl{color:var(--muted);font-size:.95rem;font-weight:700;}
+.res-row{width:100%;display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;}
+.res-photo{width:46px;height:46px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:'Poppins';font-weight:800;color:#fff;font-size:1.1rem;}
+.res-name{flex:1;min-width:0;font-weight:800;font-size:.95rem;}
+.res-badge{font-size:.78rem;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.b-up{background:rgba(52,211,153,.18);color:#6ee7b7;}
+.b-stay{background:rgba(251,191,36,.18);color:#fcd34d;}
+.b-out{background:rgba(251,113,133,.18);color:#fda4af;}
+.b-none{background:rgba(255,255,255,.08);color:var(--muted);}
+.res-mark{font-size:1.1rem;flex-shrink:0;}
+.res-pending{font-size:.74rem;color:var(--muted);}
+
+/* LEADERBOARD */
+.sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;}
+.sc-rank{font-family:'Poppins';font-weight:800;color:var(--muted);min-width:26px;text-align:center;font-size:1rem;}
+.sc-row:nth-child(1) .sc-rank{color:#fcd34d;}
+.sc-row:nth-child(2) .sc-rank,.sc-row:nth-child(3) .sc-rank{color:#fda4af;}
+.sc-name{flex:1;font-weight:800;font-size:.98rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sc-name.me{color:var(--accent2);}
+.sc-pts{font-family:'Poppins';font-weight:800;font-size:1.1rem;color:#fff;}
+.sc-pts small{font-family:'Tajawal';font-size:.7rem;color:var(--muted);font-weight:700;margin-inline-start:3px;}
+
+/* ADMIN */
+.adm-row{width:100%;display:flex;flex-direction:column;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;}
+.adm-head{display:flex;align-items:center;gap:10px;}
+.adm-head .res-photo{width:40px;height:40px;}
+.adm-head b{font-size:.95rem;}
+.adm-seg{display:flex;gap:6px;}
+.adm-seg button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:'Tajawal';font-weight:800;font-size:.85rem;cursor:pointer;}
+.adm-seg button.on.s-up{background:var(--up);color:#06281a;border-color:var(--up);}
+.adm-seg button.on.s-stay{background:var(--stay);color:#3a2c00;border-color:var(--stay);}
+.adm-seg button.on.s-out{background:var(--out);color:#3a0d16;border-color:var(--out);}
+
+/* tabs */
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,#1a2750,#0c1430);border-top:2px solid #e11d48;box-shadow:0 -10px 30px rgba(0,0,0,.55);display:none;justify-content:center;gap:4px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:50;}
+.tabbar.show{display:flex;}
+.tab{flex:1;max-width:150px;background:none;border:none;color:rgba(255,255,255,.7);font-family:'Tajawal';font-size:.78rem;font-weight:800;cursor:pointer;padding:8px 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.tab .ico{font-size:1.2rem;}
+.tab.active{color:#fff;background:rgba(225,29,72,.45);}
+body.has-tabs{padding-bottom:90px;}
+
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:#1f2a52;border:1px solid rgba(251,113,133,.3);border-radius:12px;padding:11px 20px;font-size:.9rem;font-weight:700;opacity:0;transition:opacity .3s;z-index:200;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;}
+.empty{color:var(--muted);font-size:.9rem;text-align:center;padding:30px 10px;}
+.setup-banner{width:100%;background:rgba(225,29,72,.08);border:1px solid rgba(225,29,72,.3);border-radius:14px;padding:14px;font-size:.82rem;color:#fecdd3;line-height:1.8;display:none;}
+.setup-banner.show{display:block;}
+.setup-banner code{background:rgba(0,0,0,.3);padding:1px 6px;border-radius:6px;}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div class="screen active" id="sLogin">
+  <div class="cobrand">
+    <img class="cb-logo" src="logo-dark.png" alt="Portas" onerror="this.style.display='none'">
+    <span class="brandline">PORTAS</span>
+  </div>
+  <div class="subtitle">يترقّى، <span class="hl">ينطرد</span>، أو يبقى؟</div>
+  <div class="tagline">توقّع مصير كل موظف في بورتاس قبل ما يفوت الوقت ⏱️</div>
+  <div class="setup-banner" id="setupBanner">
+    ⚙️ <b>إعداد مطلوب:</b> أضف إعدادات Firebase الخاصة بك في الكود (ابحث عن <code>firebaseConfig</code>) عشان تنحفظ التوقّعات وتنشارك بين اللاعبين.
+  </div>
+  <div class="box">
+    <input class="field" id="nameInput" placeholder="اسمك" maxlength="20" autocomplete="off">
+    <input class="field" id="pinInput" type="tel" inputmode="numeric" maxlength="6" placeholder="رقم سري (٤–٦ أرقام)" autocomplete="off">
+    <button class="btn btn-grad" id="btnLogin">دخول / تسجيل</button>
+    <div class="hint">أول مرة؟ اختر أي اسم ورقم سري. استخدم نفس الاسم والرقم للدخول من أي جهاز.</div>
+  </div>
+  <div class="err" id="loginErr"></div>
+</div>
+
+<!-- ===== INTRO ===== -->
+<div class="screen" id="sIntro">
+  <div class="topbar">
+    <div class="me-chip" id="meChip">👤 <b id="meName">--</b> · خروج</div>
+    <button class="icon-btn" id="btnAdmin">⚙️</button>
+  </div>
+  <div class="intro-card">
+    <h2>🏢 توقّعات بورتاس</h2>
+    <div class="tagline" style="color:#dfe5f7">تطلع لك أسماء وصور موظفين بورتاس واحد ورا الثاني. لكل واحد اختر: يترقّى، يبقى، أو ينطرد — وعندك <b>30 ثانية</b> بس!</div>
+    <div class="intro-steps">
+      <div class="istep"><span class="n">1</span><span class="t">اضغط <b>ابدأ</b> ويبدأ العدّاد.</span></div>
+      <div class="istep"><span class="n">2</span><span class="t">يطلع موظف، اختر مصيره، وينتقل تلقائياً للي بعده.</span></div>
+      <div class="istep"><span class="n">3</span><span class="t">لما الأدمن يدخل النتيجة الفعلية، تنحسب نقاطك: <b>كل توقّع صح = 10 نقاط</b>.</span></div>
+    </div>
+    <button class="btn btn-start btn-grad" id="btnStart">🚀 ابدأ</button>
+    <button class="btn btn-ghost" id="btnSkipToBoard" style="font-size:.95rem;padding:12px">شوف النتائج واللوحة</button>
+  </div>
+  <div class="hint" id="playedHint"></div>
+</div>
+
+<!-- ===== GAME ===== -->
+<div class="screen" id="sGame">
+  <div class="timer-wrap">
+    <div class="timer-top">
+      <span class="timer-num" id="timerNum">30</span>
+      <span class="timer-prog" id="progTxt">0 / 0</span>
+    </div>
+    <div class="bar"><i id="timerBar" style="width:100%"></i></div>
+  </div>
+  <div class="emp-stack" id="empStack"></div>
+</div>
+
+<!-- ===== SUMMARY / MY PREDICTIONS + RESULTS ===== -->
+<div class="screen" id="sSummary">
+  <div class="topbar">
+    <div class="me-chip" id="meChip3">👤 <b id="meName3">--</b> · خروج</div>
+    <button class="icon-btn" id="btnReplay" title="العب مرة ثانية">🔄</button>
+  </div>
+  <div class="sum-hero">
+    <div class="big" id="sumScore">0</div>
+    <div class="lbl" id="sumLbl">نقطتك من التوقّعات</div>
+  </div>
+  <div class="section-title">📋 توقّعاتك</div>
+  <div id="sumList" style="width:100%;display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+
+<!-- ===== LEADERBOARD ===== -->
+<div class="screen" id="sLeader">
+  <div class="topbar">
+    <div class="me-chip" id="meChip2">👤 <b id="meName2">--</b> · خروج</div>
+    <button class="icon-btn" id="btnAdmin2">⚙️</button>
+  </div>
+  <div class="section-title">🏅 لوحة المتصدرين</div>
+  <div id="leaderList" style="width:100%;display:flex;flex-direction:column;gap:9px;"></div>
+</div>
+
+<!-- ===== ADMIN ===== -->
+<div class="screen" id="sAdmin">
+  <div class="topbar">
+    <div class="section-title">🔐 لوحة الأدمن — النتائج الفعلية</div>
+    <button class="icon-btn" id="btnAdminClose">✕</button>
+  </div>
+  <div class="hint" style="text-align:right">حدّد المصير الفعلي لكل موظف. بمجرد ما تحدد، تنحسب نقاط كل اللاعبين تلقائياً.</div>
+  <div id="adminList" style="width:100%;display:flex;flex-direction:column;gap:10px;"></div>
+</div>
+
+<!-- ===== TABS ===== -->
+<div class="tabbar" id="tabbar">
+  <button class="tab active" data-screen="sIntro"><span class="ico">🎮</span>اللعبة</button>
+  <button class="tab" data-screen="sSummary"><span class="ico">📋</span>توقّعاتي</button>
+  <button class="tab" data-screen="sLeader"><span class="ico">🏅</span>المتصدرين</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== FIREBASE =====================
+// نفس مشروع Firebase المستخدم في اللعبات الثانية، تحت مسار "portas".
+var firebaseConfig = {
+  apiKey:"AIzaSyDW2eFnZbAJkwbcuYCwme2fs8SK6oTZnHI",
+  authDomain:"world-cup-predictions-6c61b.firebaseapp.com",
+  databaseURL:"https://world-cup-predictions-6c61b-default-rtdb.firebaseio.com",
+  projectId:"world-cup-predictions-6c61b",
+  storageBucket:"world-cup-predictions-6c61b.firebasestorage.app",
+  messagingSenderId:"927763370478",
+  appId:"1:927763370478:web:711b8383f4d8ef4887feff"
+};
+var ADMIN_CODE = "2026";          // كود تفعيل وضع الأدمن
+var ADMIN_NAME = "Mnajjar3";      // هذا الاسم يشوف زر الأدمن مباشرة
+var ROUND_SECONDS = 30;           // مدة الجولة
+var PTS_PER_CORRECT = 10;         // نقاط كل توقّع صحيح
+
+// ===================== الموظفون =====================
+// 112 موظف من الهيكل التنظيمي لبورتاس (الصور في مجلد portas-people/).
+// كل عنصر: { id, name, role, photo }
+var EMPLOYEES = [
+  {id:"p001", name:"Mohamad Rachid", role:"Dubai", photo:"portas-people/p001.jpg"},
+  {id:"p002", name:"David Portas", role:"Dubai", photo:"portas-people/p002.jpg"},
+  {id:"p003", name:"Donal McElwee", role:"Dubai", photo:"portas-people/p003.jpg"},
+  {id:"p004", name:"Marc Cordahi", role:"Dubai", photo:"portas-people/p004.jpg"},
+  {id:"p005", name:"Vidur Ahlowalia", role:"Dubai", photo:"portas-people/p005.jpg"},
+  {id:"p006", name:"Sameer Ahmed", role:"Dubai", photo:"portas-people/p006.jpg"},
+  {id:"p007", name:"Petra Santini", role:"Dubai", photo:"portas-people/p007.jpg"},
+  {id:"p008", name:"Alexandre Evrard", role:"Dubai", photo:"portas-people/p008.jpg"},
+  {id:"p009", name:"Nassib El Chaar", role:"Dubai", photo:"portas-people/p009.jpg"},
+  {id:"p010", name:"Ahmed Kadri", role:"Dubai", photo:"portas-people/p010.jpg"},
+  {id:"p011", name:"Guillermo Minguez Ochoa", role:"Dubai", photo:"portas-people/p011.jpg"},
+  {id:"p012", name:"Hamza Syed", role:"Dubai", photo:"portas-people/p012.jpg"},
+  {id:"p013", name:"Jordan Bohinc", role:"Dubai", photo:"portas-people/p013.jpg"},
+  {id:"p014", name:"Maksymilian Bielak", role:"Dubai", photo:"portas-people/p014.jpg"},
+  {id:"p015", name:"Felicien Dillard", role:"Dubai", photo:"portas-people/p015.jpg"},
+  {id:"p016", name:"Ali Abbas", role:"Dubai", photo:"portas-people/p016.jpg"},
+  {id:"p017", name:"Saidja Drentje", role:"Dubai", photo:"portas-people/p017.jpg"},
+  {id:"p018", name:"Reem Khaled", role:"Global HR Director", photo:"portas-people/p018.jpg"},
+  {id:"p019", name:"Xedessa Enopia", role:"Global Recruitment Executive", photo:"portas-people/p019.jpg"},
+  {id:"p020", name:"Dmitri Aprelikov", role:"Dubai", photo:"portas-people/p020.jpg"},
+  {id:"p021", name:"Henri Langlois D’estaintot", role:"Dubai", photo:"portas-people/p021.jpg"},
+  {id:"p022", name:"Emma Johnston", role:"Executive Assistant", photo:"portas-people/p022.jpg"},
+  {id:"p023", name:"Pol Garcia Casas", role:"Dubai", photo:"portas-people/p023.jpg"},
+  {id:"p024", name:"Mohamed Abdelrhman", role:"Dubai", photo:"portas-people/p024.jpg"},
+  {id:"p025", name:"Line Zaylaa", role:"Dubai", photo:"portas-people/p025.jpg"},
+  {id:"p026", name:"Rehan D'Mello", role:"Dubai", photo:"portas-people/p026.jpg"},
+  {id:"p027", name:"Hanna Riehle", role:"Riyadh", photo:"portas-people/p027.jpg"},
+  {id:"p028", name:"Rami Gharzeddine", role:"Riyadh", photo:"portas-people/p028.jpg"},
+  {id:"p029", name:"Omar Harb", role:"Riyadh", photo:"portas-people/p029.jpg"},
+  {id:"p030", name:"Rayan Shayya", role:"Riyadh", photo:"portas-people/p030.jpg"},
+  {id:"p031", name:"Rory West", role:"Riyadh", photo:"portas-people/p031.jpg"},
+  {id:"p032", name:"Elie Deeb", role:"Riyadh", photo:"portas-people/p032.jpg"},
+  {id:"p033", name:"Abdullah Anwar", role:"Riyadh", photo:"portas-people/p033.jpg"},
+  {id:"p034", name:"Houssam Echrigui", role:"Riyadh", photo:"portas-people/p034.jpg"},
+  {id:"p035", name:"Chris Tamari", role:"Riyadh", photo:"portas-people/p035.jpg"},
+  {id:"p036", name:"Goncalo Branco", role:"Riyadh", photo:"portas-people/p036.jpg"},
+  {id:"p037", name:"Marawan Saad Eldin", role:"Riyadh", photo:"portas-people/p037.jpg"},
+  {id:"p038", name:"Taalqan Chaudhary", role:"Riyadh", photo:"portas-people/p038.jpg"},
+  {id:"p039", name:"Karim El Aridi", role:"Riyadh", photo:"portas-people/p039.jpg"},
+  {id:"p040", name:"Sarjun Sangha", role:"Riyadh", photo:"portas-people/p040.jpg"},
+  {id:"p041", name:"Mohamed Rafia", role:"Riyadh", photo:"portas-people/p041.jpg"},
+  {id:"p042", name:"Patrick Raupach", role:"Riyadh", photo:"portas-people/p042.jpg"},
+  {id:"p043", name:"Wissam Khalaf", role:"Riyadh", photo:"portas-people/p043.jpg"},
+  {id:"p044", name:"Abdullah Alharbi", role:"Riyadh", photo:"portas-people/p044.jpg"},
+  {id:"p045", name:"Conor Smith", role:"Riyadh", photo:"portas-people/p045.jpg"},
+  {id:"p046", name:"Zoe Portman", role:"Riyadh", photo:"portas-people/p046.jpg"},
+  {id:"p047", name:"Nour Nasrallah", role:"Riyadh", photo:"portas-people/p047.jpg"},
+  {id:"p048", name:"Marc Mano Simon", role:"Riyadh", photo:"portas-people/p048.jpg"},
+  {id:"p049", name:"Fahad AlSaud", role:"Riyadh", photo:"portas-people/p049.jpg"},
+  {id:"p050", name:"Ahmed Albalawi", role:"Riyadh", photo:"portas-people/p050.jpg"},
+  {id:"p051", name:"Deep Kalwani", role:"Riyadh", photo:"portas-people/p051.jpg"},
+  {id:"p052", name:"Luca Hofmeister", role:"Riyadh", photo:"portas-people/p052.jpg"},
+  {id:"p053", name:"Omar Alfozan", role:"Riyadh", photo:"portas-people/p053.jpg"},
+  {id:"p054", name:"Raed Jamjoon", role:"Riyadh", photo:"portas-people/p054.jpg"},
+  {id:"p055", name:"Yusof Elsherbiny", role:"Riyadh", photo:"portas-people/p055.jpg"},
+  {id:"p056", name:"Nicole Parodi", role:"Riyadh", photo:"portas-people/p056.jpg"},
+  {id:"p057", name:"Mohamad Atallah", role:"Riyadh", photo:"portas-people/p057.jpg"},
+  {id:"p058", name:"Muhammad AlNajjar", role:"Riyadh", photo:"portas-people/p058.jpg"},
+  {id:"p059", name:"Abdulaziz Albalawi", role:"Riyadh", photo:"portas-people/p059.jpg"},
+  {id:"p060", name:"Nagham Akl", role:"Finance and Operations Manager", photo:"portas-people/p060.jpg"},
+  {id:"p061", name:"Tarfah Alnemer", role:"Senior Translator", photo:"portas-people/p061.jpg"},
+  {id:"p062", name:"Baraah Hijazi", role:"Senior Translator", photo:"portas-people/p062.jpg"},
+  {id:"p063", name:"Malek Sadi", role:"Riyadh", photo:"portas-people/p063.jpg"},
+  {id:"p064", name:"Sami Alskity", role:"HR Executive", photo:"portas-people/p064.jpg"},
+  {id:"p065", name:"Mohammed Silsilah", role:"Riyadh", photo:"portas-people/p065.jpg"},
+  {id:"p066", name:"Shahad Ghosheh", role:"Riyadh", photo:"portas-people/p066.jpg"},
+  {id:"p067", name:"Muhammed AlAnsari", role:"Riyadh", photo:"portas-people/p067.jpg"},
+  {id:"p068", name:"Adam Elziq", role:"Riyadh", photo:"portas-people/p068.jpg"},
+  {id:"p069", name:"Peter Whight", role:"London", photo:"portas-people/p069.jpg"},
+  {id:"p070", name:"Matt Welsh", role:"London", photo:"portas-people/p070.jpg"},
+  {id:"p071", name:"Oliver Robinson", role:"London", photo:"portas-people/p071.jpg"},
+  {id:"p072", name:"Sophie Finegan", role:"London", photo:"portas-people/p072.jpg"},
+  {id:"p073", name:"Hannah Coles", role:"London", photo:"portas-people/p073.jpg"},
+  {id:"p074", name:"Jamie Osrin", role:"London", photo:"portas-people/p074.jpg"},
+  {id:"p075", name:"Jon Culligan", role:"London", photo:"portas-people/p075.jpg"},
+  {id:"p076", name:"Dominic Howell", role:"London", photo:"portas-people/p076.jpg"},
+  {id:"p077", name:"Lucy Ashcroft", role:"London", photo:"portas-people/p077.jpg"},
+  {id:"p078", name:"Ben Payne", role:"London", photo:"portas-people/p078.jpg"},
+  {id:"p079", name:"Sophie Tomlinson", role:"London", photo:"portas-people/p079.jpg"},
+  {id:"p080", name:"Taha Zafar", role:"London", photo:"portas-people/p080.jpg"},
+  {id:"p081", name:"George Ball", role:"London", photo:"portas-people/p081.jpg"},
+  {id:"p082", name:"Emma Griffiths", role:"London", photo:"portas-people/p082.jpg"},
+  {id:"p083", name:"Stephen Parker", role:"London", photo:"portas-people/p083.jpg"},
+  {id:"p084", name:"Mary Serafin", role:"London", photo:"portas-people/p084.jpg"},
+  {id:"p085", name:"Sacha Brunet", role:"London", photo:"portas-people/p085.jpg"},
+  {id:"p086", name:"Solomon Tomlin-Kent", role:"London", photo:"portas-people/p086.jpg"},
+  {id:"p087", name:"Patrick Massey", role:"London", photo:"portas-people/p087.jpg"},
+  {id:"p088", name:"Lynn Clarke", role:"Group Financial Controller", photo:"portas-people/p088.jpg"},
+  {id:"p089", name:"Eleanor Conboy", role:"Global Commercial Accountant", photo:"portas-people/p089.jpg"},
+  {id:"p090", name:"Danny Willmen", role:"Global Programme Manager", photo:"portas-people/p090.jpg"},
+  {id:"p091", name:"Andrew Poxon", role:"Group Finance Director", photo:"portas-people/p091.jpg"},
+  {id:"p092", name:"Thomas Walsh", role:"London", photo:"portas-people/p092.jpg"},
+  {id:"p093", name:"Margot Fourcade", role:"London", photo:"portas-people/p093.jpg"},
+  {id:"p094", name:"Georgeina Baker", role:"Global Digital Workplace Manager", photo:"portas-people/p094.jpg"},
+  {id:"p095", name:"Ella Stadler", role:"London", photo:"portas-people/p095.jpg"},
+  {id:"p096", name:"Christopher Samen", role:"London", photo:"portas-people/p096.jpg"},
+  {id:"p097", name:"Jessica Cullen", role:"London", photo:"portas-people/p097.jpg"},
+  {id:"p098", name:"Ammandeep Balrow", role:"Global Professional Development Manager", photo:"portas-people/p098.jpg"},
+  {id:"p099", name:"Lydia March", role:"Accounts Payable Specialist", photo:"portas-people/p099.jpg"},
+  {id:"p100", name:"David Tongeren", role:"Senior Commercial Accountant", photo:"portas-people/p100.jpg"},
+  {id:"p101", name:"Asahi Takano", role:"Partner", photo:"portas-people/p101.jpg"},
+  {id:"p102", name:"Richard Davies", role:"Singapore", photo:"portas-people/p102.jpg"},
+  {id:"p103", name:"Teck Yin Lim", role:"Expert Partner", photo:"portas-people/p103.jpg"},
+  {id:"p104", name:"Ashley Fok", role:"Singapore", photo:"portas-people/p104.jpg"},
+  {id:"p105", name:"Alexander Seow", role:"Singapore", photo:"portas-people/p105.jpg"},
+  {id:"p106", name:"Regina Ho", role:"Singapore", photo:"portas-people/p106.jpg"},
+  {id:"p107", name:"Bryce Wong", role:"Singapore", photo:"portas-people/p107.jpg"},
+  {id:"p108", name:"Ray Png", role:"Singapore", photo:"portas-people/p108.jpg"},
+  {id:"p109", name:"Zikai Chua", role:"Singapore", photo:"portas-people/p109.jpg"},
+  {id:"p110", name:"Sam Lake", role:"Singapore", photo:"portas-people/p110.jpg"},
+  {id:"p111", name:"Chiaki Inoue", role:"Japan Office Leader", photo:"portas-people/p111.jpg"},
+  {id:"p112", name:"Yoko Shibata", role:"Japan", photo:"portas-people/p112.jpg"}
+];
+
+var CHOICES = {
+  up:  {label:'يترقّى',     em:'⬆️', cls:'c-up',  badge:'b-up'},
+  stay:{label:'يبقى زي ما هو', em:'➡️', cls:'c-stay', badge:'b-stay'},
+  out: {label:'ينطرد',     em:'❌', cls:'c-out', badge:'b-out'}
+};
+
+// ===================== STATE =====================
+var configReady = firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('YOUR_')!==0;
+var db, auth, ROOT, myUid='', authError='';
+var myName='', myKey='', isAdmin=false;
+var allUsers={}, allPreds={}, results={};   // allPreds[empId][userKey]=choice ; results[empId]=choice
+var myPreds={};                              // empId -> choice (الجولة الحالية)
+var gameIdx=0, timeLeft=ROUND_SECONDS, timerHandle=null, playing=false;
+var ROUND=[];   // ترتيب الموظفين المخلوط لهذه الجولة
+
+if(configReady){
+  firebase.initializeApp(firebaseConfig);
+  db=firebase.database(); auth=firebase.auth(); ROOT=db.ref('portas');
+}else{
+  document.getElementById('setupBanner').classList.add('show');
+}
+
+function $(id){return document.getElementById(id);}
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  $(id).classList.add('active');
+  var withTabs = (id==='sIntro'||id==='sSummary'||id==='sLeader');
+  $('tabbar').classList.toggle('show', withTabs);
+  document.body.classList.toggle('has-tabs', withTabs);
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active', t.dataset.screen===id);});
+  window.scrollTo(0,0);
+}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('show');},2200);}
+function sanitize(s){return s.replace(/[.#$\[\]\/]/g,'_').trim();}
+function initials(name){var p=(name||'').trim().split(/\s+/);return ((p[0]||'')[0]||'؟')+((p[1]||'')[0]||'');}
+function esc(s){return (s==null?'':''+s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+// ===================== LOGIN ===================== (نفس نمط لعبة كأس العالم)
+function hashPin(s){var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h)+s.charCodeAt(i);h|=0;}return 'p'+(h>>>0).toString(36);}
+function attemptLogin(name,pin,fromAuto){
+  myName=name; myKey=sanitize(name);
+  ROOT.child('users/'+myKey).once('value').then(function(snap){
+    var u=snap.val();
+    if(u){
+      if(u.ph && u.ph!==hashPin(pin)){ fail('الرقم السري غير صحيح لهذا الاسم.',fromAuto); return; }
+      var upd={name:myName}; if(!u.ph) upd.ph=hashPin(pin);
+      ROOT.child('users/'+myKey).update(upd).then(function(){ok(name,pin);}).catch(function(e){fail('فشل الحفظ: '+errTxt(e),fromAuto);});
+    }else{
+      if(!/^[0-9]{4,6}$/.test(pin)){ fail('اختر رقم سري من ٤ إلى ٦ أرقام لحماية اسمك.',fromAuto); return; }
+      ROOT.child('users/'+myKey).set({name:myName,ph:hashPin(pin)}).then(function(){ok(name,pin);}).catch(function(e){fail('فشل الحفظ: '+errTxt(e),fromAuto);});
+    }
+  }).catch(function(e){fail('فشل القراءة: '+errTxt(e),fromAuto);});
+}
+function errTxt(e){var m=(e&&(e.code||e.message))?(''+(e.code||e.message)):'';if(/permission|denied/i.test(m))return 'مرفوض من القواعد ['+m+']';return 'خطأ'+(m?(' ['+m+']'):'. تحقق من الإنترنت.');}
+function ok(name,pin){try{localStorage.setItem('pt_name',name);localStorage.setItem('pt_pin',pin);}catch(e){}$('loginErr').textContent='';enter();}
+function fail(msg,fromAuto){myName='';myKey='';if(fromAuto){try{localStorage.removeItem('pt_name');localStorage.removeItem('pt_pin');}catch(e){}show('sLogin');}$('loginErr').textContent=msg;}
+function doLogin(){
+  var v=$('nameInput').value.trim(), pin=$('pinInput').value.trim();
+  if(!v){$('loginErr').textContent='اكتب اسمك';return;}
+  if(!/^[0-9]{4,6}$/.test(pin)){$('loginErr').textContent='اكتب رقم سري من ٤ إلى ٦ أرقام';return;}
+  if(!configReady){$('loginErr').textContent='لازم يتم إعداد Firebase أولاً (انظر التنبيه فوق).';return;}
+  if(!myUid){$('loginErr').textContent=authError||'جاري الاتصال… حاول بعد ثانية.';return;}
+  attemptLogin(v,pin,false);
+}
+$('btnLogin').addEventListener('click',doLogin);
+$('pinInput').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+$('nameInput').addEventListener('keydown',function(e){if(e.key==='Enter')$('pinInput').focus();});
+try{if(localStorage.getItem('pt_admin')==='1')isAdmin=true;}catch(e){}
+
+if(configReady){
+  auth.onAuthStateChanged(function(user){
+    if(!user)return; myUid=user.uid;
+    if(!myKey){try{var sv=localStorage.getItem('pt_name'),sp=localStorage.getItem('pt_pin');if(sv&&sp)attemptLogin(sv,sp,true);}catch(e){}}
+  });
+  auth.signInAnonymously().catch(function(e){
+    if(e&&e.code==='auth/operation-not-allowed') authError='تسجيل الدخول المجهول مغلق. فعّله من Firebase Console → Authentication → Anonymous.';
+    else authError='فشل الاتصال ('+((e&&e.code)||'unknown')+'). افتح الرابط المستضاف (https) وتحقق من الإنترنت.';
+    $('loginErr').textContent=authError;
+  });
+}
+
+// ===================== ENTER + LIVE DATA =====================
+var booted=false;
+function enter(){
+  $('meName').textContent=myName; $('meName2').textContent=myName; $('meName3').textContent=myName;
+  applyAdminUI();
+  show('sIntro');
+  if(booted)return; booted=true;
+  ROOT.child('users').on('value',function(s){allUsers=s.val()||{};renderLeader();});
+  ROOT.child('predictions').on('value',function(s){allPreds=s.val()||{};syncMyPreds();renderLeader();renderSummary();updatePlayedHint();});
+  ROOT.child('results').on('value',function(s){results=s.val()||{};renderSummary();renderLeader();renderAdmin();updatePlayedHint();});
+}
+// اشتق توقّعاتي السابقة من بيانات التوقّعات (بدون قراءات منفصلة لكل موظف)
+function syncMyPreds(){
+  if(playing)return; // لا تلمس توقّعات الجولة الجارية
+  myPreds={};
+  EMPLOYEES.forEach(function(e){
+    var v=allPreds[e.id] && allPreds[e.id][myKey];
+    if(v) myPreds[e.id]=v;
+  });
+}
+function updatePlayedHint(){
+  var done=Object.keys(myPreds).length;
+  if(done>0){$('playedHint').innerHTML='✅ سجّلت <b>'+done+'</b> توقّع. تقدر تلعب مرة ثانية وتحدّث توقّعاتك.';}
+  else{$('playedHint').textContent='';}
+}
+function applyAdminUI(){
+  var canAdmin = isAdmin || (myName===ADMIN_NAME);
+  [$('btnAdmin'),$('btnAdmin2')].forEach(function(b){ if(b){b.style.display=canAdmin?'':'none'; b.classList.toggle('admin-on',isAdmin);} });
+}
+
+// ===================== GAME FLOW =====================
+$('btnStart').addEventListener('click',startGame);
+$('btnReplay').addEventListener('click',function(){show('sIntro');});
+$('btnSkipToBoard').addEventListener('click',function(){show('sLeader');});
+
+function startGame(){
+  if(!EMPLOYEES.length){toast('لا يوجد موظفون بعد');return;}
+  ROUND=EMPLOYEES.slice();
+  for(var i=ROUND.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=ROUND[i];ROUND[i]=ROUND[j];ROUND[j]=tmp;} // خلط عشوائي
+  gameIdx=0; timeLeft=ROUND_SECONDS; playing=true;
+  show('sGame');
+  renderCard();
+  startTimer();
+}
+function startTimer(){
+  clearInterval(timerHandle);
+  paintTimer();
+  timerHandle=setInterval(function(){
+    timeLeft--;
+    if(timeLeft<=0){timeLeft=0;paintTimer();endGame();return;}
+    paintTimer();
+  },1000);
+}
+function paintTimer(){
+  var n=$('timerNum'); n.textContent=timeLeft; n.classList.toggle('low',timeLeft<=10);
+  $('timerBar').style.width=(timeLeft/ROUND_SECONDS*100)+'%';
+  $('progTxt').textContent=Math.min(gameIdx, ROUND.length)+' / '+ROUND.length;
+}
+function renderCard(){
+  if(gameIdx>=ROUND.length){endGame();return;}
+  var e=ROUND[gameIdx];
+  var photo = e.photo
+    ? '<img class="emp-photo" src="'+esc(e.photo)+'" alt="'+esc(e.name)+'" onerror="this.outerHTML=\'<div class=&quot;emp-photo ph&quot;>'+esc(initials(e.name))+'</div>\'">'
+    : '<div class="emp-photo ph">'+esc(initials(e.name))+'</div>';
+  var prev=myPreds[e.id];
+  var btns=Object.keys(CHOICES).map(function(k){
+    var c=CHOICES[k];
+    return '<button class="choice '+c.cls+(prev===k?' sel':'')+'" data-choice="'+k+'"><span class="em">'+c.em+'</span>'+c.label+'</button>';
+  }).join('');
+  $('empStack').innerHTML=
+    '<div class="emp-card">'+photo+
+    '<div class="emp-name">'+esc(e.name)+'</div>'+
+    (e.role?'<div class="emp-role">'+esc(e.role)+'</div>':'')+
+    '<div class="choices">'+btns+'</div>'+
+    '<div class="skip-row"><button class="skip-btn" id="skipBtn">تخطّي ⏭️</button></div>'+
+    '</div>';
+  $('empStack').querySelectorAll('.choice').forEach(function(b){
+    b.addEventListener('click',function(){pick(e.id, b.dataset.choice);});
+  });
+  $('skipBtn').addEventListener('click',nextCard);
+  paintTimer();
+}
+function pick(empId, choice){
+  myPreds[empId]=choice;
+  if(ROOT) ROOT.child('predictions/'+empId+'/'+myKey).set(choice).catch(function(){});
+  // إبراز الاختيار لحظياً ثم الانتقال
+  var sel=$('empStack').querySelector('.choice[data-choice="'+choice+'"]');
+  if(sel){$('empStack').querySelectorAll('.choice').forEach(function(b){b.classList.remove('sel');});sel.classList.add('sel');}
+  setTimeout(nextCard,180);
+}
+function nextCard(){
+  gameIdx++;
+  if(!playing)return;
+  if(gameIdx>=ROUND.length){endGame();return;}
+  renderCard();
+}
+function endGame(){
+  if(!playing)return;
+  playing=false; clearInterval(timerHandle);
+  updatePlayedHint();
+  renderSummary();
+  show('sSummary');
+  toast('انتهت الجولة! ✅');
+}
+
+// ===================== SUMMARY =====================
+function myScore(){
+  var pts=0;
+  EMPLOYEES.forEach(function(e){
+    var r=results[e.id], p=myPreds[e.id];
+    if(r && p && r===p) pts+=PTS_PER_CORRECT;
+  });
+  return pts;
+}
+function renderSummary(){
+  var anyResult=Object.keys(results).length>0;
+  $('sumScore').textContent = anyResult ? myScore() : '—';
+  $('sumLbl').textContent = anyResult ? 'نقطتك من التوقّعات' : 'بانتظار إدخال النتائج الفعلية';
+  var rows=EMPLOYEES.map(function(e){
+    var p=myPreds[e.id], r=results[e.id];
+    var photo = e.photo?'<img class="res-photo" src="'+esc(e.photo)+'" onerror="this.outerHTML=\'<div class=&quot;res-photo&quot;>'+esc(initials(e.name))+'</div>\'">':'<div class="res-photo">'+esc(initials(e.name))+'</div>';
+    var pBadge = p?'<span class="res-badge '+CHOICES[p].badge+'">'+CHOICES[p].label+'</span>':'<span class="res-badge b-none">ما توقّعت</span>';
+    var mark='';
+    if(r && p) mark = (r===p)?'<span class="res-mark">✅</span>':'<span class="res-mark">❌</span>';
+    else if(r && !p) mark='<span class="res-mark">➖</span>';
+    var rTxt = r?'<div class="res-pending">الفعلي: '+CHOICES[r].label+'</div>':(p?'':'');
+    return '<div class="res-row">'+photo+'<div class="res-name">'+esc(e.name)+rTxt+'</div>'+pBadge+mark+'</div>';
+  }).join('');
+  $('sumList').innerHTML=rows||'<div class="empty">لا يوجد موظفون.</div>';
+}
+
+// ===================== LEADERBOARD =====================
+function scoreFor(userKey){
+  var pts=0;
+  EMPLOYEES.forEach(function(e){
+    var r=results[e.id]; if(!r)return;
+    var p=allPreds[e.id] && allPreds[e.id][userKey];
+    if(p && p===r) pts+=PTS_PER_CORRECT;
+  });
+  return pts;
+}
+function predCount(userKey){
+  var n=0;EMPLOYEES.forEach(function(e){if(allPreds[e.id]&&allPreds[e.id][userKey])n++;});return n;
+}
+function renderLeader(){
+  var rows=[];
+  Object.keys(allUsers).forEach(function(k){
+    if(allUsers[k] && allUsers[k].removed)return;
+    var cnt=predCount(k); if(cnt===0 && k!==myKey) return;
+    rows.push({key:k,name:(allUsers[k]&&allUsers[k].name)||k,pts:scoreFor(k),cnt:cnt});
+  });
+  rows.sort(function(a,b){return b.pts-a.pts || b.cnt-a.cnt || a.name.localeCompare(b.name,'ar');});
+  if(!rows.length){$('leaderList').innerHTML='<div class="empty">لا يوجد لاعبون بعد. كن أول من يلعب! 🎮</div>';return;}
+  var anyResult=Object.keys(results).length>0;
+  $('leaderList').innerHTML=rows.map(function(r,i){
+    var me=r.key===myKey?' me':'';
+    var ptsTxt=anyResult?(r.pts+'<small>نقطة</small>'):(r.cnt+'<small>توقّع</small>');
+    return '<div class="sc-row"><span class="sc-rank">'+(i+1)+'</span><span class="sc-name'+me+'">'+esc(r.name)+'</span><span class="sc-pts">'+ptsTxt+'</span></div>';
+  }).join('');
+}
+
+// ===================== ADMIN =====================
+$('btnAdmin').addEventListener('click',openAdmin);
+$('btnAdmin2').addEventListener('click',openAdmin);
+$('btnAdminClose').addEventListener('click',function(){show('sLeader');});
+function openAdmin(){
+  if(!isAdmin){
+    var code=prompt('كود الأدمن:');
+    if(code===null)return;
+    if(code!==ADMIN_CODE){toast('كود غير صحيح');return;}
+    isAdmin=true;try{localStorage.setItem('pt_admin','1');}catch(e){}
+    applyAdminUI();
+  }
+  renderAdmin(); show('sAdmin');
+}
+function renderAdmin(){
+  if(!isAdmin)return;
+  $('adminList').innerHTML=EMPLOYEES.map(function(e){
+    var cur=results[e.id]||'';
+    var photo=e.photo?'<img class="res-photo" src="'+esc(e.photo)+'" onerror="this.outerHTML=\'<div class=&quot;res-photo&quot;>'+esc(initials(e.name))+'</div>\'">':'<div class="res-photo">'+esc(initials(e.name))+'</div>';
+    var seg=Object.keys(CHOICES).map(function(k){
+      return '<button class="s-'+k+(cur===k?' on s-'+k:'')+'" data-emp="'+e.id+'" data-set="'+k+'">'+CHOICES[k].label+'</button>';
+    }).join('');
+    return '<div class="adm-row"><div class="adm-head">'+photo+'<b>'+esc(e.name)+'</b></div><div class="adm-seg">'+seg+'</div></div>';
+  }).join('');
+  $('adminList').querySelectorAll('.adm-seg button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var emp=b.dataset.emp, set=b.dataset.set;
+      if(results[emp]===set){ ROOT.child('results/'+emp).remove(); } // إعادة الضغط = إلغاء
+      else { ROOT.child('results/'+emp).set(set).catch(function(e){toast('فشل: '+errTxt(e));}); }
+    });
+  });
+}
+
+// ===================== TABS + LOGOUT =====================
+document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){show(t.dataset.screen);});});
+[$('meChip'),$('meChip2'),$('meChip3')].forEach(function(c){if(c)c.addEventListener('click',logout);});
+function logout(){
+  try{localStorage.removeItem('pt_name');localStorage.removeItem('pt_pin');}catch(e){}
+  myName='';myKey='';myPreds={};booted=false;
+  $('nameInput').value='';$('pinInput').value='';$('loginErr').textContent='';
+  // ملاحظة: لإعادة الربط الكامل قد تحتاج تحديث الصفحة
+  location.reload();
+}
+</script>
+</body>
+</html>
