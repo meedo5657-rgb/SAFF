@@ -564,7 +564,10 @@ function updateSubmitProg(){
   var n=Object.keys(myPreds).filter(function(id){return myPreds[id]==='up' && !excluded[id];}).length;
   var dn=myDouble?' · ×2 مفعّل':'';
   $('submitProg').textContent='توقّعت ترقية '+n+dn;
+  if(!$('btnSubmit').disabled) $('btnSubmit').textContent=submitLabel();
 }
+function hasSaved(){return predCount(myKey)>0 || !!allDoubles[myKey];}
+function submitLabel(){return hasSaved()?'حدّث التوقّعات':'احفظ التوقّعات';}
 $('btnSubmit').addEventListener('click',function(){
   var upd={}, n=0;
   activeEmps().forEach(function(e){
@@ -574,11 +577,11 @@ $('btnSubmit').addEventListener('click',function(){
   upd['doubles/'+myKey] = myDouble || null;   // كرت ×2 (موظف واحد)
   $('btnSubmit').disabled=true; $('btnSubmit').textContent='جاري الحفظ…';
   ROOT.update(upd).then(function(){
-    $('btnSubmit').disabled=false; $('btnSubmit').textContent='احفظ التوقّعات';
+    $('btnSubmit').disabled=false; $('btnSubmit').textContent=submitLabel();
     toast('انحفظت توقّعاتك ✅ ('+n+' ترقية)');
     renderSummary(); show('sSummary');
   }).catch(function(e){
-    $('btnSubmit').disabled=false; $('btnSubmit').textContent='احفظ التوقّعات';
+    $('btnSubmit').disabled=false; $('btnSubmit').textContent=submitLabel();
     toast('فشل الحفظ: '+errTxt(e));
   });
 });
