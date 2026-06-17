@@ -117,6 +117,12 @@ body.has-submit{padding-bottom:96px;}
 .adm-seg button.up.on{background:var(--up);color:#06281a;border-color:var(--up);}
 .adm-seg button.hide.on{background:var(--accent1);color:#fff;border-color:var(--accent1);}
 .adm-search{width:100%;}
+.pl-row{width:100%;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
+.pl-name{flex:1;font-weight:800;font-size:.92rem;color:#fff;}
+.pl-name .tag{color:var(--accent2);font-size:.72rem;font-weight:700;}
+.pl-cnt{font-size:.74rem;color:var(--muted);font-weight:700;white-space:nowrap;}
+.pl-del{background:rgba(225,29,72,.15);border:1px solid rgba(225,29,72,.4);color:#fda4af;font-family:'Tajawal';font-weight:800;font-size:.8rem;border-radius:9px;padding:7px 10px;cursor:pointer;white-space:nowrap;}
+.pl-del:hover{background:rgba(225,29,72,.3);}
 .adm-sec{width:100%;font-size:.86rem;font-weight:700;padding:9px 11px;}
 select.field{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(12px) calc(1em + 2px),calc(12px + 5px) calc(1em + 2px);background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
 
@@ -205,7 +211,10 @@ body.has-tabs.has-submit{padding-bottom:165px;}
     <div class="section-title">🔐 الأدمن</div>
     <button class="icon-btn" id="btnAdminClose">✕</button>
   </div>
-  <div class="hint" style="text-align:right">✅ <b>ترقّى</b> = حدّد مين ترقّى فعلاً (الباقي يُحسب إنه ما ترقّى). 🚫 <b>إخفاء</b> = شيل الموظف من التصويت نهائياً.</div>
+  <div class="section-title" style="font-size:1rem;margin-top:4px">👥 اللاعبون</div>
+  <div id="playerList" style="width:100%;display:flex;flex-direction:column;gap:8px;"></div>
+  <div class="section-title" style="font-size:1rem;margin-top:10px">🧑‍💼 الموظفون</div>
+  <div class="hint" style="text-align:right">✅ <b>ترقّى</b> = حدّد مين ترقّى فعلاً (الباقي يُحسب إنه ما ترقّى). 🚫 <b>إخفاء</b> = شيل الموظف من التصويت. والقائمة المنسدلة تغيّر منصبه.</div>
   <input class="field adm-search" id="admSearch" placeholder="🔎 ابحث باسم الموظف…" autocomplete="off">
   <div id="adminList" style="width:100%;display:flex;flex-direction:column;gap:10px;"></div>
 </div>
@@ -423,7 +432,6 @@ function doLogin(){
 $('btnLogin').addEventListener('click',doLogin);
 $('pinInput').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
 $('nameInput').addEventListener('keydown',function(e){if(e.key==='Enter')$('pinInput').focus();});
-try{if(localStorage.getItem('pt_admin')==='1')isAdmin=true;}catch(e){}
 
 if(configReady){
   auth.onAuthStateChanged(function(user){
@@ -440,11 +448,12 @@ if(configReady){
 // ===================== ENTER + LIVE DATA =====================
 var booted=false;
 function enter(){
+  isAdmin = (myName===ADMIN_NAME);   // الأدمن حصراً لـ Mnajjar3
   $('meName').textContent=myName; $('meName2').textContent=myName; $('meName3').textContent=myName;
   applyAdminUI();
   show('sPlay');
   if(booted){renderPlay();return;} booted=true;
-  ROOT.child('users').on('value',function(s){allUsers=s.val()||{};renderLeader();});
+  ROOT.child('users').on('value',function(s){allUsers=s.val()||{};renderLeader();renderPlayers();});
   ROOT.child('predictions').on('value',function(s){allPreds=s.val()||{};if(!prefilled){prefillMyPreds();prefilled=true;renderPlay();}renderLeader();renderSummary();});
   ROOT.child('results').on('value',function(s){results=s.val()||{};renderSummary();renderLeader();renderAdmin($('admSearch').value.trim());});
   ROOT.child('excluded').on('value',function(s){excluded=s.val()||{};renderPlay();renderSummary();renderLeader();renderAdmin($('admSearch').value.trim());});
@@ -458,8 +467,7 @@ function prefillMyPreds(){
   });
 }
 function applyAdminUI(){
-  var canAdmin=isAdmin || (myName===ADMIN_NAME);
-  [$('btnAdmin'),$('btnAdmin2')].forEach(function(b){if(b){b.style.display=canAdmin?'':'none';b.classList.toggle('admin-on',isAdmin);}});
+  [$('btnAdmin'),$('btnAdmin2')].forEach(function(b){if(b){b.style.display=isAdmin?'':'none';b.classList.toggle('admin-on',isAdmin);}});
 }
 
 // ===================== PLAY GRID =====================
@@ -591,14 +599,33 @@ $('btnAdminClose').addEventListener('click',function(){show('sLeader');});
 $('btnEdit').addEventListener('click',function(){show('sPlay');});
 $('admSearch').addEventListener('input',function(){renderAdmin(this.value.trim());});
 function openAdmin(){
-  if(!isAdmin){
-    var code=prompt('كود الأدمن:');
-    if(code===null)return;
-    if(code!==ADMIN_CODE){toast('كود غير صحيح');return;}
-    isAdmin=true;try{localStorage.setItem('pt_admin','1');}catch(e){}
-    applyAdminUI();
-  }
-  $('admSearch').value=''; renderAdmin(''); show('sAdmin');
+  if(!isAdmin){toast('الأدمن متاح فقط لـ '+ADMIN_NAME);return;}
+  $('admSearch').value=''; renderPlayers(); renderAdmin(''); show('sAdmin');
+}
+function renderPlayers(){
+  if(!isAdmin){return;}
+  var box=$('playerList'); if(!box)return;
+  var keys=Object.keys(allUsers).filter(function(k){return allUsers[k] && !allUsers[k].removed;});
+  keys.sort(function(a,b){return ((allUsers[a].name)||a).localeCompare((allUsers[b].name)||b,'ar');});
+  if(!keys.length){box.innerHTML='<div class="empty">لا يوجد لاعبون بعد.</div>';return;}
+  box.innerHTML=keys.map(function(k){
+    var nm=(allUsers[k]&&allUsers[k].name)||k;
+    var cnt=predCount(k);
+    var meTag=k===myKey?' <span class="tag">(أنت)</span>':'';
+    return '<div class="pl-row"><span class="pl-name">'+esc(nm)+meTag+'</span><span class="pl-cnt">'+cnt+' توقّع</span>'+
+      (k===myKey?'':'<button class="pl-del" data-key="'+esc(k)+'" data-name="'+esc(nm)+'">🗑 حذف</button>')+'</div>';
+  }).join('');
+  box.querySelectorAll('.pl-del').forEach(function(b){
+    b.addEventListener('click',function(){deletePlayer(b.dataset.key,b.dataset.name);});
+  });
+}
+function deletePlayer(key,name){
+  if(!isAdmin)return;
+  if(!confirm('حذف اللاعب «'+name+'» وكل توقّعاته؟'))return;
+  var upd={}; EMPLOYEES.forEach(function(e){upd['predictions/'+e.id+'/'+key]=null;});
+  ROOT.update(upd).catch(function(){});
+  ROOT.child('users/'+key).remove().catch(function(){return ROOT.child('users/'+key).update({removed:true});})
+    .then(function(){toast('تم حذف '+name);}).catch(function(e){toast('فشل: '+errTxt(e));});
 }
 function renderAdmin(q){
   if(!isAdmin)return;
