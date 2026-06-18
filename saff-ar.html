@@ -1060,7 +1060,7 @@ function _userStoryRec(){
   return null;
 }
 function resetTodayStory(){
-  if(!confirm('بتمسح نقاط كل اللي لعبوا قصة اليوم. متأكد؟')) return;
+  if(!confirm('بتمسح محاولات ونقاط كل اللي لعبوا قصة اليوم — راح يقدرون يلعبونها من جديد. متأكد؟')) return;
   var t=todayKey();
   var keys=Object.keys(usersData||{});
   var jobs=keys.map(function(k){return ROOT.child('users/'+k+'/story/'+t).remove().catch(function(){});});
