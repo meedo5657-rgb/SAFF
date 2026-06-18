@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>صفّر قصة منتخب اليوم</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Tajawal',sans-serif;background:#0a1810;color:#eafff2;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:32px 16px;gap:18px;}
+h1{font-size:1.4rem;font-weight:900;color:#fde68a;margin:0;}
+.box{width:100%;max-width:420px;background:#0d2417;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px;}
+button{padding:14px 18px;border-radius:12px;border:none;font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;}
+.go{background:linear-gradient(135deg,#7f1d1d,#400);color:#fff;}
+.go:disabled{opacity:.5;}
+.log{background:#06140d;border:1px solid #1c4634;border-radius:10px;padding:12px;font-size:.85rem;line-height:1.7;min-height:60px;white-space:pre-wrap;direction:ltr;text-align:left;}
+.hint{font-size:.78rem;color:#8fb3a0;line-height:1.6;}
+</style>
+</head>
+<body>
+<h1>♻️ صفّر قصة منتخب اليوم</h1>
+<div class="box">
+  <div class="hint">يمسح محاولات ونقاط كل اللي لعبوا قصة اليوم. الناس يقدرون يلعبونها من جديد. آمن للاستخدام للأدمن فقط.</div>
+  <button class="go" id="goBtn">⚡ نفّذ الآن</button>
+  <div class="log" id="log">جاهز…</div>
+</div>
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyBlRu52dh7N58H9j1HebKwI1OSttWyX5ZA",
+  authDomain: "wc-2026-predictions---saff.firebaseapp.com",
+  databaseURL: "https://wc-2026-predictions---saff-default-rtdb.firebaseio.com",
+  projectId: "wc-2026-predictions---saff",
+  storageBucket: "wc-2026-predictions---saff.firebasestorage.app",
+  messagingSenderId: "505320213469",
+  appId: "1:505320213469:web:3f008271525eeb5ef54434"
+};
+firebase.initializeApp(firebaseConfig);
+var db=firebase.database(), ROOT=db.ref('saff2026'), auth=firebase.auth();
+var logEl=document.getElementById('log');
+function log(s){logEl.textContent+='\n'+s;logEl.scrollTop=logEl.scrollHeight;}
+function todayKey(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+auth.signInAnonymously().then(function(){log('signed in (anonymous)');}).catch(function(e){log('auth fail: '+e.message);});
+document.getElementById('goBtn').addEventListener('click',function(){
+  var btn=this; btn.disabled=true;
+  var t=todayKey(); logEl.textContent='تاريخ اليوم: '+t;
+  ROOT.child('users').once('value').then(function(s){
+    var users=s.val()||{}; var keys=Object.keys(users);
+    log('عدد المستخدمين: '+keys.length);
+    var played=keys.filter(function(k){var u=users[k]; return u && u.story && u.story[t];});
+    log('عدد اللي لعبوا اليوم: '+played.length);
+    if(!played.length){log('ما فيه أحد لعب اليوم. ولا حاجة للمسح.');btn.disabled=false;return;}
+    log('بدء المسح…');
+    var jobs=played.map(function(k){return ROOT.child('users/'+k+'/story/'+t).remove().then(function(){log('✓ '+k);}).catch(function(e){log('✗ '+k+': '+e.message);});});
+    Promise.all(jobs).then(function(){log('🎉 خلصت. ارجع للموقع وراح تشوف اللعبة فاضية.');btn.disabled=false;});
+  }).catch(function(e){log('قراءة فشلت: '+e.message);btn.disabled=false;});
+});
+</script>
+</body>
+</html>
