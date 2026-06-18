@@ -3,21 +3,23 @@
 Source: relevant-football.com `/data/players/<country>.json` (fields: `birth_city`, `birth_country`).  
 Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from the national team's country. Coaches excluded.
 
+**Historical states excluded:** players born inside the modern country's borders when it had a different name (Yugoslavia/Jugoslawien SFR, USSR/UdSSR, Czechoslovakia/CSSR, Zaire, Netherlands Antilles) are NOT counted as born abroad. 11 such cases were removed: Dzeko (BIH), Modric & Kramaric (CRO), Chong (CUW), Coufal/Zeleny/Darida (CZE), Mbembe & Mayele (COD), Yusupov & Sayfiev (UZB). Players born in a genuinely different country are kept (e.g. Budimir born in Zenica/Bosnia for Croatia; Lukic & Bazdar born in Serbia for Bosnia).
+
 ## Summary
 
 | # | National team | Squad players | Born abroad |
 |---|---|---|---|
-| 1 | Curaçao | 26 | 26 |
-| 2 | DR Congo | 26 | 22 |
+| 1 | Curaçao | 26 | 25 |
+| 2 | DR Congo | 26 | 20 |
 | 3 | Morocco | 26 | 19 |
-| 4 | Bosnia and Herzegovina | 26 | 17 |
-| 5 | Algeria | 26 | 16 |
+| 4 | Algeria | 26 | 16 |
+| 5 | Bosnia and Herzegovina | 26 | 16 |
 | 6 | Haiti | 26 | 16 |
 | 7 | Tunisia | 26 | 15 |
 | 8 | Cabo Verde | 26 | 14 |
-| 9 | Croatia | 26 | 13 |
-| 10 | Qatar | 26 | 13 |
-| 11 | Senegal | 26 | 12 |
+| 9 | Qatar | 26 | 13 |
+| 10 | Senegal | 26 | 12 |
+| 11 | Croatia | 26 | 11 |
 | 12 | Iraq | 26 | 9 |
 | 13 | Ivory Coast | 26 | 9 |
 | 14 | Türkiye | 26 | 9 |
@@ -30,37 +32,37 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 | 21 | Paraguay | 26 | 5 |
 | 22 | France | 26 | 4 |
 | 23 | Mexico | 26 | 4 |
-| 24 | Czechia | 26 | 3 |
-| 25 | Ecuador | 26 | 3 |
-| 26 | Jordan | 26 | 3 |
-| 27 | Switzerland | 26 | 3 |
-| 28 | Argentina | 26 | 2 |
-| 29 | Iran | 26 | 2 |
-| 30 | Norway | 26 | 2 |
-| 31 | Portugal | 26 | 2 |
-| 32 | Uruguay | 26 | 2 |
-| 33 | Uzbekistan | 26 | 2 |
-| 34 | Belgium | 26 | 1 |
-| 35 | Egypt | 26 | 1 |
-| 36 | England | 26 | 1 |
-| 37 | Germany | 26 | 1 |
-| 38 | Japan | 26 | 1 |
-| 39 | Netherlands | 26 | 1 |
-| 40 | South Korea | 26 | 1 |
-| 41 | Spain | 26 | 1 |
-| 42 | Austria | 26 | 0 |
-| 43 | Brazil | 26 | 0 |
-| 44 | Colombia | 26 | 0 |
-| 45 | Panama | 26 | 0 |
-| 46 | Saudi Arabia | 26 | 0 |
-| 47 | South Africa | 26 | 0 |
-| 48 | Sweden | 26 | 0 |
+| 24 | Ecuador | 26 | 3 |
+| 25 | Jordan | 26 | 3 |
+| 26 | Switzerland | 26 | 3 |
+| 27 | Argentina | 26 | 2 |
+| 28 | Iran | 26 | 2 |
+| 29 | Norway | 26 | 2 |
+| 30 | Portugal | 26 | 2 |
+| 31 | Uruguay | 26 | 2 |
+| 32 | Belgium | 26 | 1 |
+| 33 | Egypt | 26 | 1 |
+| 34 | England | 26 | 1 |
+| 35 | Germany | 26 | 1 |
+| 36 | Japan | 26 | 1 |
+| 37 | Netherlands | 26 | 1 |
+| 38 | South Korea | 26 | 1 |
+| 39 | Spain | 26 | 1 |
+| 40 | Austria | 26 | 0 |
+| 41 | Brazil | 26 | 0 |
+| 42 | Colombia | 26 | 0 |
+| 43 | Czechia | 26 | 0 |
+| 44 | Panama | 26 | 0 |
+| 45 | Saudi Arabia | 26 | 0 |
+| 46 | South Africa | 26 | 0 |
+| 47 | Sweden | 26 | 0 |
+| 48 | Uzbekistan | 26 | 0 |
 
-**Total born-abroad players (48 teams): 299**
+**Total born-abroad players (48 teams): 288**
 
 ## Details by team
 
-### Curaçao — 26 born abroad
+### Curaçao — 25 born abroad
 | Player | Birth city | Birth country |
 |---|---|---|
 | ROOM Eloy | Nijmegen | Netherlands |
@@ -88,9 +90,8 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 | MARGARITHA Jearl | Groningen | Netherlands |
 | KUWAS Brandley | Hoorn | Netherlands |
 | KASTANEER Gervane | Rotterdam | Netherlands |
-| CHONG Tahith | Willemstad | Netherlands Antilles |
 
-### DR Congo — 22 born abroad
+### DR Congo — 20 born abroad
 | Player | Birth city | Birth country |
 |---|---|---|
 | EPOLO Matthieu | Brussel | Belgium |
@@ -113,8 +114,6 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 | BANZA Simon | Creil | France |
 | FAYULU Timothy | Genève | Switzerland |
 | PICKEL Charles | Solothurn | Switzerland |
-| MBEMBA Chancel | Kinshasa | Zaire |
-| MAYELE Fiston | Mbuji-Mayi | Zaire |
 
 ### Morocco — 19 born abroad
 | Player | Birth city | Birth country |
@@ -139,27 +138,6 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 | DIAZ Brahim | Málaga | Spain |
 | AMAIMOUNI Ayoub | Vic | Spain |
 
-### Bosnia and Herzegovina — 17 born abroad
-| Player | Birth city | Birth country |
-|---|---|---|
-| DEDIC Amar | Zell am See | Austria |
-| MAHMIC Ermin | Wels | Austria |
-| BASIC Ivan | Imotski | Croatia |
-| HADZIAHMETOVIC Amir | Nexø | Denmark |
-| KOLASINAC Sead | Karlsruhe | Germany |
-| BURNIC Dzenis | Hamm | Germany |
-| DEMIROVIC Ermedin | Hamburg | Germany |
-| ALAJBEGOVIC Kerim | Köln | Germany |
-| DZEKO Edin | Sarajevo | Jugoslawien (SFR) |
-| BAZDAR Samed | Novi Pazar | Serbia and Montenegro |
-| MUHAREMOVIC Tarik | Ljubljana | Slovenia |
-| HADZIKADUNIC Dennis | Malmö | Sweden |
-| TAHIROVIC Benjamin | Spånga | Sweden |
-| GIGOVIC Armin | Lund | Sweden |
-| TABAKOVIC Haris | Grenchen | Switzerland |
-| BAJRAKTAREVIC Esmir | Appleton, Wisconsin | United States |
-| LUKIC Jovo | Šabac | Yugoslavia (Republic) |
-
 ### Algeria — 16 born abroad
 | Player | Birth city | Birth country |
 |---|---|---|
@@ -179,6 +157,26 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 | GHEDJEMIS Fares | Montreuil | France |
 | MAZA Ibrahim | Berlin | Germany |
 | ZERROUKI Ramiz | Amsterdam | Netherlands |
+
+### Bosnia and Herzegovina — 16 born abroad
+| Player | Birth city | Birth country |
+|---|---|---|
+| DEDIC Amar | Zell am See | Austria |
+| MAHMIC Ermin | Wels | Austria |
+| BASIC Ivan | Imotski | Croatia |
+| HADZIAHMETOVIC Amir | Nexø | Denmark |
+| KOLASINAC Sead | Karlsruhe | Germany |
+| BURNIC Dzenis | Hamm | Germany |
+| DEMIROVIC Ermedin | Hamburg | Germany |
+| ALAJBEGOVIC Kerim | Köln | Germany |
+| BAZDAR Samed | Novi Pazar | Serbia and Montenegro |
+| MUHAREMOVIC Tarik | Ljubljana | Slovenia |
+| HADZIKADUNIC Dennis | Malmö | Sweden |
+| TAHIROVIC Benjamin | Spånga | Sweden |
+| GIGOVIC Armin | Lund | Sweden |
+| TABAKOVIC Haris | Grenchen | Switzerland |
+| BAJRAKTAREVIC Esmir | Appleton, Wisconsin | United States |
+| LUKIC Jovo | Šabac | Yugoslavia (Republic) |
 
 ### Haiti — 16 born abroad
 | Player | Birth city | Birth country |
@@ -237,23 +235,6 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 | HELIO VARELA | Almada | Portugal |
 | CJ DOS SANTOS | Philadelphia, ... | United States |
 
-### Croatia — 13 born abroad
-| Player | Birth city | Birth country |
-|---|---|---|
-| KOVACIC Mateo | Linz | Austria |
-| SUCIC Luka | Linz | Austria |
-| SUTALO Josip | Čapljina | Bosnia-Herzegovina |
-| SUCIC Petar | Livno | Bosnia-Herzegovina |
-| STANISIC Josip | München | Germany |
-| PONGRACIC Marin | Landshut | Germany |
-| PASALIC Mario | Mainz | Germany |
-| MATANOVIC Igor | Hamburg | Germany |
-| PASALIC Marco | Karlsruhe | Germany |
-| MODRIC Luka | Zadar | Jugoslawien (SFR) |
-| KRAMARIC Andrej | Zagreb | Jugoslawien (SFR) |
-| BUDIMIR Ante | Zenica | Jugoslawien (SFR) |
-| BATURINA Martin | Zürich | Switzerland |
-
 ### Qatar — 13 born abroad
 | Player | Birth city | Birth country |
 |---|---|---|
@@ -286,6 +267,21 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 | MBAYE Ibrahim | Trappes | France |
 | JAKOBS Ismail | Köln | Germany |
 | JACKSON Nicolas | Banjul | The Gambia |
+
+### Croatia — 11 born abroad
+| Player | Birth city | Birth country |
+|---|---|---|
+| KOVACIC Mateo | Linz | Austria |
+| SUCIC Luka | Linz | Austria |
+| SUTALO Josip | Čapljina | Bosnia-Herzegovina |
+| SUCIC Petar | Livno | Bosnia-Herzegovina |
+| STANISIC Josip | München | Germany |
+| PONGRACIC Marin | Landshut | Germany |
+| PASALIC Mario | Mainz | Germany |
+| MATANOVIC Igor | Hamburg | Germany |
+| PASALIC Marco | Karlsruhe | Germany |
+| BUDIMIR Ante | Zenica | Jugoslawien (SFR) |
+| BATURINA Martin | Zürich | Switzerland |
 
 ### Iraq — 9 born abroad
 | Player | Birth city | Birth country |
@@ -419,13 +415,6 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 | VARGAS Obed | Anchorage, Alaska | United States |
 | GUTIERREZ Brian | Berwyn, Illinois | United States |
 
-### Czechia — 3 born abroad
-| Player | Birth city | Birth country |
-|---|---|---|
-| COUFAL Vladimir | Ostrava | CSSR |
-| ZELENY Jaroslav | Hradec Králové | CSSR |
-| DARIDA Vladimir | Plzeň | CSSR |
-
 ### Ecuador — 3 born abroad
 | Player | Birth city | Birth country |
 |---|---|---|
@@ -477,12 +466,6 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 | MUSLERA Fernando | Buenos Aires | Argentina |
 | ZALAZAR Rodrigo | Albacete | Spain |
 
-### Uzbekistan — 2 born abroad
-| Player | Birth city | Birth country |
-|---|---|---|
-| YUSUPOV Utkir | Sayram | UdSSR |
-| SAYFIEV Farrukh | Samarkand | UdSSR |
-
 ### Belgium — 1 born abroad
 | Player | Birth city | Birth country |
 |---|---|---|
@@ -524,22 +507,28 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 | LAPORTE Aymeric | Agen | France |
 
 ### Austria — 0 born abroad
-_All squad players born in-country._
+_All squad players born in-country (or only historical-state cases, now excluded)._
 
 ### Brazil — 0 born abroad
-_All squad players born in-country._
+_All squad players born in-country (or only historical-state cases, now excluded)._
 
 ### Colombia — 0 born abroad
-_All squad players born in-country._
+_All squad players born in-country (or only historical-state cases, now excluded)._
+
+### Czechia — 0 born abroad
+_All squad players born in-country (or only historical-state cases, now excluded)._
 
 ### Panama — 0 born abroad
-_All squad players born in-country._
+_All squad players born in-country (or only historical-state cases, now excluded)._
 
 ### Saudi Arabia — 0 born abroad
-_All squad players born in-country._
+_All squad players born in-country (or only historical-state cases, now excluded)._
 
 ### South Africa — 0 born abroad
-_All squad players born in-country._
+_All squad players born in-country (or only historical-state cases, now excluded)._
 
 ### Sweden — 0 born abroad
-_All squad players born in-country._
+_All squad players born in-country (or only historical-state cases, now excluded)._
+
+### Uzbekistan — 0 born abroad
+_All squad players born in-country (or only historical-state cases, now excluded)._
