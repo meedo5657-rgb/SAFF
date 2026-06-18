@@ -1059,6 +1059,22 @@ function _userStoryRec(){
   try{var raw=localStorage.getItem(_storyLocalKey()); if(raw) return JSON.parse(raw);}catch(e){}
   return null;
 }
+function resetTodayStory(){
+  if(!confirm('بتمسح نقاط كل اللي لعبوا قصة اليوم. متأكد؟')) return;
+  var t=todayKey();
+  var keys=Object.keys(usersData||{});
+  var jobs=keys.map(function(k){return ROOT.child('users/'+k+'/story/'+t).remove().catch(function(){});});
+  Promise.all(jobs).then(function(){
+    try{
+      // Also wipe local optimistic and localStorage entries for the current admin.
+      if(storyScores[myKey]) delete storyScores[myKey][t];
+      keys.forEach(function(k){try{localStorage.removeItem('saff_story_'+k+'_'+t);}catch(e){}});
+    }catch(e){}
+    __storyGame=null;
+    toast('تمت إعادة قصة اليوم لـ '+keys.length+' حساب');
+    renderMatches(); renderStoryLeader();
+  });
+}
 function saveStoryResult(pts,won,idx){
   if(!myKey) return;
   var t=todayKey();
@@ -2018,6 +2034,9 @@ function adminBar(){
   var sb2=document.createElement('button');sb2.className='btn-summary';sb2.style.cssText='background:linear-gradient(135deg,#d4af37,#8b6914);';sb2.textContent='📜 إعلان قصة منتخب';
   sb2.addEventListener('click',genStoryAnnouncementPoster);
   bar.appendChild(sb2);
+  var sb3=document.createElement('button');sb3.className='btn-summary';sb3.style.cssText='background:linear-gradient(135deg,#7f1d1d,#400);';sb3.textContent='🗑 إعادة قصة اليوم';
+  sb3.addEventListener('click',resetTodayStory);
+  bar.appendChild(sb3);
   bar.appendChild(fdTokenRow());
   var n=Object.keys(resultsData||{}).length;
   var b=document.createElement('button');b.className='btn-clear-all';
