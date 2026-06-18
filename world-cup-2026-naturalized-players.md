@@ -3,7 +3,7 @@
 Source: relevant-football.com `/data/players/<country>.json` (fields: `birth_city`, `birth_country`).  
 Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from the national team's country. Coaches excluded.
 
-**Historical states excluded:** players born inside the modern country's borders when it had a different name (Yugoslavia/Jugoslawien SFR, USSR/UdSSR, Czechoslovakia/CSSR, Zaire, Netherlands Antilles) are NOT counted as born abroad. 11 such cases were removed: Dzeko (BIH), Modric & Kramaric (CRO), Chong (CUW), Coufal/Zeleny/Darida (CZE), Mbembe & Mayele (COD), Yusupov & Sayfiev (UZB). Players born in a genuinely different country are kept (e.g. Budimir born in Zenica/Bosnia for Croatia; Lukic & Bazdar born in Serbia for Bosnia).
+**Historical states excluded:** players born inside the modern country's borders when it had a different name (Yugoslavia/Jugoslawien SFR, USSR/UdSSR, Czechoslovakia/CSSR, Zaire, Netherlands Antilles) are NOT counted as born abroad. 10 such cases were removed: Dzeko (BIH), Modric & Kramaric (CRO), Chong (CUW), Coufal/Zeleny/Darida (CZE), Mbembe & Mayele (COD), Sayfiev (UZB). Players born in a genuinely different country/republic are kept — e.g. Budimir (Zenica/Bosnia) for Croatia; Lukic & Bazdar (Serbia) for Bosnia; Yusupov (Sayram, now in Kazakhstan) for Uzbekistan.
 
 ## Summary
 
@@ -48,17 +48,17 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 | 37 | Netherlands | 26 | 1 |
 | 38 | South Korea | 26 | 1 |
 | 39 | Spain | 26 | 1 |
-| 40 | Austria | 26 | 0 |
-| 41 | Brazil | 26 | 0 |
-| 42 | Colombia | 26 | 0 |
-| 43 | Czechia | 26 | 0 |
-| 44 | Panama | 26 | 0 |
-| 45 | Saudi Arabia | 26 | 0 |
-| 46 | South Africa | 26 | 0 |
-| 47 | Sweden | 26 | 0 |
-| 48 | Uzbekistan | 26 | 0 |
+| 40 | Uzbekistan | 26 | 1 |
+| 41 | Austria | 26 | 0 |
+| 42 | Brazil | 26 | 0 |
+| 43 | Colombia | 26 | 0 |
+| 44 | Czechia | 26 | 0 |
+| 45 | Panama | 26 | 0 |
+| 46 | Saudi Arabia | 26 | 0 |
+| 47 | South Africa | 26 | 0 |
+| 48 | Sweden | 26 | 0 |
 
-**Total born-abroad players (48 teams): 288**
+**Total born-abroad players (48 teams): 289**
 
 ## Details by team
 
@@ -506,6 +506,11 @@ Generated 2026-06-18. "Born abroad" = player whose `birth_country` differs from 
 |---|---|---|
 | LAPORTE Aymeric | Agen | France |
 
+### Uzbekistan — 1 born abroad
+| Player | Birth city | Birth country |
+|---|---|---|
+| YUSUPOV Utkir | Sayram | UdSSR |
+
 ### Austria — 0 born abroad
 _All squad players born in-country (or only historical-state cases, now excluded)._
 
@@ -528,7 +533,4 @@ _All squad players born in-country (or only historical-state cases, now excluded
 _All squad players born in-country (or only historical-state cases, now excluded)._
 
 ### Sweden — 0 born abroad
-_All squad players born in-country (or only historical-state cases, now excluded)._
-
-### Uzbekistan — 0 born abroad
 _All squad players born in-country (or only historical-state cases, now excluded)._
