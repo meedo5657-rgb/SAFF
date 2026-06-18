@@ -1122,11 +1122,6 @@ function dailyStoryCard(){
         renderMatches();
       });
       card.appendChild(replay);
-      var resetAll=document.createElement('button'); resetAll.className='sc-start';
-      resetAll.style.cssText='background:linear-gradient(135deg,#7f1d1d,#440000);color:#fff;font-weight:800;margin-top:6px;';
-      resetAll.textContent='🗑 إعادة قصة اليوم للجميع (أدمن)';
-      resetAll.addEventListener('click',resetTodayStory);
-      card.appendChild(resetAll);
     }
     return card;
   }
@@ -2036,10 +2031,7 @@ function adminBar(){
   var sb=document.createElement('button');sb.className='btn-summary';sb.textContent='📸 ملخّص اليوم';
   sb.addEventListener('click',genDailySummary);
   bar.appendChild(sb);
-  var sb2=document.createElement('button');sb2.className='btn-summary';sb2.style.cssText='background:linear-gradient(135deg,#d4af37,#8b6914);';sb2.textContent='📜 إعلان قصة منتخب';
-  sb2.addEventListener('click',genStoryAnnouncementPoster);
-  bar.appendChild(sb2);
-  var sb3=document.createElement('button');sb3.className='btn-summary';sb3.style.cssText='background:linear-gradient(135deg,#7f1d1d,#400);';sb3.textContent='🗑 إعادة قصة اليوم';
+  var sb3=document.createElement('button');sb3.className='btn-summary';sb3.style.cssText='background:rgba(220,55,55,.18);border-color:rgba(220,55,55,.5);';sb3.textContent='♻️ صفّر قصة منتخب اليوم';
   sb3.addEventListener('click',resetTodayStory);
   bar.appendChild(sb3);
   bar.appendChild(fdTokenRow());
