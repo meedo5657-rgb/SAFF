@@ -1122,6 +1122,11 @@ function dailyStoryCard(){
         renderMatches();
       });
       card.appendChild(replay);
+      var wipe=document.createElement('button'); wipe.className='sc-start';
+      wipe.style.cssText='background:linear-gradient(135deg,#9f1212,#5c0000);color:#fff;font-weight:800;margin-top:6px;';
+      wipe.textContent='💣 امسح نتايج كل اللي لعبوا اليوم';
+      wipe.addEventListener('click',resetTodayStory);
+      card.appendChild(wipe);
     }
     return card;
   }
