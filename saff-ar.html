@@ -2689,13 +2689,20 @@ function genScoringDilemmaPoster(){
   // ---- matrix data (categories × options) ----
   // rating: 0..3 (filled dots). Each row evaluates both options on the same axis.
   var CATS=[
-    {label:'العدالة',        sub:'عدم تغيير القواعد بعد بداية البطولة',     a:3, b:0},
-    {label:'استقرار الترتيب', sub:'الجدول يعكس جهدًا تراكميًا لا قفزات',     a:3, b:1},
-    {label:'تحفيز المتأخّرين', sub:'إبقاء فرصة اللحاق حتى النهاية',          a:1, b:3},
-    {label:'ثقل المباراة',    sub:'نهائي = مباراة مجموعات أم أوزن؟',         a:1, b:3},
-    {label:'بساطة النظام',    sub:'سهولة فهم القاعدة بدون شرح',             a:3, b:2},
-    {label:'الحدّ من العشوائية',sub:'تقليل وزن الترجيح/الإضافي في الجدول',   a:3, b:1},
-    {label:'التفاعل في النهاية',sub:'حماس اللاعبين في الإقصائيات',           a:1, b:3}
+    {label:'العدالة',        sub:'عدم تغيير القواعد بعد بداية البطولة',     a:3, b:0,
+     aTxt:'قاعدة واحدة من المباراة ١',         bTxt:'تغيير بعد ٤٨ مباراة'},
+    {label:'استقرار الترتيب', sub:'الجدول يعكس جهدًا تراكميًا لا قفزات',     a:3, b:1,
+     aTxt:'أقصى قفزة ١٠ نقاط/مباراة',         bTxt:'أقصى قفزة ١٦ نقطة/مباراة'},
+    {label:'تحفيز المتأخّرين', sub:'إبقاء فرصة اللحاق حتى النهاية',          a:1, b:3,
+     aTxt:'فجوة ١٥ ≈ ٣ مباريات مثالية',       bTxt:'فجوة ١٥ ≈ مباراتان فقط'},
+    {label:'ثقل المباراة',    sub:'نهائي = مباراة مجموعات أم أثقل؟',         a:1, b:3,
+     aTxt:'النهائي = ١× (نفس الوزن)',          bTxt:'النهائي = ١٫٦× المجموعات'},
+    {label:'بساطة النظام',    sub:'سهولة فهم القاعدة بدون شرح',             a:3, b:2,
+     aTxt:'قاعدة واحدة (٥ / ٣)',              bTxt:'قاعدتان (٥/٣ ثم ٨/٥)'},
+    {label:'الحدّ من العشوائية',sub:'تقليل وزن الترجيح/الإضافي في الجدول',   a:3, b:1,
+     aTxt:'ضربة ترجيح = ٥ نقاط',              bTxt:'ضربة ترجيح = ٨ نقاط'},
+    {label:'التفاعل في النهاية',sub:'حماس اللاعبين في الإقصائيات',           a:1, b:3,
+     aTxt:'حماس ثابت طوال البطولة',           bTxt:'حماس +٦٠٪ في النهاية'}
   ];
   var totalA=0, totalB=0;
   CATS.forEach(function(c){totalA+=c.a;totalB+=c.b;});
@@ -2738,8 +2745,8 @@ function genScoringDilemmaPoster(){
     +headOptA+headOptB
   +'</div>';
 
-  // ---- rating cell: 3 dots, filled count = score ----
-  function dotsCell(score, highlight){
+  // ---- rating cell: 3 dots, filled count = score, plus numeric summary below ----
+  function dotsCell(score, highlight, summary){
     var filled = (highlight ? '#E6CC78' : '#dfeae3');
     var empty = 'rgba(255,255,255,.18)';
     var dots='';
@@ -2752,9 +2759,10 @@ function genScoringDilemmaPoster(){
     else if(score===2){label='جيد'; lcol='#e6cc78';}
     else if(score===1){label='ضعيف';lcol='#e89b9b';}
     else {label='سيّئ'; lcol='#e89b9b';}
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:'+(highlight?'rgba(230,204,120,.06)':'rgba(255,255,255,.03)')+';border:1px solid '+(highlight?'rgba(230,204,120,.22)':'rgba(255,255,255,.10)')+';border-radius:12px;padding:14px;">'
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;background:'+(highlight?'rgba(230,204,120,.06)':'rgba(255,255,255,.03)')+';border:1px solid '+(highlight?'rgba(230,204,120,.22)':'rgba(255,255,255,.10)')+';border-radius:12px;padding:14px 12px;">'
       +'<div style="display:flex;gap:6px;direction:ltr;">'+dots+'</div>'
       +'<div style="font-weight:700;font-size:14px;color:'+lcol+';">'+esc(label)+'</div>'
+      +(summary?'<div style="font-weight:700;font-size:14px;color:#fff;line-height:1.4;text-align:center;border-top:1px solid rgba(255,255,255,.10);padding-top:8px;width:100%;">'+esc(summary)+'</div>':'')
     +'</div>';
   }
 
@@ -2766,8 +2774,8 @@ function genScoringDilemmaPoster(){
         +'<div style="font-weight:900;font-size:22px;color:#fff;line-height:1.2;">'+esc(c.label)+'</div>'
         +'<div style="font-weight:600;font-size:14px;color:var(--mute);margin-top:4px;line-height:1.4;">'+esc(c.sub)+'</div>'
       +'</div>'
-      +dotsCell(c.a, false)
-      +dotsCell(c.b, true)
+      +dotsCell(c.a, false, c.aTxt)
+      +dotsCell(c.b, true,  c.bTxt)
     +'</div>';
   });
   var matrixBody = '<div style="display:flex;flex-direction:column;gap:10px;">'+rows+'</div>';
