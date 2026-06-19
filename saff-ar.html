@@ -2054,6 +2054,9 @@ function adminBar(){
   var sb3=document.createElement('button');sb3.className='btn-summary';sb3.style.cssText='background:rgba(220,55,55,.18);border-color:rgba(220,55,55,.5);';sb3.textContent='♻️ صفّر قصة منتخب اليوم';
   sb3.addEventListener('click',resetTodayStory);
   bar.appendChild(sb3);
+  var sb4=document.createElement('button');sb4.className='btn-summary';sb4.style.cssText='background:rgba(230,204,120,.16);border-color:rgba(230,204,120,.55);color:#fde68a;';sb4.textContent='🗳️ استفتاء نظام الإقصائيات';
+  sb4.addEventListener('click',genScoringDilemmaPoster);
+  bar.appendChild(sb4);
   bar.appendChild(fdTokenRow());
   var n=Object.keys(resultsData||{}).length;
   var b=document.createElement('button');b.className='btn-clear-all';
@@ -2632,6 +2635,158 @@ function genTraitorsPoster(matchId, forcedLoserSide){
         var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
         if(file && navigator.canShare && navigator.canShare({files:[file]})){
           navigator.share({files:[file],title:'قائمة الخونة'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
+        } else { dl(); }
+        function dl(){
+          var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');
+        }
+        posterRoot.innerHTML='';
+      },'image/png');
+    }catch(e){toast('فشل toBlob: '+(e&&e.message||e));posterRoot.innerHTML='';}
+  }
+  var fontsReady=Promise.race([(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve(),new Promise(function(r){setTimeout(r,1500);})]);
+  fontsReady.then(function(){
+    var target=posterRoot.querySelector('.poster');
+    if(!target){toast('فشل: قالب البوستر غير موجود');posterRoot.innerHTML='';return;}
+    var rect=target.getBoundingClientRect(), h=Math.max(1200,Math.round(rect.height));
+    toast('1/3: جاري الرسم…');
+    var to=setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';},20000);
+    if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
+      htmlToImage.toBlob(target,{backgroundColor:null,cacheBust:true,pixelRatio:Math.min(2,window.devicePixelRatio||1),width:1080,height:h,skipFonts:true}).then(function(blob){
+        clearTimeout(to);if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
+        shareCanvas({toBlob:function(cb){cb(blob);}});
+      }).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html-to-image: '+(e&&e.message||e));});
+    } else if(typeof html2canvas==='function'){
+      html2canvas(target,{backgroundColor:null,scale:1,useCORS:true,allowTaint:false,imageTimeout:5000,logging:false,width:1080,height:h,windowWidth:1080,windowHeight:h}).then(function(cv){clearTimeout(to);shareCanvas(cv);}).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html2canvas: '+(e&&e.message||e));});
+    } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
+  });
+}
+// ===== "نظام نقاط الإقصائيات" — comparison poster (option A vs B), same SAFF identity =====
+function genScoringDilemmaPoster(){
+  toast('جاري تجهيز المقارنة…');
+  var arcRings=[[1450,140,.12],[1200,120,.10],[950,100,.08],[700,80,.06]];
+  var arcsHtml='<svg class="arcs" viewBox="0 0 1080 2180" preserveAspectRatio="xMidYMid slice">';
+  arcRings.forEach(function(g){arcsHtml+='<circle cx="-100" cy="-70" r="'+g[0]+'" fill="none" stroke="#E6CC78" stroke-width="'+g[1]+'" stroke-opacity="'+g[2]+'"/>';});
+  arcsHtml+='</svg>';
+
+  var brand1='دوري التوقّعات', brand2='كأس العالم 2026';
+  var headerHtml='\
+<div style="display:flex;justify-content:space-between;align-items:center;">\
+  <div style="display:flex;align-items:center;gap:20px;">\
+    <div role="img" aria-label="" style="width:79px;height:78px;background-image:url('+SAFF_LOGO_DATA+');background-size:contain;background-repeat:no-repeat;background-position:center;flex-shrink:0;"></div>\
+    <div style="width:2px;height:56px;background:rgba(255,255,255,.28);"></div>\
+    <div style="text-align:right;line-height:1.25;">\
+      <div style="font-size:24px;font-weight:900;color:#fff;">'+esc(brand1)+'</div>\
+      <div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">'+esc(brand2)+'</div>\
+    </div>\
+  </div>\
+  <div class="kick" style="font-size:21px;color:var(--mute);">استفتاء</div>\
+</div>';
+
+  var eyebrow='<div style="font-weight:800;font-size:26px;color:var(--gold);letter-spacing:1px;margin-top:54px;">🗳️ قبل بداية الإقصائيات</div>';
+  var titleHtml='<h1 class="disp" style="font-size:84px;margin-top:14px;margin-bottom:18px;line-height:1.05;">نظام نقاط <span style="color:var(--gold);">الإقصائيات</span></h1>';
+  var sub='<div style="font-weight:700;font-size:28px;color:var(--mute);margin-bottom:44px;line-height:1.5;">اختاروا الخيار — رأيكم يحدّد القرار</div>';
+
+  function pillsHtml(items){
+    return items.map(function(it){
+      return '<div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:14px 20px;">'
+        +'<div style="font-size:22px;line-height:1;flex-shrink:0;color:'+it.color+';">'+it.icon+'</div>'
+        +'<div style="font-weight:700;font-size:22px;color:#fff;line-height:1.5;flex:1;">'+esc(it.text)+'</div>'
+      +'</div>';
+    }).join('');
+  }
+
+  function scoreBadge(label,n,muted){
+    var bg = muted ? 'rgba(255,255,255,.06)' : 'rgba(230,204,120,.14)';
+    var bd = muted ? 'rgba(255,255,255,.14)' : 'rgba(230,204,120,.45)';
+    var col = muted ? 'var(--mute)' : 'var(--gold)';
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;background:'+bg+';border:1px solid '+bd+';border-radius:14px;padding:14px 18px;flex:1;">'
+      +'<div style="font-weight:700;font-size:16px;color:'+col+';letter-spacing:.5px;">'+esc(label)+'</div>'
+      +'<div style="font-weight:900;font-size:46px;color:#fff;line-height:1;">'+esc(arNum(n))+'</div>'
+    +'</div>';
+  }
+
+  function optionCard(opts){
+    var accent = opts.accent;
+    var pros = pillsHtml(opts.pros.map(function(t){return {icon:'✓',color:'#7fd9a6',text:t};}));
+    var cons = pillsHtml(opts.cons.map(function(t){return {icon:'✗',color:'#e89b9b',text:t};}));
+    return '<div style="margin-top:24px;border-radius:20px;padding:32px 30px;background:linear-gradient(150deg,'+accent.bg1+','+accent.bg2+');border:1.5px solid '+accent.border+';box-shadow:0 18px 50px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.07);">'
+      +'<div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;">'
+        +'<div style="width:54px;height:54px;border-radius:50%;background:'+accent.chip+';display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;color:'+accent.chipText+';flex-shrink:0;">'+esc(opts.tag)+'</div>'
+        +'<div style="flex:1;">'
+          +'<div style="font-weight:800;font-size:18px;color:'+accent.label+';letter-spacing:.5px;">'+esc(opts.eyebrow)+'</div>'
+          +'<div style="font-weight:900;font-size:38px;color:#fff;line-height:1.15;margin-top:4px;">'+esc(opts.title)+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:14px;margin-bottom:22px;">'
+        +scoreBadge('نتيجة مضبوطة', opts.exact, opts.muted)
+        +scoreBadge('فائز صحيح', opts.winner, opts.muted)
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">'+pros+'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:10px;">'+cons+'</div>'
+    +'</div>';
+  }
+
+  var optA = optionCard({
+    tag:'أ', eyebrow:'الخيار الأول',
+    title:'إبقاء النظام الحالي',
+    exact:5, winner:3, muted:true,
+    accent:{
+      bg1:'rgba(255,255,255,.06)', bg2:'rgba(255,255,255,.02)',
+      border:'rgba(255,255,255,.18)', chip:'rgba(255,255,255,.16)', chipText:'#fff',
+      label:'var(--mute)'
+    },
+    pros:[
+      'القواعد ما تتغيّر في النص — الكل لعب على نفس القاعدة',
+      'الترتيب يعكس أداء حقيقي طوال البطولة',
+      'بونص الـ×٢ موجود لمن يبي يضاعف على مباراة مهمّة'
+    ],
+    cons:[
+      'المتأخّر قد يحسّ إنه ما يقدر يلحق المتصدّر',
+      'كل المباريات بنفس الوزن — النهائي = الجولة الأولى'
+    ]
+  });
+
+  var optB = optionCard({
+    tag:'ب', eyebrow:'الخيار الثاني',
+    title:'زيادة نقاط الإقصائيات',
+    exact:8, winner:5, muted:false,
+    accent:{
+      bg1:'rgba(230,204,120,.18)', bg2:'rgba(230,204,120,.04)',
+      border:'rgba(230,204,120,.55)', chip:'var(--gold)', chipText:'#0A2C20',
+      label:'var(--gold)'
+    },
+    pros:[
+      'المنافسة تبقى مفتوحة لين النهاية',
+      'يعكس ثقل مباريات خروج المغلوب',
+      'تفاعل أعلى مع كل مباراة إقصائية'
+    ],
+    cons:[
+      'تغيير القاعدة بعد بداية البطولة قد يبدو غير عادل',
+      'ضربة موفّقة وحدة تقفز صاحبها مراكز كثيرة',
+      'العشوائية (ترجيح/إضافي) يصير وزنها أكبر'
+    ]
+  });
+
+  var cta='<div style="margin-top:36px;padding:26px 28px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);text-align:center;">'
+    +'<div style="font-weight:800;font-size:22px;color:var(--gold);letter-spacing:1px;margin-bottom:6px;">🗳️ صوّت الآن</div>'
+    +'<div style="font-weight:700;font-size:22px;color:#fff;line-height:1.55;">أ — نبقى زي ما إحنا · ب — نزيد نقاط الإقصائيات</div>'
+    +'<div style="font-weight:600;font-size:18px;color:var(--mute);margin-top:8px;">رأي الأغلبية يُعتمد قبل دور الـ٣٢</div>'
+  +'</div>';
+
+  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+optA+optB+cta+'</div></div>';
+  var posterRoot=document.getElementById('posterRoot');
+  posterRoot.innerHTML=posterHtml;
+
+  var fname='wc2026-scoring-vote.png';
+  function shareCanvas(cv){
+    toast('2/3: جاري التحويل…');
+    try{
+      cv.toBlob(function(blob){
+        if(!blob){toast('فشل: blob فاضي');posterRoot.innerHTML='';return;}
+        toast('3/3: جاري المشاركة…');
+        var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
+        if(file && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'نظام نقاط الإقصائيات'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
         } else { dl(); }
         function dl(){
           var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');
