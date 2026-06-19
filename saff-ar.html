@@ -968,6 +968,7 @@ var draft={}; // matchId -> {h,a}
 var draftEdited={}; // matchId -> true once the user has touched the draft this session
 var predsLoaded=false; // flips to true after the first predictions snapshot lands
 var storyScores={}; // userKey -> { 'YYYY-MM-DD': {pts:0/5/10, won, idx} }
+var storyResets={}; // 'YYYY-MM-DD' -> reset timestamp; invalidates stale localStorage
 // ===== "قصة منتخب" daily game =====
 // One national-team story per day, two hints (hard then medium), 30s per
 // hint, max 2 guesses total. 10 pts if correct on hint 1, 5 pts on hint 2.
@@ -1054,19 +1055,32 @@ function _userStoryRec(){
   var t=todayKey();
   var rec=(storyScores[myKey]&&storyScores[myKey][t])||null;
   if(rec) return rec;
-  // Fall back to localStorage so the result survives a refresh even if the
-  // Firebase write was rejected by security rules.
-  try{var raw=localStorage.getItem(_storyLocalKey()); if(raw) return JSON.parse(raw);}catch(e){}
-  return null;
+  // localStorage fallback for the case where Firebase rejected the write —
+  // BUT if admin marked a reset for today after this entry was written,
+  // wipe the local copy and treat as "not played".
+  try{
+    var raw=localStorage.getItem(_storyLocalKey());
+    if(!raw) return null;
+    var local=JSON.parse(raw);
+    var resetAt=storyResets&&storyResets[t];
+    if(resetAt && local && (!local.ts || local.ts < resetAt)){
+      localStorage.removeItem(_storyLocalKey());
+      return null;
+    }
+    return local;
+  }catch(e){return null;}
 }
 function resetTodayStory(){
   if(!confirm('بتمسح محاولات ونقاط كل اللي لعبوا قصة اليوم — راح يقدرون يلعبونها من جديد. متأكد؟')) return;
   var t=todayKey();
   var keys=Object.keys(usersData||{});
+  // Publish a reset marker BEFORE clearing so any open client (with the
+  // updated code) will notice and wipe its stale localStorage too.
+  var nowMs=Date.now();
+  ROOT.child('storyResets/'+t).set(nowMs).catch(function(){});
   var jobs=keys.map(function(k){return ROOT.child('users/'+k+'/story/'+t).remove().catch(function(){});});
   Promise.all(jobs).then(function(){
     try{
-      // Also wipe local optimistic and localStorage entries for the current admin.
       if(storyScores[myKey]) delete storyScores[myKey][t];
       keys.forEach(function(k){try{localStorage.removeItem('saff_story_'+k+'_'+t);}catch(e){}});
     }catch(e){}
@@ -1550,6 +1564,7 @@ function listen(){
   ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};predsLoaded=true;renderMatches();renderLeader();});
   ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   ROOT.child('live').on('value',function(s){liveData=s.val()||{};renderMatches();});
+  ROOT.child('storyResets').on('value',function(s){storyResets=s.val()||{};renderMatches();});
   ROOT.child('teams').on('value',function(s){teamsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   var __myPicksDigest=null;
   ROOT.child('users').on('value',function(s){
