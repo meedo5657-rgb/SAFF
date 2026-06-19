@@ -2684,88 +2684,115 @@ function genScoringDilemmaPoster(){
 
   var eyebrow='<div style="font-weight:800;font-size:26px;color:var(--gold);letter-spacing:1px;margin-top:54px;">🗳️ قبل بداية الإقصائيات</div>';
   var titleHtml='<h1 class="disp" style="font-size:84px;margin-top:14px;margin-bottom:18px;line-height:1.05;">نظام نقاط <span style="color:var(--gold);">الإقصائيات</span></h1>';
-  var sub='<div style="font-weight:700;font-size:28px;color:var(--mute);margin-bottom:44px;line-height:1.5;">اختاروا الخيار — رأيكم يحدّد القرار</div>';
+  var sub='<div style="font-weight:700;font-size:28px;color:var(--mute);margin-bottom:40px;line-height:1.5;">قارن الخيارين على كل معيار — ثم صوّت</div>';
 
-  function pillsHtml(items){
-    return items.map(function(it){
-      return '<div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:14px 20px;">'
-        +'<div style="font-size:22px;line-height:1;flex-shrink:0;color:'+it.color+';">'+it.icon+'</div>'
-        +'<div style="font-weight:700;font-size:22px;color:#fff;line-height:1.5;flex:1;">'+esc(it.text)+'</div>'
-      +'</div>';
-    }).join('');
+  // ---- matrix data (categories × options) ----
+  // rating: 0..3 (filled dots). Each row evaluates both options on the same axis.
+  var CATS=[
+    {label:'العدالة',        sub:'عدم تغيير القواعد بعد بداية البطولة',     a:3, b:0},
+    {label:'استقرار الترتيب', sub:'الجدول يعكس جهدًا تراكميًا لا قفزات',     a:3, b:1},
+    {label:'تحفيز المتأخّرين', sub:'إبقاء فرصة اللحاق حتى النهاية',          a:1, b:3},
+    {label:'ثقل المباراة',    sub:'نهائي = مباراة مجموعات أم أوزن؟',         a:1, b:3},
+    {label:'بساطة النظام',    sub:'سهولة فهم القاعدة بدون شرح',             a:3, b:2},
+    {label:'الحدّ من العشوائية',sub:'تقليل وزن الترجيح/الإضافي في الجدول',   a:3, b:1},
+    {label:'التفاعل في النهاية',sub:'حماس اللاعبين في الإقصائيات',           a:1, b:3}
+  ];
+  var totalA=0, totalB=0;
+  CATS.forEach(function(c){totalA+=c.a;totalB+=c.b;});
+  var maxTotal = CATS.length*3;
+
+  // ---- header row: empty (category) | option A | option B ----
+  function optHead(opts){
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px 14px;background:linear-gradient(150deg,'+opts.bg1+','+opts.bg2+');border:1.5px solid '+opts.border+';border-radius:14px;">'
+      +'<div style="width:50px;height:50px;border-radius:50%;background:'+opts.chip+';display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;color:'+opts.chipText+';">'+esc(opts.tag)+'</div>'
+      +'<div style="font-weight:800;font-size:14px;color:'+opts.label+';letter-spacing:.5px;">'+esc(opts.eyebrow)+'</div>'
+      +'<div style="font-weight:900;font-size:24px;color:#fff;line-height:1.2;text-align:center;">'+esc(opts.title)+'</div>'
+      +'<div style="display:flex;gap:8px;align-items:baseline;margin-top:4px;">'
+        +'<span style="font-weight:900;font-size:32px;color:'+opts.label+';">'+esc(arNum(opts.exact))+'</span>'
+        +'<span style="font-weight:700;font-size:14px;color:var(--mute);">نتيجة</span>'
+        +'<span style="font-weight:700;font-size:18px;color:var(--mute);">·</span>'
+        +'<span style="font-weight:900;font-size:32px;color:'+opts.label+';">'+esc(arNum(opts.winner))+'</span>'
+        +'<span style="font-weight:700;font-size:14px;color:var(--mute);">فائز</span>'
+      +'</div>'
+    +'</div>';
   }
+  var headOptA = optHead({
+    tag:'أ', eyebrow:'الخيار الأول', title:'إبقاء النظام',
+    exact:5, winner:3,
+    bg1:'rgba(255,255,255,.07)', bg2:'rgba(255,255,255,.02)',
+    border:'rgba(255,255,255,.22)', chip:'rgba(255,255,255,.22)', chipText:'#fff',
+    label:'#fff'
+  });
+  var headOptB = optHead({
+    tag:'ب', eyebrow:'الخيار الثاني', title:'زيادة النقاط',
+    exact:8, winner:5,
+    bg1:'rgba(230,204,120,.20)', bg2:'rgba(230,204,120,.04)',
+    border:'rgba(230,204,120,.55)', chip:'var(--gold)', chipText:'#0A2C20',
+    label:'var(--gold)'
+  });
 
-  function scoreBadge(label,n,muted){
-    var bg = muted ? 'rgba(255,255,255,.06)' : 'rgba(230,204,120,.14)';
-    var bd = muted ? 'rgba(255,255,255,.14)' : 'rgba(230,204,120,.45)';
-    var col = muted ? 'var(--mute)' : 'var(--gold)';
-    return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;background:'+bg+';border:1px solid '+bd+';border-radius:14px;padding:14px 18px;flex:1;">'
-      +'<div style="font-weight:700;font-size:16px;color:'+col+';letter-spacing:.5px;">'+esc(label)+'</div>'
-      +'<div style="font-weight:900;font-size:46px;color:#fff;line-height:1;">'+esc(arNum(n))+'</div>'
+  var matrixHead = '<div style="display:flex;gap:14px;align-items:stretch;margin-bottom:14px;">'
+    +'<div style="flex:0 0 360px;display:flex;align-items:flex-end;justify-content:flex-start;padding:0 8px 14px;">'
+      +'<div style="font-weight:800;font-size:20px;color:var(--gold);letter-spacing:.5px;">المعيار</div>'
+    +'</div>'
+    +headOptA+headOptB
+  +'</div>';
+
+  // ---- rating cell: 3 dots, filled count = score ----
+  function dotsCell(score, highlight){
+    var filled = (highlight ? '#E6CC78' : '#dfeae3');
+    var empty = 'rgba(255,255,255,.18)';
+    var dots='';
+    for(var i=0;i<3;i++){
+      var on = i<score;
+      dots += '<div style="width:18px;height:18px;border-radius:50%;background:'+(on?filled:'transparent')+';border:2px solid '+(on?filled:empty)+';"></div>';
+    }
+    var label='', lcol='var(--mute)';
+    if(score===3){label='قوي';   lcol='#7fd9a6';}
+    else if(score===2){label='جيد'; lcol='#e6cc78';}
+    else if(score===1){label='ضعيف';lcol='#e89b9b';}
+    else {label='سيّئ'; lcol='#e89b9b';}
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:'+(highlight?'rgba(230,204,120,.06)':'rgba(255,255,255,.03)')+';border:1px solid '+(highlight?'rgba(230,204,120,.22)':'rgba(255,255,255,.10)')+';border-radius:12px;padding:14px;">'
+      +'<div style="display:flex;gap:6px;direction:ltr;">'+dots+'</div>'
+      +'<div style="font-weight:700;font-size:14px;color:'+lcol+';">'+esc(label)+'</div>'
     +'</div>';
   }
 
-  function optionCard(opts){
-    var accent = opts.accent;
-    var pros = pillsHtml(opts.pros.map(function(t){return {icon:'✓',color:'#7fd9a6',text:t};}));
-    var cons = pillsHtml(opts.cons.map(function(t){return {icon:'✗',color:'#e89b9b',text:t};}));
-    return '<div style="margin-top:24px;border-radius:20px;padding:32px 30px;background:linear-gradient(150deg,'+accent.bg1+','+accent.bg2+');border:1.5px solid '+accent.border+';box-shadow:0 18px 50px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.07);">'
-      +'<div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;">'
-        +'<div style="width:54px;height:54px;border-radius:50%;background:'+accent.chip+';display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;color:'+accent.chipText+';flex-shrink:0;">'+esc(opts.tag)+'</div>'
-        +'<div style="flex:1;">'
-          +'<div style="font-weight:800;font-size:18px;color:'+accent.label+';letter-spacing:.5px;">'+esc(opts.eyebrow)+'</div>'
-          +'<div style="font-weight:900;font-size:38px;color:#fff;line-height:1.15;margin-top:4px;">'+esc(opts.title)+'</div>'
-        +'</div>'
+  // ---- matrix body rows ----
+  var rows='';
+  CATS.forEach(function(c){
+    rows += '<div style="display:flex;gap:14px;align-items:stretch;">'
+      +'<div style="flex:0 0 360px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;justify-content:center;">'
+        +'<div style="font-weight:900;font-size:22px;color:#fff;line-height:1.2;">'+esc(c.label)+'</div>'
+        +'<div style="font-weight:600;font-size:14px;color:var(--mute);margin-top:4px;line-height:1.4;">'+esc(c.sub)+'</div>'
       +'</div>'
-      +'<div style="display:flex;gap:14px;margin-bottom:22px;">'
-        +scoreBadge('نتيجة مضبوطة', opts.exact, opts.muted)
-        +scoreBadge('فائز صحيح', opts.winner, opts.muted)
+      +dotsCell(c.a, false)
+      +dotsCell(c.b, true)
+    +'</div>';
+  });
+  var matrixBody = '<div style="display:flex;flex-direction:column;gap:10px;">'+rows+'</div>';
+
+  // ---- totals row ----
+  function totalCell(n, highlight){
+    var bg = highlight ? 'rgba(230,204,120,.18)' : 'rgba(255,255,255,.07)';
+    var bd = highlight ? 'rgba(230,204,120,.55)' : 'rgba(255,255,255,.22)';
+    var col = highlight ? 'var(--gold)' : '#fff';
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:'+bg+';border:1.5px solid '+bd+';border-radius:14px;padding:18px 14px;">'
+      +'<div style="display:flex;align-items:baseline;gap:6px;color:'+col+';">'
+        +'<span style="font-weight:900;font-size:46px;line-height:1;">'+esc(arNum(n))+'</span>'
+        +'<span style="font-weight:700;font-size:22px;opacity:.7;">/ '+esc(arNum(maxTotal))+'</span>'
       +'</div>'
-      +'<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">'+pros+'</div>'
-      +'<div style="display:flex;flex-direction:column;gap:10px;">'+cons+'</div>'
     +'</div>';
   }
+  var totals = '<div style="display:flex;gap:14px;align-items:stretch;margin-top:14px;">'
+    +'<div style="flex:0 0 360px;display:flex;align-items:center;justify-content:flex-start;padding:0 18px;">'
+      +'<div style="font-weight:900;font-size:24px;color:var(--gold);">المجموع</div>'
+    +'</div>'
+    +totalCell(totalA, false)
+    +totalCell(totalB, true)
+  +'</div>';
 
-  var optA = optionCard({
-    tag:'أ', eyebrow:'الخيار الأول',
-    title:'إبقاء النظام الحالي',
-    exact:5, winner:3, muted:true,
-    accent:{
-      bg1:'rgba(255,255,255,.06)', bg2:'rgba(255,255,255,.02)',
-      border:'rgba(255,255,255,.18)', chip:'rgba(255,255,255,.16)', chipText:'#fff',
-      label:'var(--mute)'
-    },
-    pros:[
-      'القواعد ما تتغيّر في النص — الكل لعب على نفس القاعدة',
-      'الترتيب يعكس أداء حقيقي طوال البطولة',
-      'بونص الـ×٢ موجود لمن يبي يضاعف على مباراة مهمّة'
-    ],
-    cons:[
-      'المتأخّر قد يحسّ إنه ما يقدر يلحق المتصدّر',
-      'كل المباريات بنفس الوزن — النهائي = الجولة الأولى'
-    ]
-  });
-
-  var optB = optionCard({
-    tag:'ب', eyebrow:'الخيار الثاني',
-    title:'زيادة نقاط الإقصائيات',
-    exact:8, winner:5, muted:false,
-    accent:{
-      bg1:'rgba(230,204,120,.18)', bg2:'rgba(230,204,120,.04)',
-      border:'rgba(230,204,120,.55)', chip:'var(--gold)', chipText:'#0A2C20',
-      label:'var(--gold)'
-    },
-    pros:[
-      'المنافسة تبقى مفتوحة لين النهاية',
-      'يعكس ثقل مباريات خروج المغلوب',
-      'تفاعل أعلى مع كل مباراة إقصائية'
-    ],
-    cons:[
-      'تغيير القاعدة بعد بداية البطولة قد يبدو غير عادل',
-      'ضربة موفّقة وحدة تقفز صاحبها مراكز كثيرة',
-      'العشوائية (ترجيح/إضافي) يصير وزنها أكبر'
-    ]
-  });
+  var matrix = matrixHead + matrixBody + totals;
 
   var cta='<div style="margin-top:36px;padding:26px 28px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);text-align:center;">'
     +'<div style="font-weight:800;font-size:22px;color:var(--gold);letter-spacing:1px;margin-bottom:6px;">🗳️ صوّت الآن</div>'
@@ -2773,7 +2800,7 @@ function genScoringDilemmaPoster(){
     +'<div style="font-weight:600;font-size:18px;color:var(--mute);margin-top:8px;">رأي الأغلبية يُعتمد قبل دور الـ٣٢</div>'
   +'</div>';
 
-  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+optA+optB+cta+'</div></div>';
+  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+matrix+cta+'</div></div>';
   var posterRoot=document.getElementById('posterRoot');
   posterRoot.innerHTML=posterHtml;
 
