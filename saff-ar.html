@@ -1300,7 +1300,7 @@ function storyTeamPicker(){
 function renderStoryLeader(){
   var v=document.getElementById('storyLeader'); if(!v) return;
   v.innerHTML='';
-  var hint=document.createElement('div'); hint.style.cssText='font-size:.72rem;color:var(--muted);text-align:center;padding:4px 0 8px;line-height:1.6;';
+  var hint=document.createElement('div'); hint.style.cssText='font-size:.72rem;color:var(--muted);text-align:center;padding:4px 0 10px;';
   hint.textContent='قصة منتخب · ٣ نقاط لمن يصيب من المعلومة الأولى، ونقطة واحدة من الثانية';
   v.appendChild(hint);
   var keys=Object.keys(usersData||{}).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
@@ -1309,21 +1309,19 @@ function renderStoryLeader(){
     var total=0, plays=0, wins=0;
     Object.keys(rec).forEach(function(d){var r=rec[d]; if(r&&typeof r.pts==='number'){total+=r.pts;plays++;if(r.won)wins++;}});
     return {key:k,name:(usersData[k]&&usersData[k].name)||k,pts:total,plays:plays,wins:wins};
-  }).filter(function(u){return u.plays>0;}) // drop users who haven't played yet
+  }).filter(function(u){return u.plays>0;})
     .sort(function(a,b){return b.pts-a.pts||b.wins-a.wins;});
   if(!rows.length){var em=document.createElement('div');em.className='empty';em.textContent='ما حد لعب بعد. كن أول واحد 🏟️';v.appendChild(em);return;}
-  rows.forEach(function(u,i){
-    var row=document.createElement('div'); row.className='lb-row';
-    row.style.cssText='display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;';
-    var rnk=document.createElement('div');
-    rnk.style.cssText='width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;'+(i===0?'background:#fbbf24;color:#0a2c20;':i===1?'background:#d1d5db;color:#0a2c20;':i===2?'background:#d79b63;color:#0a2c20;':'background:rgba(255,255,255,.10);color:#fff;');
-    rnk.textContent=arNum(i+1);
-    var nm=document.createElement('div'); nm.style.cssText='flex:1;font-weight:700;color:#fff;'; nm.textContent=u.name+(u.key===myKey?' (أنت)':'');
-    var pt=document.createElement('div'); pt.style.cssText='display:flex;align-items:baseline;gap:6px;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.34);border-radius:999px;padding:6px 14px;color:#fde68a;font-weight:800;font-size:.95rem;';
-    pt.textContent=ptsPhrase(u.pts);
-    var sub=document.createElement('div'); sub.style.cssText='font-size:.7rem;color:var(--muted);'; sub.textContent=arNum(u.wins)+'/'+arNum(u.plays);
-    row.appendChild(rnk); row.appendChild(nm); row.appendChild(sub); row.appendChild(pt);
-    v.appendChild(row);
+  rows.forEach(function(r,i){
+    var rank=i+1;
+    var el=document.createElement('div');
+    el.className='lb-row'+(r.key===myKey?' me':'')+(rank<=3?(' top'+rank):'');
+    var medal=rank===1?'🥇':(rank===2?'🥈':(rank===3?'🥉':rank));
+    el.innerHTML='<div class="lb-rank">'+medal+'</div>'+
+      '<div class="lb-name">'+esc(r.name)+(r.key===myKey?' <span class="lb-sub">(أنت)</span>':'')+
+      '<div class="lb-sub">'+arNum(r.wins)+' من '+arNum(r.plays)+' محاولة</div></div>'+
+      '<div class="lb-pts">'+arNum(r.pts)+' <span>'+ptsWord(r.pts)+'</span></div>';
+    v.appendChild(el);
   });
 }
 
