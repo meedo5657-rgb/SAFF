@@ -3226,10 +3226,12 @@ function renderStandings(){
   v.innerHTML='';
   var st=computeStandings();
   var allLocks=computeAllGroupLocks();
+  var allBests={};
+  Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){allBests[g]=_bestPossibleThird(g);});
   Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){
     var card=document.createElement('div');card.className='gr-card';
     var h=document.createElement('h4');h.textContent='المجموعة '+g;card.appendChild(h);
-    var status=computeGroupStatus(g, allLocks);
+    var status=computeGroupStatus(g, allLocks, allBests);
     var tbl=document.createElement('table');tbl.className='gr-tbl';
     tbl.innerHTML='<thead><tr><th>#</th><th>المنتخب</th><th>ل</th><th>ف</th><th>ت</th><th>خ</th><th>ف.أ</th><th>ن</th></tr></thead>';
     var tb=document.createElement('tbody');
@@ -3505,10 +3507,118 @@ function computeAllGroupLocks(){
   Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){out[g]=computeGroupLocks(g);});
   return out;
 }
-// For each team: 'advanced' (guaranteed top-2), 'eliminated' (guaranteed below
-// top-3, i.e. only position 4 is reachable), or 'pending'. Teams locked at
-// position 3 stay 'pending' because best-8-thirds depends on every group.
-function computeGroupStatus(groupKey, locksData){
+// Best possible 3rd-place stats for a group (max pts → gd → gf any team
+// finishing 3rd could achieve across all remaining-match scenarios). Used
+// to decide if a team that might finish 3rd is *guaranteed* top-8 globally.
+function _bestPossibleThird(groupKey){
+  var teams=SCHEDULE_DATA.groups[groupKey]||[];
+  if(teams.length!==4) return null;
+  var groupMatches=MATCHES.filter(function(m){return m.stage==='group' && m.group===groupKey;});
+  var played={}, remaining=[];
+  groupMatches.forEach(function(m){
+    var r=result(m);
+    if(r) played[m.id]={h:Number(r.h), a:Number(r.a)};
+    else remaining.push(m);
+  });
+  if(remaining.length===0){
+    var st=computeStandings(), rows=st[groupKey]||[];
+    return rows.length>=3 ? {pts:rows[2].pts, gd:rows[2].gd, gf:rows[2].gf} : null;
+  }
+  if(remaining.length>6) return null;
+  var outcomes=[{h:5,a:0},{h:1,a:0},{h:0,a:0},{h:0,a:1},{h:0,a:5}];
+  var best=null;
+  var scenarios=Math.pow(outcomes.length, remaining.length);
+  for(var s=0;s<scenarios;s++){
+    var rs=s, scen={};
+    for(var i=0;i<remaining.length;i++){
+      scen[remaining[i].id]=outcomes[rs%outcomes.length];
+      rs=Math.floor(rs/outcomes.length);
+    }
+    var resByMatch={};
+    var rows=teams.map(function(t){return {team:t.name, pts:0, gd:0, gf:0};});
+    var byName={}; rows.forEach(function(r){byName[r.team]=r;});
+    groupMatches.forEach(function(m){
+      var res=played[m.id]||scen[m.id]; if(!res) return;
+      resByMatch[m.id]={h:res.h, a:res.a};
+      var h=byName[m.home], a=byName[m.away];
+      h.gf+=res.h; a.gf+=res.a;
+      h.gd+=res.h-res.a; a.gd+=res.a-res.h;
+      if(res.h>res.a) h.pts+=3;
+      else if(res.h<res.a) a.pts+=3;
+      else {h.pts++; a.pts++;}
+    });
+    var sorted=_fifaSort(groupKey, rows, resByMatch);
+    if(sorted.length>=3){
+      var third=sorted[2];
+      if(!best || third.pts>best.pts || (third.pts===best.pts && third.gd>best.gd) || (third.pts===best.pts && third.gd===best.gd && third.gf>best.gf)){
+        best={pts:third.pts, gd:third.gd, gf:third.gf};
+      }
+    }
+  }
+  return best;
+}
+// Is `team` (a member of `groupKey`) guaranteed to be in the top-8 third
+// across every remaining scenario in its group? For each scenario where they
+// finish 3rd, we count how many OTHER groups could produce a 3rd with better
+// stats — if ≤ 7 others could beat them, they're safe.
+function _guaranteedTop8AsThird(team, groupKey, otherBests){
+  var teams=SCHEDULE_DATA.groups[groupKey]||[];
+  if(teams.length!==4) return false;
+  var groupMatches=MATCHES.filter(function(m){return m.stage==='group' && m.group===groupKey;});
+  var played={}, remaining=[];
+  groupMatches.forEach(function(m){
+    var r=result(m);
+    if(r) played[m.id]={h:Number(r.h), a:Number(r.a)};
+    else remaining.push(m);
+  });
+  if(remaining.length>6) return false;
+  function statsBetter(a, b){
+    if(a.pts!==b.pts) return a.pts>b.pts;
+    if(a.gd!==b.gd) return a.gd>b.gd;
+    return a.gf>b.gf;
+  }
+  var outcomes=[{h:5,a:0},{h:1,a:0},{h:0,a:0},{h:0,a:1},{h:0,a:5}];
+  var scenarios=remaining.length===0 ? 1 : Math.pow(outcomes.length, remaining.length);
+  for(var s=0;s<scenarios;s++){
+    var rs=s, scen={};
+    for(var i=0;i<remaining.length;i++){
+      scen[remaining[i].id]=outcomes[rs%outcomes.length];
+      rs=Math.floor(rs/outcomes.length);
+    }
+    var resByMatch={};
+    var rows=teams.map(function(t){return {team:t.name, pts:0, gd:0, gf:0};});
+    var byName={}; rows.forEach(function(r){byName[r.team]=r;});
+    groupMatches.forEach(function(m){
+      var res=played[m.id]||scen[m.id]; if(!res) return;
+      resByMatch[m.id]={h:res.h, a:res.a};
+      var h=byName[m.home], a=byName[m.away];
+      h.gf+=res.h; a.gf+=res.a;
+      h.gd+=res.h-res.a; a.gd+=res.a-res.h;
+      if(res.h>res.a) h.pts+=3;
+      else if(res.h<res.a) a.pts+=3;
+      else {h.pts++; a.pts++;}
+    });
+    var sorted=_fifaSort(groupKey, rows, resByMatch);
+    var idx=-1;
+    for(var k=0;k<sorted.length;k++){ if(sorted[k].team===team){idx=k;break;} }
+    if(idx<0) continue;
+    if(idx===3) return false;       // 4th = eliminated, not top-8 third
+    if(idx<=1) continue;            // top-2, this scenario fine
+    // idx === 2 (3rd) — count groups that could produce a better 3rd
+    var ts={pts:sorted[2].pts, gd:sorted[2].gd, gf:sorted[2].gf};
+    var threats=0;
+    Object.keys(otherBests).forEach(function(og){
+      if(og===groupKey) return;
+      var b=otherBests[og];
+      if(b && statsBetter(b, ts)) threats++;
+    });
+    if(threats>7) return false;
+  }
+  return true;
+}
+// For each team: 'advanced' (guaranteed top-2, or guaranteed top-3 with safe
+// top-8 third standing), 'eliminated' (locked at 4th), or 'pending'.
+function computeGroupStatus(groupKey, locksData, allOtherBests){
   var data=(locksData && locksData[groupKey]) || computeGroupLocks(groupKey);
   var possible=data.possible||{}, out={};
   Object.keys(possible).forEach(function(team){
@@ -3516,9 +3626,13 @@ function computeGroupStatus(groupKey, locksData){
     if(!positions.length){ out[team]='pending'; return; }
     var maxPos=Math.max.apply(null,positions);
     var minPos=Math.min.apply(null,positions);
-    if(maxPos<=2) out[team]='advanced';
-    else if(minPos===4) out[team]='eliminated';
-    else out[team]='pending';
+    if(maxPos<=2){ out[team]='advanced'; return; }
+    if(minPos===4){ out[team]='eliminated'; return; }
+    // Could finish 3rd at worst — check if guaranteed top-8 globally
+    if(maxPos<=3 && allOtherBests && _guaranteedTop8AsThird(team, groupKey, allOtherBests)){
+      out[team]='advanced'; return;
+    }
+    out[team]='pending';
   });
   return out;
 }
