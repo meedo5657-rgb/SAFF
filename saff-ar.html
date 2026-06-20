@@ -3242,27 +3242,44 @@ function rankedThirds(st){
   return arr.slice(0,8);
 }
 // Assign the 8 best third-placed teams to the 8 R32 "3rd Group X/Y/Z/W/V"
-// slots. FIFA publishes a fixed mapping for 2026; without that table here,
-// we use a greedy fill: for each slot in match order, pick the highest-ranked
-// remaining team whose group is in the slot's allowed list.
+// slots. FIFA publishes a fixed lookup table for 2026 (495 entries by group
+// combination). We don't have that table here, so we use Kuhn's bipartite
+// matching with backtracking — guarantees a valid assignment that respects
+// every slot's allowed-group constraint. May differ from FIFA's specific
+// choice in rare cases when multiple perfect matchings exist.
 function assignThirdSlots(st){
   var top8=rankedThirds(st);
-  var remaining=top8.slice();
-  var out={};
+  var slots=[];
   MATCHES.forEach(function(mm){
     if(mm.stage!=='R32') return;
     ['home','away'].forEach(function(side){
-      var slot=mm[side];
-      var x=String(slot||'').match(/^3rd Group ([A-L\/]+)$/);
-      if(!x) return;
-      var allowed=x[1].split('/');
-      for(var i=0;i<remaining.length;i++){
-        if(allowed.indexOf(remaining[i].group)>=0){
-          out[mm.id+'/'+side]=remaining.splice(i,1)[0];
-          return;
-        }
-      }
+      var x=String(mm[side]||'').match(/^3rd Group ([A-L\/]+)$/);
+      if(x) slots.push({id:mm.id+'/'+side, allowed:x[1].split('/')});
     });
+  });
+  if(!top8.length || !slots.length) return {};
+  // Kuhn's algorithm: matchOf[ti] = slotIdx assigned to third ti
+  var matchOf={};
+  function tryKuhn(slotIdx, visited){
+    var slot=slots[slotIdx];
+    for(var ti=0; ti<top8.length; ti++){
+      if(slot.allowed.indexOf(top8[ti].group)<0) continue;
+      if(visited[ti]) continue;
+      visited[ti]=true;
+      if(matchOf[ti]===undefined || tryKuhn(matchOf[ti], visited)){
+        matchOf[ti]=slotIdx;
+        return true;
+      }
+    }
+    return false;
+  }
+  for(var si=0; si<slots.length; si++){
+    tryKuhn(si, {});
+  }
+  var out={};
+  Object.keys(matchOf).forEach(function(ti){
+    var slotIdx=matchOf[ti];
+    out[slots[slotIdx].id]=top8[ti];
   });
   return out;
 }
