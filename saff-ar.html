@@ -3241,6 +3241,89 @@ function rankedThirds(st){
   arr.sort(function(a,b){if(b.pts!==a.pts)return b.pts-a.pts;if(b.gd!==a.gd)return b.gd-a.gd;if(b.gf!==a.gf)return b.gf-a.gf;return a.team.localeCompare(b.team);});
   return arr.slice(0,8);
 }
+// Mathematical position lock per group: returns {team: position} for teams whose
+// final position (1-4) is already guaranteed regardless of remaining matches.
+// Enumerates 3^n outcome scenarios (W/D/L per remaining match, n≤6) and checks
+// if a team's possible position set has exactly one value. Conservative: when
+// teams tie on points, we mark all positions in the tied range as possible
+// (so locking only fires when there's a strict pts gap).
+function computeGroupLocks(groupKey){
+  var teams=SCHEDULE_DATA.groups[groupKey]||[];
+  if(teams.length!==4) return {};
+  var groupMatches=MATCHES.filter(function(m){return m.stage==='group' && m.group===groupKey;});
+  var played={}, remaining=[];
+  groupMatches.forEach(function(m){
+    var r=result(m);
+    if(r) played[m.id]={h:Number(r.h), a:Number(r.a)};
+    else remaining.push(m);
+  });
+  var names=teams.map(function(t){return t.name;});
+  if(remaining.length===0){
+    var st=computeStandings(), rows=st[groupKey]||[], out={};
+    rows.forEach(function(r,i){out[r.team]=i+1;});
+    return out;
+  }
+  if(remaining.length>6) return {};
+  var possible={};
+  names.forEach(function(n){possible[n]={};});
+  function scoreFor(outcome){
+    if(outcome===0) return {h:1,a:0};
+    if(outcome===1) return {h:0,a:0};
+    return {h:0,a:1};
+  }
+  var scenarios=Math.pow(3, remaining.length);
+  for(var s=0;s<scenarios;s++){
+    var rs=s, scen={};
+    for(var i=0;i<remaining.length;i++){
+      scen[remaining[i].id]=scoreFor(rs%3);
+      rs=Math.floor(rs/3);
+    }
+    var rows=names.map(function(t){return {team:t, pts:0};});
+    var byName={}; rows.forEach(function(r){byName[r.team]=r;});
+    groupMatches.forEach(function(m){
+      var t=teamsOf(m), res=played[m.id]||scen[m.id];
+      if(!res) return;
+      var h=byName[t.home], a=byName[t.away];
+      if(!h||!a) return;
+      if(res.h>res.a) h.pts+=3;
+      else if(res.h<res.a) a.pts+=3;
+      else {h.pts++; a.pts++;}
+    });
+    // Bucket by pts (descending); each tied bucket gives every team in it
+    // the full position range of the bucket.
+    var byPts={};
+    rows.forEach(function(r){if(!byPts[r.pts])byPts[r.pts]=[];byPts[r.pts].push(r);});
+    var keys=Object.keys(byPts).map(Number).sort(function(a,b){return b-a;});
+    var pos=1;
+    keys.forEach(function(p){
+      var bucket=byPts[p];
+      bucket.forEach(function(r){
+        for(var k=pos;k<pos+bucket.length;k++) possible[r.team][k]=true;
+      });
+      pos+=bucket.length;
+    });
+  }
+  var locked={};
+  names.forEach(function(name){
+    var positions=Object.keys(possible[name]);
+    if(positions.length===1) locked[name]=Number(positions[0]);
+  });
+  return locked;
+}
+function computeAllGroupLocks(){
+  var out={};
+  Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){out[g]=computeGroupLocks(g);});
+  return out;
+}
+// All 72 group-stage matches done? Used to decide if 3rd-place teams qualify
+// as "locked" (since top-8 third selection needs every group's final stats).
+function groupStageComplete(){
+  for(var i=0;i<MATCHES.length;i++){
+    var m=MATCHES[i];
+    if(m.stage==='group' && !result(m)) return false;
+  }
+  return true;
+}
 // Assign the 8 best third-placed teams to the 8 R32 "3rd Group X/Y/Z/W/V"
 // slots — using FIFA's official 2026 Annexe C lookup table (495 combinations).
 // Each table value is an 8-char string giving the group letter that fills
@@ -3310,7 +3393,7 @@ function _assignThirdsBipartite(st, top8){
 function _arPos(p){return p===1?'أول':(p===2?'ثاني':(p===3?'ثالث':''));}
 function predictedSlot(name, ctx){
   if(!name) return null;
-  var st=ctx.standings, ta=ctx.thirdAssign;
+  var st=ctx.standings, ta=ctx.thirdAssign, gl=ctx.groupLocks||{}, gsDone=ctx.groupStageDone;
   if(_isResolved(name)){
     var gFound=null, pFound=0;
     Object.keys(st||{}).forEach(function(g){
@@ -3321,15 +3404,22 @@ function predictedSlot(name, ctx){
   var m;
   if((m=name.match(/^Winner Group ([A-L])$/))){
     var row=st[m[1]]&&st[m[1]][0];
-    return row?{team:row.team, group:m[1], pos:1, posLabel:'أول '+m[1], tentative:true}:null;
+    if(!row) return null;
+    var lockedAt1 = gl[m[1]] && gl[m[1]][row.team]===1;
+    return {team:row.team, group:m[1], pos:1, posLabel:'أول '+m[1], tentative: !lockedAt1};
   }
   if((m=name.match(/^Runner[- ]?up Group ([A-L])$/))){
     var row2=st[m[1]]&&st[m[1]][1];
-    return row2?{team:row2.team, group:m[1], pos:2, posLabel:'ثاني '+m[1], tentative:true}:null;
+    if(!row2) return null;
+    var lockedAt2 = gl[m[1]] && gl[m[1]][row2.team]===2;
+    return {team:row2.team, group:m[1], pos:2, posLabel:'ثاني '+m[1], tentative: !lockedAt2};
   }
   if((m=name.match(/^3rd Group ([A-L\/]+)$/))){
     var pick=ta[ctx.matchId+'/'+ctx.side];
-    return pick?{team:pick.team, group:pick.group, pos:3, posLabel:'ثالث '+pick.group, tentative:true}:null;
+    if(!pick) return null;
+    // 3rd-place slot is only "secured" once every group stage match is finished
+    // (top-8 selection across all 12 groups requires full final standings).
+    return {team:pick.team, group:pick.group, pos:3, posLabel:'ثالث '+pick.group, tentative: !gsDone};
   }
   if((m=name.match(/^Winner Match (\d+)$/))){
     var srcId='m'+m[1], src=MATCH_BY_ID[srcId]; if(!src) return null;
@@ -3367,7 +3457,7 @@ function brWhen(m){
   var hh=d.getHours(), suf=(hh>=12?'م':'ص'); var h12=hh%12; if(h12===0) h12=12;
   return arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' · '+arNum(h12)+suf;
 }
-function bracketCard(m, standings, thirdAssign){
+function bracketCard(m, ctx){
   var t=teamsOf(m), r=result(m), lv=liveScore(m);
   var live = lv && !r;
   var done = !!r;
@@ -3380,7 +3470,7 @@ function bracketCard(m, standings, thirdAssign){
     else if(r.pw){ hWin=(r.pw==='h'); aWin=(r.pw==='a'); }
   }
   function row(slotCurr, slotOrig, side, score, won, lost){
-    var info = predictedSlot(slotOrig||slotCurr, {matchId:m.id, side:side, standings:standings, thirdAssign:thirdAssign});
+    var info = predictedSlot(slotOrig||slotCurr, {matchId:m.id, side:side, standings:ctx.standings, thirdAssign:ctx.thirdAssign, groupLocks:ctx.groupLocks, groupStageDone:ctx.groupStageDone});
     var c='br-team';
     var hasTeam = !!(info && info.team && FLAG_CODE[info.team]);
     if(hasTeam){
@@ -3407,8 +3497,12 @@ function bracketCard(m, standings, thirdAssign){
 function renderBracket(){
   var v=document.getElementById('bracketView'); if(!v) return;
   var orders=bracketOrders();
-  var standings=computeStandings();
-  var thirdAssign=assignThirdSlots(standings);
+  var ctx={
+    standings: computeStandings(),
+    groupLocks: computeAllGroupLocks(),
+    groupStageDone: groupStageComplete()
+  };
+  ctx.thirdAssign = assignThirdSlots(ctx.standings);
   var thirdM=null;
   for(var i=0;i<MATCHES.length;i++){ if(MATCHES[i].stage==='3RD'){thirdM=MATCHES[i];break;} }
   var stages=[
@@ -3418,15 +3512,15 @@ function renderBracket(){
     {code:'SF',   label:'نصف النهائي'},
     {code:'FINAL',label:'النهائي'}
   ];
-  var html='<div class="br-hint">الخانات (أول/ثاني/ثالث) بناءً على ترتيب المجموعات الحالي · ✻ = مؤقت · اسحب أفقيًا ↔</div>';
+  var html='<div class="br-hint">الخانات تتحدث مع كل نتيجة · ✻ = مقعد غير مضمون رياضيًا · اسحب أفقيًا ↔</div>';
   html+='<div class="br-wrap"><div class="br-grid">';
   stages.forEach(function(s){
     html+='<div class="br-col"><div class="br-col-h">'+esc(s.label)+'</div>';
     html+='<div class="br-col-body">';
-    (orders[s.code]||[]).forEach(function(m){ html+=bracketCard(m, standings, thirdAssign); });
+    (orders[s.code]||[]).forEach(function(m){ html+=bracketCard(m, ctx); });
     html+='</div>';
     if(s.code==='FINAL' && thirdM){
-      html+='<div class="br-third"><div class="br-third-h">🥉 مباراة المركز الثالث</div>'+bracketCard(thirdM, standings, thirdAssign)+'</div>';
+      html+='<div class="br-third"><div class="br-third-h">🥉 مباراة المركز الثالث</div>'+bracketCard(thirdM, ctx)+'</div>';
     }
     html+='</div>';
   });
