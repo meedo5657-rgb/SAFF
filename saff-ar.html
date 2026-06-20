@@ -167,6 +167,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .br-team.tba .nm{color:var(--muted);font-weight:600;font-size:.72rem;}
 .br-team.tent .nm{color:#cfe6d4;}
 .br-team.tent .nm::after{content:" ✻";color:#8fb3a0;font-size:.66rem;font-weight:600;}
+.br-team:not(.tba):not(.tent) .nm::after{content:" ✓";color:#7fd9a6;font-size:.66rem;font-weight:700;}
 .br-team.tent img.flag{opacity:.72;}
 .br-third{margin-top:14px;padding:8px;border-radius:10px;background:rgba(255,255,255,.025);border:1px dashed var(--line);display:flex;flex-direction:column;gap:6px;}
 .br-third-h{font-size:.68rem;font-weight:800;color:var(--muted);text-align:center;letter-spacing:.5px;}
@@ -3598,7 +3599,7 @@ function renderBracket(){
     {code:'SF',   label:'نصف النهائي'},
     {code:'FINAL',label:'النهائي'}
   ];
-  var html='<div class="br-hint">✻ = مقعد متوقّع · اسحب أفقيًا ↔</div>';
+  var html='<div class="br-hint">✓ = مقعد مؤكّد · ✻ = مقعد متوقّع · اسحب أفقيًا ↔</div>';
   html+='<div class="br-wrap"><div class="br-grid">';
   stages.forEach(function(s){
     html+='<div class="br-col"><div class="br-col-h">'+esc(s.label)+'</div>';
