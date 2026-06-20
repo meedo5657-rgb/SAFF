@@ -144,6 +144,28 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .ko-opts{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
 .ko-chip{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;color:var(--text);background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;padding:4px 9px;white-space:nowrap;}
 .ko-chip img.flag{width:18px;height:12px;object-fit:cover;border-radius:2px;}
+/* Knockouts bracket tree (horizontal scroll, RTL) */
+.br-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:4px 0 12px;}
+.br-grid{display:flex;direction:rtl;gap:14px;min-width:max-content;align-items:stretch;}
+.br-col{display:flex;flex-direction:column;width:200px;flex-shrink:0;}
+.br-col-h{text-align:center;padding:7px 0;font-weight:800;color:#fde68a;font-size:.78rem;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:8px;}
+.br-col-body{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:8px;min-height:1280px;}
+.br-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;}
+.br-card.done{border-color:rgba(10,92,51,.45);background:rgba(10,92,51,.06);}
+.br-card.live{border-color:#dc2626;box-shadow:0 0 0 1px rgba(220,38,38,.30);}
+.br-meta{font-size:.62rem;color:var(--muted);font-weight:700;display:flex;justify-content:space-between;gap:6px;}
+.br-meta .br-no{color:#fde68a;}
+.br-team{display:flex;align-items:center;gap:7px;padding:2px 0;min-width:0;}
+.br-team img.flag{width:20px;height:14px;object-fit:cover;border-radius:2px;flex-shrink:0;}
+.br-team .nm{flex:1;font-weight:700;color:var(--text);font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.br-team .sc{font-weight:800;color:var(--text);min-width:14px;text-align:center;font-size:.85rem;}
+.br-team .ph{width:20px;height:14px;flex-shrink:0;border:1px dashed rgba(255,255,255,.18);border-radius:2px;}
+.br-team.win .nm,.br-team.win .sc{color:#fde68a;}
+.br-team.lose .nm,.br-team.lose .sc{color:var(--muted);}
+.br-team.tba .nm{color:var(--muted);font-weight:600;font-size:.72rem;}
+.br-third{margin-top:14px;padding:8px;border-radius:10px;background:rgba(255,255,255,.025);border:1px dashed var(--line);display:flex;flex-direction:column;gap:6px;}
+.br-third-h{font-size:.68rem;font-weight:800;color:var(--muted);text-align:center;letter-spacing:.5px;}
+.br-hint{font-size:.72rem;color:var(--muted);text-align:center;padding:4px;}
 .sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
 .sc-rank{font-weight:800;color:var(--muted);min-width:24px;text-align:center;font-size:.95rem;}
 .sc-row:nth-child(1) .sc-rank,.sc-row:nth-child(2) .sc-rank{color:#fde68a;}
@@ -512,10 +534,12 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
     <button class="sub-tab active" data-sub="standings">الترتيب</button>
     <button class="sub-tab" data-sub="scorers">الهدافون</button>
     <button class="sub-tab" data-sub="knockouts">الإقصائيات</button>
+    <button class="sub-tab" data-sub="bracket">الشجرة</button>
   </div>
   <div id="standingsView" style="width:100%;display:flex;flex-direction:column;gap:14px;"></div>
   <div id="scorersView" style="width:100%;display:none;flex-direction:column;gap:8px;"></div>
   <div id="knockoutsView" style="width:100%;display:none;flex-direction:column;gap:14px;"></div>
+  <div id="bracketView" style="width:100%;display:none;flex-direction:column;gap:8px;"></div>
 </div>
 
 <!-- RULES -->
@@ -3085,7 +3109,11 @@ function renderScorers(){
     loadOF();
   }
 }
-function renderGroups(){renderStandings();renderScorers();var kv=document.getElementById('knockoutsView');if(kv&&kv.style.display!=='none')renderKnockouts();}
+function renderGroups(){
+  renderStandings();renderScorers();
+  var kv=document.getElementById('knockoutsView');if(kv&&kv.style.display!=='none')renderKnockouts();
+  var bv=document.getElementById('bracketView');if(bv&&bv.style.display!=='none')renderBracket();
+}
 // ===== Knockouts tab =====
 // Resolve a fixture slot (e.g. "Winner Group A", "Runner-up Group B",
 // "3rd Group A/B/C/D/F", "Winner Match 73", "Loser Match 101") to the list
@@ -3172,9 +3200,100 @@ function arSlotLabel(name){
   if((m=name.match(/^Winner Group ([A-L])$/))) return 'متصدّر المجموعة '+m[1];
   if((m=name.match(/^Runner[- ]?up Group ([A-L])$/))) return 'وصيف المجموعة '+m[1];
   if((m=name.match(/^3rd Group ([A-L\/]+)$/))) return 'ثالث من المجموعات '+m[1].split('/').join('/');
-  if((m=name.match(/^Winner Match (\d+)$/))) return 'الفائز من المباراة '+m[1];
-  if((m=name.match(/^Loser Match (\d+)$/))) return 'الخاسر من المباراة '+m[1];
+  if((m=name.match(/^Winner Match (\d+)$/))) return 'فائز م '+arNum(m[1]);
+  if((m=name.match(/^Loser Match (\d+)$/))) return 'خاسر م '+arNum(m[1]);
   return name;
+}
+
+// ===== Bracket tree (knockouts) — BBC-style visual bracket =====
+// Visual top-to-bottom order in each column is derived by walking from FINAL
+// backwards via the "Winner Match X" feeders, so midpoints line up.
+function bracketOrders(){
+  var orders={R32:[],R16:[],QF:[],SF:[],FINAL:[]};
+  var finalM=null;
+  for(var i=0;i<MATCHES.length;i++){ if(MATCHES[i].stage==='FINAL'){finalM=MATCHES[i];break;} }
+  if(!finalM) return orders;
+  var queue=[finalM];
+  while(queue.length){
+    var next=[];
+    queue.forEach(function(m){ if(orders[m.stage]) orders[m.stage].push(m); });
+    queue.forEach(function(m){
+      [m.home,m.away].forEach(function(slot){
+        var mm=String(slot||'').match(/^Winner Match (\d+)$/);
+        if(mm){ var fm=MATCH_BY_ID['m'+mm[1]]; if(fm) next.push(fm); }
+      });
+    });
+    queue=next;
+  }
+  return orders;
+}
+function brWhen(m){
+  var t=Date.parse(m.utc); if(isNaN(t)) return '';
+  var d=new Date(t);
+  var hh=d.getHours(), suf=(hh>=12?'م':'ص'); var h12=hh%12; if(h12===0) h12=12;
+  return arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' · '+arNum(h12)+suf;
+}
+function bracketCard(m){
+  var t=teamsOf(m), r=result(m), lv=liveScore(m);
+  var live = lv && !r;
+  var done = !!r;
+  var hN=r?Number(r.h):(live?Number(lv.h):null);
+  var aN=r?Number(r.a):(live?Number(lv.a):null);
+  var hWin=false, aWin=false;
+  if(r){
+    if(hN>aN) hWin=true;
+    else if(aN>hN) aWin=true;
+    else if(r.pw){ hWin=(r.pw==='h'); aWin=(r.pw==='a'); }
+  }
+  function row(slotCurr, slotOrig, score, won, lost){
+    var resolved=_isResolved(slotCurr);
+    var c='br-team';
+    if(resolved){
+      if(won) c+=' win';
+      else if(lost) c+=' lose';
+    } else c+=' tba';
+    var flag = resolved
+      ? '<img class="flag" src="https://flagcdn.com/w40/'+FLAG_CODE[slotCurr]+'.png" alt="">'
+      : '<div class="ph"></div>';
+    var nm = resolved ? arTeam(slotCurr) : arSlotLabel(slotOrig||slotCurr);
+    var sc = (score!=null) ? ('<span class="sc">'+esc(arNum(score))+'</span>') : '';
+    return '<div class="'+c+'">'+flag+'<span class="nm">'+esc(nm)+'</span>'+sc+'</div>';
+  }
+  var clas = done?'done':(live?'live':'');
+  var when = brWhen(m);
+  var statusBit = live ? '<span style="color:#fca5a5;">مباشر</span>' : esc(when);
+  return '<div class="br-card '+clas+'">'
+    +'<div class="br-meta"><span class="br-no">مباراة '+esc(arNum(m.n))+'</span><span>'+statusBit+'</span></div>'
+    +row(t.home, m.home, hN, hWin, aWin)
+    +row(t.away, m.away, aN, aWin, hWin)
+  +'</div>';
+}
+function renderBracket(){
+  var v=document.getElementById('bracketView'); if(!v) return;
+  var orders=bracketOrders();
+  var thirdM=null;
+  for(var i=0;i<MATCHES.length;i++){ if(MATCHES[i].stage==='3RD'){thirdM=MATCHES[i];break;} }
+  var stages=[
+    {code:'R32',  label:'دور الـ٣٢'},
+    {code:'R16',  label:'دور الـ١٦'},
+    {code:'QF',   label:'ربع النهائي'},
+    {code:'SF',   label:'نصف النهائي'},
+    {code:'FINAL',label:'النهائي'}
+  ];
+  var html='<div class="br-hint">اسحب أفقيًا ↔ لرؤية كامل الشجرة</div>';
+  html+='<div class="br-wrap"><div class="br-grid">';
+  stages.forEach(function(s){
+    html+='<div class="br-col"><div class="br-col-h">'+esc(s.label)+'</div>';
+    html+='<div class="br-col-body">';
+    (orders[s.code]||[]).forEach(function(m){ html+=bracketCard(m); });
+    html+='</div>';
+    if(s.code==='FINAL' && thirdM){
+      html+='<div class="br-third"><div class="br-third-h">🥉 مباراة المركز الثالث</div>'+bracketCard(thirdM)+'</div>';
+    }
+    html+='</div>';
+  });
+  html+='</div></div>';
+  v.innerHTML=html;
 }
 
 // ===== LEADERBOARD =====
@@ -3379,7 +3498,9 @@ document.querySelectorAll('.sub-tab[data-sub]').forEach(function(b){b.addEventLi
   document.getElementById('standingsView').style.display=s==='standings'?'flex':'none';
   document.getElementById('scorersView').style.display=s==='scorers'?'flex':'none';
   document.getElementById('knockoutsView').style.display=s==='knockouts'?'flex':'none';
+  document.getElementById('bracketView').style.display=s==='bracket'?'flex':'none';
   if(s==='knockouts') renderKnockouts();
+  if(s==='bracket') renderBracket();
 });});
 document.querySelectorAll('.sub-tab[data-leadsub]').forEach(function(b){b.addEventListener('click',function(){
   var s=b.dataset.leadsub;
