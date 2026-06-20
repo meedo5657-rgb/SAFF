@@ -124,16 +124,14 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .gr-tbl td.gr-team{text-align:right;}
 .gr-team{display:flex;align-items:center;gap:6px;font-weight:700;}
 .gr-flag{font-size:1.1rem;}
-.gr-tbl tr.gr-q td:first-child{box-shadow:inset 3px 0 0 #22c55e;}
-.gr-tbl tr.gr-q3 td:first-child{box-shadow:inset 3px 0 0 #fbbf24;}
+.gr-tbl tr.gr-adv td:first-child{box-shadow:inset 3px 0 0 #22c55e;}
+.gr-tbl tr.gr-adv td{background:rgba(34,197,94,.08);}
+.gr-tbl tr.gr-out td:first-child{box-shadow:inset 3px 0 0 #6b7280;}
+.gr-tbl tr.gr-out td{background:rgba(107,114,128,.08);color:var(--muted);}
 .gr-legend{display:flex;gap:14px;font-size:.74rem;color:var(--muted);align-items:center;padding-top:4px;flex-wrap:wrap;}
 .gr-legend span{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle;}
-.gr-legend .lg-q{background:#22c55e;}
-.gr-legend .lg-q3{background:#fbbf24;}
-.gr-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:.66rem;font-weight:900;line-height:1;vertical-align:middle;margin-inline-start:4px;}
-.gr-badge-q{background:#22c55e;color:#0a1f12;}
-.gr-badge-out{background:#dc2626;color:#fff;}
-.gr-legend .gr-badge{width:18px;height:18px;margin-inline-end:5px;border-radius:50%;}
+.gr-legend .lg-adv{background:#22c55e;}
+.gr-legend .lg-out{background:#6b7280;}
 .ko-sec{display:flex;flex-direction:column;gap:10px;}
 .ko-sh{font-size:.95rem;font-weight:800;color:#fde68a;padding:4px 2px;border-bottom:1px solid var(--line);}
 .ko-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;}
@@ -540,8 +538,8 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
   <div class="sub-tabs">
     <button class="sub-tab active" data-sub="standings">الترتيب</button>
     <button class="sub-tab" data-sub="scorers">الهدافون</button>
-    <button class="sub-tab" data-sub="knockouts">الإقصائيات</button>
-    <button class="sub-tab" data-sub="bracket">الشجرة</button>
+    <button class="sub-tab" data-sub="bracket">شجرة الإقصائيات</button>
+    <button class="sub-tab" data-sub="knockouts">احتمالات دور الـ٣٢</button>
   </div>
   <div id="standingsView" style="width:100%;display:flex;flex-direction:column;gap:14px;"></div>
   <div id="scorersView" style="width:100%;display:none;flex-direction:column;gap:8px;"></div>
@@ -3114,21 +3112,18 @@ function renderStandings(){
     var tb=document.createElement('tbody');
     (st[g]||[]).forEach(function(r,i){
       var tr=document.createElement('tr');
-      if(i<2)tr.className='gr-q';
-      else if(i===2)tr.className='gr-q3';
       var stat=status[r.team];
-      var badge='';
-      if(stat==='advanced') badge=' <span class="gr-badge gr-badge-q" title="ضامن التأهل">✓</span>';
-      else if(stat==='eliminated') badge=' <span class="gr-badge gr-badge-out" title="مودّع">✗</span>';
+      if(stat==='advanced') tr.className='gr-adv';
+      else if(stat==='eliminated') tr.className='gr-out';
       tr.innerHTML='<td>'+(i+1)+'</td>'+
-        '<td class="gr-team">'+flagImg(r.team,28)+esc(r.team)+badge+'</td>'+
+        '<td class="gr-team">'+flagImg(r.team,28)+esc(r.team)+'</td>'+
         '<td>'+r.p+'</td><td>'+r.w+'</td><td>'+r.d+'</td><td>'+r.l+'</td>'+
         '<td>'+(r.gd>0?'+':'')+r.gd+'</td><td><b>'+r.pts+'</b></td>';
       tb.appendChild(tr);
     });
     tbl.appendChild(tb);card.appendChild(tbl);
     var lg=document.createElement('div');lg.className='gr-legend';
-    lg.innerHTML='<span class="lg-q"></span>يتأهل مباشرة · <span class="lg-q3"></span>أفضل ثالث · <span class="gr-badge gr-badge-q">✓</span>ضامن · <span class="gr-badge gr-badge-out">✗</span>مودّع';
+    lg.innerHTML='<span class="lg-adv"></span>ضامن التأهّل · <span class="lg-out"></span>مودّع';
     card.appendChild(lg);
     v.appendChild(card);
   });
