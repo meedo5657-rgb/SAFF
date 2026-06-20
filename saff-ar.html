@@ -163,6 +163,9 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .br-team.win .nm,.br-team.win .sc{color:#fde68a;}
 .br-team.lose .nm,.br-team.lose .sc{color:var(--muted);}
 .br-team.tba .nm{color:var(--muted);font-weight:600;font-size:.72rem;}
+.br-team.tent .nm{color:#cfe6d4;}
+.br-team.tent .nm::after{content:" ✻";color:#8fb3a0;font-size:.66rem;font-weight:600;}
+.br-team.tent img.flag{opacity:.72;}
 .br-third{margin-top:14px;padding:8px;border-radius:10px;background:rgba(255,255,255,.025);border:1px dashed var(--line);display:flex;flex-direction:column;gap:6px;}
 .br-third-h{font-size:.68rem;font-weight:800;color:var(--muted);text-align:center;letter-spacing:.5px;}
 .br-hint{font-size:.72rem;color:var(--muted);text-align:center;padding:4px;}
@@ -3227,13 +3230,58 @@ function bracketOrders(){
   }
   return orders;
 }
+// Resolve a slot to a country name using current group standings (R32) or
+// recorded KO results (R16+). Returns {team, tentative} or null.
+function predictedSlot(name, standings){
+  if(!name) return null;
+  if(_isResolved(name)) return {team:name, tentative:false};
+  var m, st=standings||computeStandings();
+  if((m=name.match(/^Winner Group ([A-L])$/))){
+    var row=st[m[1]]&&st[m[1]][0];
+    return row ? {team:row.team, tentative:true} : null;
+  }
+  if((m=name.match(/^Runner[- ]?up Group ([A-L])$/))){
+    var row2=st[m[1]]&&st[m[1]][1];
+    return row2 ? {team:row2.team, tentative:true} : null;
+  }
+  if((m=name.match(/^3rd Group ([A-L\/]+)$/))){
+    var gs=m[1].split('/'), thirds=[];
+    gs.forEach(function(g){ if(st[g]&&st[g][2]) thirds.push(st[g][2]); });
+    if(!thirds.length) return null;
+    thirds.sort(function(a,b){if(b.pts!==a.pts)return b.pts-a.pts;if(b.gd!==a.gd)return b.gd-a.gd;if(b.gf!==a.gf)return b.gf-a.gf;return a.team.localeCompare(b.team);});
+    return {team:thirds[0].team, tentative:true};
+  }
+  if((m=name.match(/^Winner Match (\d+)$/))){
+    var src=MATCH_BY_ID['m'+m[1]]; if(!src) return null;
+    var r=result(src); if(!r) return null;
+    var t=teamsOf(src);
+    var hN=Number(r.h), aN=Number(r.a);
+    var winSide = hN>aN ? 'h' : (aN>hN ? 'a' : (r.pw==='h'?'h':(r.pw==='a'?'a':null)));
+    if(!winSide) return null;
+    var winName = winSide==='h' ? t.home : t.away;
+    if(_isResolved(winName)) return {team:winName, tentative:false};
+    return predictedSlot(winSide==='h'?src.home:src.away, st);
+  }
+  if((m=name.match(/^Loser Match (\d+)$/))){
+    var src2=MATCH_BY_ID['m'+m[1]]; if(!src2) return null;
+    var r2=result(src2); if(!r2) return null;
+    var t2=teamsOf(src2);
+    var hN2=Number(r2.h), aN2=Number(r2.a);
+    var loseSide = hN2>aN2 ? 'a' : (aN2>hN2 ? 'h' : (r2.pw==='h'?'a':(r2.pw==='a'?'h':null)));
+    if(!loseSide) return null;
+    var loseName = loseSide==='h' ? t2.home : t2.away;
+    if(_isResolved(loseName)) return {team:loseName, tentative:false};
+    return predictedSlot(loseSide==='h'?src2.home:src2.away, st);
+  }
+  return null;
+}
 function brWhen(m){
   var t=Date.parse(m.utc); if(isNaN(t)) return '';
   var d=new Date(t);
   var hh=d.getHours(), suf=(hh>=12?'م':'ص'); var h12=hh%12; if(h12===0) h12=12;
   return arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' · '+arNum(h12)+suf;
 }
-function bracketCard(m){
+function bracketCard(m, standings){
   var t=teamsOf(m), r=result(m), lv=liveScore(m);
   var live = lv && !r;
   var done = !!r;
@@ -3247,15 +3295,21 @@ function bracketCard(m){
   }
   function row(slotCurr, slotOrig, score, won, lost){
     var resolved=_isResolved(slotCurr);
+    var team=slotCurr, tentative=false;
+    if(!resolved){
+      var p=predictedSlot(slotOrig||slotCurr, standings);
+      if(p){ team=p.team; resolved=true; tentative=p.tentative; }
+    }
     var c='br-team';
     if(resolved){
       if(won) c+=' win';
       else if(lost) c+=' lose';
+      if(tentative) c+=' tent';
     } else c+=' tba';
     var flag = resolved
-      ? '<img class="flag" src="https://flagcdn.com/w40/'+FLAG_CODE[slotCurr]+'.png" alt="">'
+      ? '<img class="flag" src="https://flagcdn.com/w40/'+FLAG_CODE[team]+'.png" alt="">'
       : '<div class="ph"></div>';
-    var nm = resolved ? arTeam(slotCurr) : arSlotLabel(slotOrig||slotCurr);
+    var nm = resolved ? arTeam(team) : arSlotLabel(slotOrig||slotCurr);
     var sc = (score!=null) ? ('<span class="sc">'+esc(arNum(score))+'</span>') : '';
     return '<div class="'+c+'">'+flag+'<span class="nm">'+esc(nm)+'</span>'+sc+'</div>';
   }
@@ -3271,6 +3325,7 @@ function bracketCard(m){
 function renderBracket(){
   var v=document.getElementById('bracketView'); if(!v) return;
   var orders=bracketOrders();
+  var standings=computeStandings();
   var thirdM=null;
   for(var i=0;i<MATCHES.length;i++){ if(MATCHES[i].stage==='3RD'){thirdM=MATCHES[i];break;} }
   var stages=[
@@ -3280,15 +3335,15 @@ function renderBracket(){
     {code:'SF',   label:'نصف النهائي'},
     {code:'FINAL',label:'النهائي'}
   ];
-  var html='<div class="br-hint">اسحب أفقيًا ↔ لرؤية كامل الشجرة</div>';
+  var html='<div class="br-hint">المنتخبات المؤقتة (✻) بناءً على ترتيب المجموعات الحالي · اسحب أفقيًا ↔</div>';
   html+='<div class="br-wrap"><div class="br-grid">';
   stages.forEach(function(s){
     html+='<div class="br-col"><div class="br-col-h">'+esc(s.label)+'</div>';
     html+='<div class="br-col-body">';
-    (orders[s.code]||[]).forEach(function(m){ html+=bracketCard(m); });
+    (orders[s.code]||[]).forEach(function(m){ html+=bracketCard(m, standings); });
     html+='</div>';
     if(s.code==='FINAL' && thirdM){
-      html+='<div class="br-third"><div class="br-third-h">🥉 مباراة المركز الثالث</div>'+bracketCard(thirdM)+'</div>';
+      html+='<div class="br-third"><div class="br-third-h">🥉 مباراة المركز الثالث</div>'+bracketCard(thirdM, standings)+'</div>';
     }
     html+='</div>';
   });
