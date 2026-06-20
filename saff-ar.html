@@ -3230,48 +3230,96 @@ function bracketOrders(){
   }
   return orders;
 }
-// Resolve a slot to a country name using current group standings (R32) or
-// recorded KO results (R16+). Returns {team, tentative} or null.
-function predictedSlot(name, standings){
+// FIFA 2026 best-third selection: rank all 12 third-place teams globally,
+// take top 8 (pts → gd → gf → name as a non-FIFA but deterministic fallback).
+function rankedThirds(st){
+  var arr=[];
+  Object.keys(st||{}).forEach(function(g){
+    var row=st[g]&&st[g][2];
+    if(row) arr.push({team:row.team, group:g, pts:row.pts, gd:row.gd, gf:row.gf});
+  });
+  arr.sort(function(a,b){if(b.pts!==a.pts)return b.pts-a.pts;if(b.gd!==a.gd)return b.gd-a.gd;if(b.gf!==a.gf)return b.gf-a.gf;return a.team.localeCompare(b.team);});
+  return arr.slice(0,8);
+}
+// Assign the 8 best third-placed teams to the 8 R32 "3rd Group X/Y/Z/W/V"
+// slots. FIFA publishes a fixed mapping for 2026; without that table here,
+// we use a greedy fill: for each slot in match order, pick the highest-ranked
+// remaining team whose group is in the slot's allowed list.
+function assignThirdSlots(st){
+  var top8=rankedThirds(st);
+  var remaining=top8.slice();
+  var out={};
+  MATCHES.forEach(function(mm){
+    if(mm.stage!=='R32') return;
+    ['home','away'].forEach(function(side){
+      var slot=mm[side];
+      var x=String(slot||'').match(/^3rd Group ([A-L\/]+)$/);
+      if(!x) return;
+      var allowed=x[1].split('/');
+      for(var i=0;i<remaining.length;i++){
+        if(allowed.indexOf(remaining[i].group)>=0){
+          out[mm.id+'/'+side]=remaining.splice(i,1)[0];
+          return;
+        }
+      }
+    });
+  });
+  return out;
+}
+// Resolve a slot. Returns {team, group, pos, posLabel, tentative} or null.
+// ctx = {matchId, side, standings, thirdAssign} — needed for "3rd Group …"
+// lookup and recursive Winner/Loser Match tracing.
+function _arPos(p){return p===1?'أول':(p===2?'ثاني':(p===3?'ثالث':''));}
+function predictedSlot(name, ctx){
   if(!name) return null;
-  if(_isResolved(name)) return {team:name, tentative:false};
-  var m, st=standings||computeStandings();
+  var st=ctx.standings, ta=ctx.thirdAssign;
+  if(_isResolved(name)){
+    var gFound=null, pFound=0;
+    Object.keys(st||{}).forEach(function(g){
+      (st[g]||[]).forEach(function(row,idx){if(row.team===name){gFound=g;pFound=idx+1;}});
+    });
+    return {team:name, group:gFound, pos:pFound, posLabel:gFound?_arPos(pFound)+' '+gFound:'', tentative:false};
+  }
+  var m;
   if((m=name.match(/^Winner Group ([A-L])$/))){
     var row=st[m[1]]&&st[m[1]][0];
-    return row ? {team:row.team, tentative:true} : null;
+    return row?{team:row.team, group:m[1], pos:1, posLabel:'أول '+m[1], tentative:true}:null;
   }
   if((m=name.match(/^Runner[- ]?up Group ([A-L])$/))){
     var row2=st[m[1]]&&st[m[1]][1];
-    return row2 ? {team:row2.team, tentative:true} : null;
+    return row2?{team:row2.team, group:m[1], pos:2, posLabel:'ثاني '+m[1], tentative:true}:null;
   }
   if((m=name.match(/^3rd Group ([A-L\/]+)$/))){
-    var gs=m[1].split('/'), thirds=[];
-    gs.forEach(function(g){ if(st[g]&&st[g][2]) thirds.push(st[g][2]); });
-    if(!thirds.length) return null;
-    thirds.sort(function(a,b){if(b.pts!==a.pts)return b.pts-a.pts;if(b.gd!==a.gd)return b.gd-a.gd;if(b.gf!==a.gf)return b.gf-a.gf;return a.team.localeCompare(b.team);});
-    return {team:thirds[0].team, tentative:true};
+    var pick=ta[ctx.matchId+'/'+ctx.side];
+    return pick?{team:pick.team, group:pick.group, pos:3, posLabel:'ثالث '+pick.group, tentative:true}:null;
   }
   if((m=name.match(/^Winner Match (\d+)$/))){
-    var src=MATCH_BY_ID['m'+m[1]]; if(!src) return null;
+    var srcId='m'+m[1], src=MATCH_BY_ID[srcId]; if(!src) return null;
     var r=result(src); if(!r) return null;
     var t=teamsOf(src);
     var hN=Number(r.h), aN=Number(r.a);
-    var winSide = hN>aN ? 'h' : (aN>hN ? 'a' : (r.pw==='h'?'h':(r.pw==='a'?'a':null)));
+    var winSide=hN>aN?'h':(aN>hN?'a':(r.pw==='h'?'h':(r.pw==='a'?'a':null)));
     if(!winSide) return null;
-    var winName = winSide==='h' ? t.home : t.away;
-    if(_isResolved(winName)) return {team:winName, tentative:false};
-    return predictedSlot(winSide==='h'?src.home:src.away, st);
+    var winSlot=winSide==='h'?src.home:src.away;
+    var winTeam=winSide==='h'?t.home:t.away;
+    var origin=predictedSlot(winSlot,{matchId:srcId, side:winSide, standings:st, thirdAssign:ta});
+    if(!origin) return null;
+    var resolved=_isResolved(winTeam);
+    return {team:resolved?winTeam:origin.team, group:origin.group, pos:origin.pos, posLabel:origin.posLabel, tentative:!resolved||origin.tentative};
   }
   if((m=name.match(/^Loser Match (\d+)$/))){
-    var src2=MATCH_BY_ID['m'+m[1]]; if(!src2) return null;
+    var srcId2='m'+m[1], src2=MATCH_BY_ID[srcId2]; if(!src2) return null;
     var r2=result(src2); if(!r2) return null;
     var t2=teamsOf(src2);
     var hN2=Number(r2.h), aN2=Number(r2.a);
-    var loseSide = hN2>aN2 ? 'a' : (aN2>hN2 ? 'h' : (r2.pw==='h'?'a':(r2.pw==='a'?'h':null)));
+    var loseSide=hN2>aN2?'a':(aN2>hN2?'h':(r2.pw==='h'?'a':(r2.pw==='a'?'h':null)));
     if(!loseSide) return null;
-    var loseName = loseSide==='h' ? t2.home : t2.away;
-    if(_isResolved(loseName)) return {team:loseName, tentative:false};
-    return predictedSlot(loseSide==='h'?src2.home:src2.away, st);
+    var loseSlot=loseSide==='h'?src2.home:src2.away;
+    var loseTeam=loseSide==='h'?t2.home:t2.away;
+    var origin2=predictedSlot(loseSlot,{matchId:srcId2, side:loseSide, standings:st, thirdAssign:ta});
+    if(!origin2) return null;
+    var resolved2=_isResolved(loseTeam);
+    return {team:resolved2?loseTeam:origin2.team, group:origin2.group, pos:origin2.pos, posLabel:origin2.posLabel, tentative:!resolved2||origin2.tentative};
   }
   return null;
 }
@@ -3281,7 +3329,7 @@ function brWhen(m){
   var hh=d.getHours(), suf=(hh>=12?'م':'ص'); var h12=hh%12; if(h12===0) h12=12;
   return arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' · '+arNum(h12)+suf;
 }
-function bracketCard(m, standings){
+function bracketCard(m, standings, thirdAssign){
   var t=teamsOf(m), r=result(m), lv=liveScore(m);
   var live = lv && !r;
   var done = !!r;
@@ -3293,39 +3341,36 @@ function bracketCard(m, standings){
     else if(aN>hN) aWin=true;
     else if(r.pw){ hWin=(r.pw==='h'); aWin=(r.pw==='a'); }
   }
-  function row(slotCurr, slotOrig, score, won, lost){
-    var resolved=_isResolved(slotCurr);
-    var team=slotCurr, tentative=false;
-    if(!resolved){
-      var p=predictedSlot(slotOrig||slotCurr, standings);
-      if(p){ team=p.team; resolved=true; tentative=p.tentative; }
-    }
+  function row(slotCurr, slotOrig, side, score, won, lost){
+    var info = predictedSlot(slotOrig||slotCurr, {matchId:m.id, side:side, standings:standings, thirdAssign:thirdAssign});
     var c='br-team';
-    if(resolved){
+    var hasTeam = !!(info && info.team && FLAG_CODE[info.team]);
+    if(hasTeam){
       if(won) c+=' win';
       else if(lost) c+=' lose';
-      if(tentative) c+=' tent';
+      if(info.tentative) c+=' tent';
     } else c+=' tba';
-    var flag = resolved
-      ? '<img class="flag" src="https://flagcdn.com/w40/'+FLAG_CODE[team]+'.png" alt="">'
+    var flag = hasTeam
+      ? '<img class="flag" src="https://flagcdn.com/w40/'+FLAG_CODE[info.team]+'.png" alt="">'
       : '<div class="ph"></div>';
-    var nm = resolved ? arTeam(team) : arSlotLabel(slotOrig||slotCurr);
+    var label = hasTeam ? (info.posLabel || arTeam(info.team)) : arSlotLabel(slotOrig||slotCurr);
     var sc = (score!=null) ? ('<span class="sc">'+esc(arNum(score))+'</span>') : '';
-    return '<div class="'+c+'">'+flag+'<span class="nm">'+esc(nm)+'</span>'+sc+'</div>';
+    return '<div class="'+c+'">'+flag+'<span class="nm">'+esc(label)+'</span>'+sc+'</div>';
   }
   var clas = done?'done':(live?'live':'');
   var when = brWhen(m);
   var statusBit = live ? '<span style="color:#fca5a5;">مباشر</span>' : esc(when);
   return '<div class="br-card '+clas+'">'
     +'<div class="br-meta"><span class="br-no">مباراة '+esc(arNum(m.n))+'</span><span>'+statusBit+'</span></div>'
-    +row(t.home, m.home, hN, hWin, aWin)
-    +row(t.away, m.away, aN, aWin, hWin)
+    +row(t.home, m.home, 'home', hN, hWin, aWin)
+    +row(t.away, m.away, 'away', aN, aWin, hWin)
   +'</div>';
 }
 function renderBracket(){
   var v=document.getElementById('bracketView'); if(!v) return;
   var orders=bracketOrders();
   var standings=computeStandings();
+  var thirdAssign=assignThirdSlots(standings);
   var thirdM=null;
   for(var i=0;i<MATCHES.length;i++){ if(MATCHES[i].stage==='3RD'){thirdM=MATCHES[i];break;} }
   var stages=[
@@ -3335,15 +3380,15 @@ function renderBracket(){
     {code:'SF',   label:'نصف النهائي'},
     {code:'FINAL',label:'النهائي'}
   ];
-  var html='<div class="br-hint">المنتخبات المؤقتة (✻) بناءً على ترتيب المجموعات الحالي · اسحب أفقيًا ↔</div>';
+  var html='<div class="br-hint">الخانات (أول/ثاني/ثالث) بناءً على ترتيب المجموعات الحالي · ✻ = مؤقت · اسحب أفقيًا ↔</div>';
   html+='<div class="br-wrap"><div class="br-grid">';
   stages.forEach(function(s){
     html+='<div class="br-col"><div class="br-col-h">'+esc(s.label)+'</div>';
     html+='<div class="br-col-body">';
-    (orders[s.code]||[]).forEach(function(m){ html+=bracketCard(m, standings); });
+    (orders[s.code]||[]).forEach(function(m){ html+=bracketCard(m, standings, thirdAssign); });
     html+='</div>';
     if(s.code==='FINAL' && thirdM){
-      html+='<div class="br-third"><div class="br-third-h">🥉 مباراة المركز الثالث</div>'+bracketCard(thirdM, standings)+'</div>';
+      html+='<div class="br-third"><div class="br-third-h">🥉 مباراة المركز الثالث</div>'+bracketCard(thirdM, standings, thirdAssign)+'</div>';
     }
     html+='</div>';
   });
