@@ -2158,6 +2158,9 @@ function adminBar(){
   var sb4=document.createElement('button');sb4.className='btn-summary';sb4.style.cssText='background:rgba(230,204,120,.16);border-color:rgba(230,204,120,.55);color:#fde68a;';sb4.textContent='🗳️ استفتاء نظام الإقصائيات';
   sb4.addEventListener('click',genScoringDilemmaPoster);
   bar.appendChild(sb4);
+  var sb5=document.createElement('button');sb5.className='btn-summary';sb5.style.cssText='background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.5);color:#bbf7d0;';sb5.textContent='🌳 إعلان شجرة الإقصائيات';
+  sb5.addEventListener('click',genBracketAnnouncementPoster);
+  bar.appendChild(sb5);
   bar.appendChild(fdTokenRow());
   var n=Object.keys(resultsData||{}).length;
   var b=document.createElement('button');b.className='btn-clear-all';
@@ -2626,6 +2629,125 @@ function genStoryAnnouncementPoster(){
         var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
         if(file && navigator.canShare && navigator.canShare({files:[file]})){
           navigator.share({files:[file],title:'قصة منتخب'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
+        } else { dl(); }
+        function dl(){
+          var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');
+        }
+        posterRoot.innerHTML='';
+      },'image/png');
+    }catch(e){toast('فشل toBlob: '+(e&&e.message||e));posterRoot.innerHTML='';}
+  }
+  var fontsReady=Promise.race([(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve(),new Promise(function(r){setTimeout(r,1500);})]);
+  fontsReady.then(function(){
+    var target=posterRoot.querySelector('.poster');
+    if(!target){toast('فشل: قالب البوستر غير موجود');posterRoot.innerHTML='';return;}
+    var rect=target.getBoundingClientRect(), h=Math.max(1200,Math.round(rect.height));
+    toast('1/3: جاري الرسم…');
+    var to=setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';},20000);
+    if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
+      htmlToImage.toBlob(target,{backgroundColor:null,cacheBust:true,pixelRatio:Math.min(2,window.devicePixelRatio||1),width:1080,height:h,skipFonts:true}).then(function(blob){
+        clearTimeout(to);if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
+        shareCanvas({toBlob:function(cb){cb(blob);}});
+      }).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html-to-image: '+(e&&e.message||e));});
+    } else if(typeof html2canvas==='function'){
+      html2canvas(target,{backgroundColor:null,scale:1,useCORS:true,allowTaint:false,imageTimeout:5000,logging:false,width:1080,height:h,windowWidth:1080,windowHeight:h}).then(function(cv){clearTimeout(to);shareCanvas(cv);}).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html2canvas: '+(e&&e.message||e));});
+    } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
+  });
+}
+// ===== "شجرة الإقصائيات" launch announcement poster — same SAFF identity =====
+function genBracketAnnouncementPoster(){
+  toast('جاري تجهيز الإعلان…');
+  var arcRings=[[1450,140,.12],[1200,120,.10],[950,100,.08],[700,80,.06]];
+  var arcsHtml='<svg class="arcs" viewBox="0 0 1080 2180" preserveAspectRatio="xMidYMid slice">';
+  arcRings.forEach(function(g){arcsHtml+='<circle cx="-100" cy="-70" r="'+g[0]+'" fill="none" stroke="#E6CC78" stroke-width="'+g[1]+'" stroke-opacity="'+g[2]+'"/>';});
+  arcsHtml+='</svg>';
+
+  var brand1='دوري التوقّعات', brand2='كأس العالم 2026';
+  var headerHtml='\
+<div style="display:flex;justify-content:space-between;align-items:center;">\
+  <div style="display:flex;align-items:center;gap:20px;">\
+    <div role="img" aria-label="" style="width:79px;height:78px;background-image:url('+SAFF_LOGO_DATA+');background-size:contain;background-repeat:no-repeat;background-position:center;flex-shrink:0;"></div>\
+    <div style="width:2px;height:56px;background:rgba(255,255,255,.28);"></div>\
+    <div style="text-align:right;line-height:1.25;">\
+      <div style="font-size:24px;font-weight:900;color:#fff;">'+esc(brand1)+'</div>\
+      <div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">'+esc(brand2)+'</div>\
+    </div>\
+  </div>\
+  <div class="kick" style="font-size:21px;color:var(--mute);">ميزة جديدة</div>\
+</div>';
+
+  var eyebrow='<div style="font-weight:800;font-size:30px;color:var(--gold);letter-spacing:1px;margin-top:60px;">🆕 ميزة جديدة</div>';
+  var titleHtml='<h1 class="disp" style="font-size:96px;margin-top:14px;margin-bottom:24px;line-height:1.05;">شجرة <span style="color:var(--gold);">الإقصائيات</span></h1>';
+  var sub='<div style="font-weight:700;font-size:28px;color:var(--mute);margin-bottom:46px;line-height:1.55;">شوف طريقك من دور الـ٣٢ للنهائي · المنتخبات تتعبّى تلقائيًا حسب الترتيب</div>';
+
+  // mini bracket illustration — three columns of cards to visualise the tree
+  function miniSlot(label, accent){
+    return '<div style="flex:1;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px 12px;font-weight:700;font-size:18px;color:#fff;">'
+      +'<div style="width:18px;height:12px;border-radius:2px;background:'+accent+';flex-shrink:0;"></div>'
+      +'<span>'+esc(label)+'</span>'
+    +'</div>';
+  }
+  function miniPair(top, bot, accentTop, accentBot){
+    return '<div style="display:flex;flex-direction:column;gap:6px;">'
+      +miniSlot(top, accentTop)+miniSlot(bot, accentBot)
+    +'</div>';
+  }
+  var mini=''
+    +'<div style="display:flex;gap:14px;align-items:center;margin-bottom:40px;padding:24px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:16px;">'
+    +  '<div style="flex:1;display:flex;flex-direction:column;gap:18px;">'
+    +    miniPair('أول C','ثاني F','#E6CC78','#CFD8DE')
+    +    miniPair('ثاني A','ثالث D','#CFD8DE','#D79B63')
+    +  '</div>'
+    +  '<div style="font-size:32px;color:var(--gold);font-weight:900;">←</div>'
+    +  '<div style="flex:1;display:flex;flex-direction:column;gap:42px;">'
+    +    '<div style="background:rgba(230,204,120,.12);border:1.5px solid rgba(230,204,120,.45);border-radius:10px;padding:14px;text-align:center;font-weight:800;font-size:20px;color:#fff;">دور الـ١٦</div>'
+    +    '<div style="background:rgba(230,204,120,.12);border:1.5px solid rgba(230,204,120,.45);border-radius:10px;padding:14px;text-align:center;font-weight:800;font-size:20px;color:#fff;">دور الـ١٦</div>'
+    +  '</div>'
+    +  '<div style="font-size:32px;color:var(--gold);font-weight:900;">←</div>'
+    +  '<div style="flex:1;display:flex;align-items:center;">'
+    +    '<div style="width:100%;background:linear-gradient(150deg,rgba(230,204,120,.25),rgba(230,204,120,.05));border:2px solid var(--gold);border-radius:12px;padding:20px 14px;text-align:center;font-weight:900;font-size:24px;color:var(--gold);">🏆 النهائي</div>'
+    +  '</div>'
+    +'</div>';
+
+  function featRow(icon, title, sub){
+    return '<div style="display:flex;gap:18px;align-items:flex-start;background:var(--row);border:1px solid var(--row-edge);border-radius:14px;padding:22px 26px;">'
+      +'<div style="font-size:36px;line-height:1;color:var(--gold);">'+icon+'</div>'
+      +'<div style="flex:1;line-height:1.5;">'
+        +'<div style="font-weight:800;font-size:26px;color:#fff;">'+esc(title)+'</div>'
+        +'<div style="font-weight:600;font-size:20px;color:var(--mute);margin-top:6px;">'+esc(sub)+'</div>'
+      +'</div>'
+    +'</div>';
+  }
+  var feats=''
+    +'<div class="shead"><span class="lbl">المميّزات</span><span class="ln"></span></div>'
+    +'<div style="display:flex;flex-direction:column;gap:16px;margin-top:14px;">'
+    +  featRow('🌳','الشجرة الكاملة','من دور الـ٣٢ ← الـ١٦ ← ربع ← نصف ← النهائي + المركز الثالث')
+    +  featRow('🇲🇽','أعلام المنتخبات','المقعد يتعبّى أوتوماتيكيًا حسب ترتيب المجموعات الحالي')
+    +  featRow('📐','قوانين فيفا','أفضل ٨ ثوالث حسب جدول الـ٤٩٥ تركيبة الرسمي + المواجهات المباشرة')
+    +  featRow('🔄','تحديث مباشر','المقاعد تتحدث مع كل نتيجة جديدة، بدون إعادة تحميل')
+    +'</div>';
+
+  var cta='<div style="margin-top:46px;padding:32px 30px;border-radius:18px;background:linear-gradient(150deg, rgba(230,204,120,.20), rgba(230,204,120,.05));border:1.5px solid rgba(230,204,120,.55);text-align:center;">'
+    +'<div style="font-weight:800;font-size:22px;color:var(--gold);letter-spacing:1px;margin-bottom:10px;">📍 وين تلقاها</div>'
+    +'<div style="font-weight:900;font-size:36px;color:#fff;line-height:1.3;">صفحة المجموعات</div>'
+    +'<div style="font-weight:800;font-size:24px;color:var(--gold);margin-top:6px;">تاب "شجرة الإقصائيات"</div>'
+    +'<div style="font-weight:700;font-size:20px;color:var(--mute);margin-top:12px;">✓ مقعد مؤكّد · ✻ مقعد متوقّع</div>'
+  +'</div>';
+
+  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+mini+feats+cta+'</div></div>';
+  var posterRoot=document.getElementById('posterRoot');
+  posterRoot.innerHTML=posterHtml;
+
+  var fname='wc2026-bracket-launch.png';
+  function shareCanvas(cv){
+    toast('2/3: جاري التحويل…');
+    try{
+      cv.toBlob(function(blob){
+        if(!blob){toast('فشل: blob فاضي');posterRoot.innerHTML='';return;}
+        toast('3/3: جاري المشاركة…');
+        var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
+        if(file && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'شجرة الإقصائيات'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
         } else { dl(); }
         function dl(){
           var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');
