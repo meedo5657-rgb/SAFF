@@ -130,6 +130,10 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .gr-legend span{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle;}
 .gr-legend .lg-q{background:#22c55e;}
 .gr-legend .lg-q3{background:#fbbf24;}
+.gr-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:.66rem;font-weight:900;line-height:1;vertical-align:middle;margin-inline-start:4px;}
+.gr-badge-q{background:#22c55e;color:#0a1f12;}
+.gr-badge-out{background:#dc2626;color:#fff;}
+.gr-legend .gr-badge{width:18px;height:18px;margin-inline-end:5px;border-radius:50%;}
 .ko-sec{display:flex;flex-direction:column;gap:10px;}
 .ko-sh{font-size:.95rem;font-weight:800;color:#fde68a;padding:4px 2px;border-bottom:1px solid var(--line);}
 .ko-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;}
@@ -1440,29 +1444,100 @@ function allTeamsAlpha(){var ts=[];Object.keys(SCHEDULE_DATA.groups||{}).forEach
 var COUNTRY_FLAG=(function(){var m={};Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){(SCHEDULE_DATA.groups[g]||[]).forEach(function(t){m[t.name]=t.flag;});});return m;})();
 function flagOf(c){return COUNTRY_FLAG[c]||'🏳️';}
 function scorerTeam(name){if(!name)return '';for(var i=0;i<WC_PLAYERS.length;i++){if(WC_PLAYERS[i].n===name)return WC_PLAYERS[i].t;}return '';}
+// FIFA 2026 Article 13 group ranking — applies head-to-head between tied teams
+// before falling back to overall goal difference/scored. Recursively re-applies
+// step 1 (h2h pts/gd/gf among the *still-tied* subgroup) until no more
+// separation is possible, then uses step 2 (overall gd/gf, then alphabetical
+// as a deterministic stand-in for fair-play / FIFA ranking / drawing of lots).
+function _rankByOverall(teams){
+  return teams.slice().sort(function(a,b){
+    if(b.gd!==a.gd) return b.gd-a.gd;
+    if(b.gf!==a.gf) return b.gf-a.gf;
+    return a.team.localeCompare(b.team);
+  });
+}
+function _rankTied(teams, groupMatches, resByMatch){
+  if(teams.length<=1) return teams.slice();
+  var names=teams.map(function(t){return t.team;});
+  var h2h={}; teams.forEach(function(t){h2h[t.team]={pts:0,gd:0,gf:0};});
+  groupMatches.forEach(function(m){
+    var res=resByMatch[m.id]; if(!res) return;
+    if(names.indexOf(m.home)<0 || names.indexOf(m.away)<0) return;
+    var hs=h2h[m.home], as=h2h[m.away];
+    hs.gf+=res.h; as.gf+=res.a;
+    hs.gd+=res.h-res.a; as.gd+=res.a-res.h;
+    if(res.h>res.a) hs.pts+=3;
+    else if(res.h<res.a) as.pts+=3;
+    else {hs.pts++; as.pts++;}
+  });
+  var sorted=teams.slice().sort(function(a,b){
+    var as=h2h[a.team], bs=h2h[b.team];
+    if(bs.pts!==as.pts) return bs.pts-as.pts;
+    if(bs.gd!==as.gd) return bs.gd-as.gd;
+    if(bs.gf!==as.gf) return bs.gf-as.gf;
+    return 0;
+  });
+  // Bucket by identical h2h stats — these are still tied after step 1
+  var buckets=[], i=0;
+  while(i<sorted.length){
+    var j=i;
+    while(j+1<sorted.length){
+      var x=h2h[sorted[j].team], y=h2h[sorted[j+1].team];
+      if(x.pts===y.pts && x.gd===y.gd && x.gf===y.gf) j++;
+      else break;
+    }
+    buckets.push(sorted.slice(i,j+1));
+    i=j+1;
+  }
+  // If step 1 didn't separate at all (1 bucket = all teams), apply step 2.
+  if(buckets.length===1 && buckets[0].length===teams.length){
+    return _rankByOverall(teams);
+  }
+  // Otherwise recurse: each still-tied subgroup re-applies step 1 using only
+  // the matches among that subgroup ("matches between the remaining teams only").
+  var out=[];
+  buckets.forEach(function(b){
+    _rankTied(b, groupMatches, resByMatch).forEach(function(r){out.push(r);});
+  });
+  return out;
+}
+function _fifaSort(groupKey, rows, resByMatch){
+  var groupMatches=MATCHES.filter(function(m){return m.stage==='group' && m.group===groupKey;});
+  rows.sort(function(a,b){return b.pts-a.pts;});
+  var out=[], i=0;
+  while(i<rows.length){
+    var j=i;
+    while(j+1<rows.length && rows[j+1].pts===rows[i].pts) j++;
+    if(j===i){ out.push(rows[i]); i++; continue; }
+    var tied=rows.slice(i,j+1);
+    _rankTied(tied, groupMatches, resByMatch).forEach(function(r){out.push(r);});
+    i=j+1;
+  }
+  return out;
+}
 function computeStandings(){
-  var out={};var groups=SCHEDULE_DATA.groups||{};
+  var out={}; var groups=SCHEDULE_DATA.groups||{};
+  var resByMatch={};
   Object.keys(groups).forEach(function(g){
     out[g]=(groups[g]||[]).map(function(t){return {team:t.name,flag:t.flag,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0};});
   });
   MATCHES.forEach(function(m){
     if(m.stage!=='group')return;
-    var r=result(m);if(!r)return;
-    var rows=out[m.group];if(!rows)return;
+    var r=result(m); if(!r) return;
+    resByMatch[m.id]={h:Number(r.h)||0, a:Number(r.a)||0};
+    var rows=out[m.group]; if(!rows) return;
     var hRow=null,aRow=null;
     for(var i=0;i<rows.length;i++){if(rows[i].team===m.home)hRow=rows[i];if(rows[i].team===m.away)aRow=rows[i];}
-    if(!hRow||!aRow)return;
-    var hg=Number(r.h)||0,ag=Number(r.a)||0;
-    hRow.p++;aRow.p++;
-    hRow.gf+=hg;hRow.ga+=ag;hRow.gd=hRow.gf-hRow.ga;
-    aRow.gf+=ag;aRow.ga+=hg;aRow.gd=aRow.gf-aRow.ga;
-    if(hg>ag){hRow.w++;hRow.pts+=3;aRow.l++;}
-    else if(hg<ag){aRow.w++;aRow.pts+=3;hRow.l++;}
-    else{hRow.d++;aRow.d++;hRow.pts++;aRow.pts++;}
+    if(!hRow||!aRow) return;
+    var hg=resByMatch[m.id].h, ag=resByMatch[m.id].a;
+    hRow.p++; aRow.p++;
+    hRow.gf+=hg; hRow.ga+=ag; hRow.gd=hRow.gf-hRow.ga;
+    aRow.gf+=ag; aRow.ga+=hg; aRow.gd=aRow.gf-aRow.ga;
+    if(hg>ag){hRow.w++; hRow.pts+=3; aRow.l++;}
+    else if(hg<ag){aRow.w++; aRow.pts+=3; hRow.l++;}
+    else{hRow.d++; aRow.d++; hRow.pts++; aRow.pts++;}
   });
-  Object.keys(out).forEach(function(g){
-    out[g].sort(function(a,b){if(b.pts!==a.pts)return b.pts-a.pts;if(b.gd!==a.gd)return b.gd-a.gd;if(b.gf!==a.gf)return b.gf-a.gf;return a.team.localeCompare(b.team);});
-  });
+  Object.keys(out).forEach(function(g){ out[g]=_fifaSort(g, out[g], resByMatch); });
   return out;
 }
 
@@ -3029,9 +3104,11 @@ function renderStandings(){
   var v=document.getElementById('standingsView');if(!v)return;
   v.innerHTML='';
   var st=computeStandings();
+  var allLocks=computeAllGroupLocks();
   Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){
     var card=document.createElement('div');card.className='gr-card';
     var h=document.createElement('h4');h.textContent='المجموعة '+g;card.appendChild(h);
+    var status=computeGroupStatus(g, allLocks);
     var tbl=document.createElement('table');tbl.className='gr-tbl';
     tbl.innerHTML='<thead><tr><th>#</th><th>المنتخب</th><th>ل</th><th>ف</th><th>ت</th><th>خ</th><th>ف.أ</th><th>ن</th></tr></thead>';
     var tb=document.createElement('tbody');
@@ -3039,15 +3116,19 @@ function renderStandings(){
       var tr=document.createElement('tr');
       if(i<2)tr.className='gr-q';
       else if(i===2)tr.className='gr-q3';
+      var stat=status[r.team];
+      var badge='';
+      if(stat==='advanced') badge=' <span class="gr-badge gr-badge-q" title="ضامن التأهل">✓</span>';
+      else if(stat==='eliminated') badge=' <span class="gr-badge gr-badge-out" title="مودّع">✗</span>';
       tr.innerHTML='<td>'+(i+1)+'</td>'+
-        '<td class="gr-team">'+flagImg(r.team,28)+esc(r.team)+'</td>'+
+        '<td class="gr-team">'+flagImg(r.team,28)+esc(r.team)+badge+'</td>'+
         '<td>'+r.p+'</td><td>'+r.w+'</td><td>'+r.d+'</td><td>'+r.l+'</td>'+
         '<td>'+(r.gd>0?'+':'')+r.gd+'</td><td><b>'+r.pts+'</b></td>';
       tb.appendChild(tr);
     });
     tbl.appendChild(tb);card.appendChild(tbl);
     var lg=document.createElement('div');lg.className='gr-legend';
-    lg.innerHTML='<span class="lg-q"></span>يتأهل بشكل مباشر<br><span class="lg-q3"></span>قد يتأهل كأفضل ثالث';
+    lg.innerHTML='<span class="lg-q"></span>يتأهل مباشرة · <span class="lg-q3"></span>أفضل ثالث · <span class="gr-badge gr-badge-q">✓</span>ضامن · <span class="gr-badge gr-badge-out">✗</span>مودّع';
     card.appendChild(lg);
     v.appendChild(card);
   });
@@ -3251,7 +3332,7 @@ function rankedThirds(st){
 // scenario (≤ 5^n combinations, n = remaining matches in the group).
 function computeGroupLocks(groupKey){
   var teams=SCHEDULE_DATA.groups[groupKey]||[];
-  if(teams.length!==4) return {};
+  if(teams.length!==4) return {possible:{}, locked:{}};
   var groupMatches=MATCHES.filter(function(m){return m.stage==='group' && m.group===groupKey;});
   var played={}, remaining=[];
   groupMatches.forEach(function(m){
@@ -3261,11 +3342,11 @@ function computeGroupLocks(groupKey){
   });
   var names=teams.map(function(t){return t.name;});
   if(remaining.length===0){
-    var st=computeStandings(), rows=st[groupKey]||[], out={};
-    rows.forEach(function(r,i){out[r.team]=i+1;});
-    return out;
+    var st=computeStandings(), rows=st[groupKey]||[], lk={}, ps={};
+    rows.forEach(function(r,i){lk[r.team]=i+1; ps[r.team]={}; ps[r.team][i+1]=true;});
+    return {possible:ps, locked:lk};
   }
-  if(remaining.length>6) return {};
+  if(remaining.length>6) return {possible:{}, locked:{}};
   var outcomes=[{h:5,a:0},{h:1,a:0},{h:0,a:0},{h:0,a:1},{h:0,a:5}];
   var possible={};
   names.forEach(function(n){possible[n]={};});
@@ -3276,12 +3357,14 @@ function computeGroupLocks(groupKey){
       scen[remaining[i].id]=outcomes[rs%outcomes.length];
       rs=Math.floor(rs/outcomes.length);
     }
+    var resByMatch={};
     var rows=names.map(function(t){return {team:t, pts:0, gd:0, gf:0};});
     var byName={}; rows.forEach(function(r){byName[r.team]=r;});
     groupMatches.forEach(function(m){
-      var t=teamsOf(m), res=played[m.id]||scen[m.id];
+      var res=played[m.id]||scen[m.id];
       if(!res) return;
-      var h=byName[t.home], a=byName[t.away];
+      resByMatch[m.id]={h:res.h, a:res.a};
+      var h=byName[m.home], a=byName[m.away];
       if(!h||!a) return;
       h.gf+=res.h; a.gf+=res.a;
       h.gd+=res.h-res.a; a.gd+=res.a-res.h;
@@ -3289,24 +3372,36 @@ function computeGroupLocks(groupKey){
       else if(res.h<res.a) a.pts+=3;
       else {h.pts++; a.pts++;}
     });
-    rows.sort(function(a,b){
-      if(b.pts!==a.pts) return b.pts-a.pts;
-      if(b.gd!==a.gd) return b.gd-a.gd;
-      if(b.gf!==a.gf) return b.gf-a.gf;
-      return a.team.localeCompare(b.team);
-    });
-    rows.forEach(function(r,idx){ possible[r.team][idx+1]=true; });
+    var sorted=_fifaSort(groupKey, rows, resByMatch);
+    sorted.forEach(function(r,idx){ possible[r.team][idx+1]=true; });
   }
   var locked={};
   names.forEach(function(name){
     var positions=Object.keys(possible[name]);
     if(positions.length===1) locked[name]=Number(positions[0]);
   });
-  return locked;
+  return {possible:possible, locked:locked};
 }
 function computeAllGroupLocks(){
   var out={};
   Object.keys(SCHEDULE_DATA.groups||{}).forEach(function(g){out[g]=computeGroupLocks(g);});
+  return out;
+}
+// For each team: 'advanced' (guaranteed top-2), 'eliminated' (guaranteed below
+// top-3, i.e. only position 4 is reachable), or 'pending'. Teams locked at
+// position 3 stay 'pending' because best-8-thirds depends on every group.
+function computeGroupStatus(groupKey, locksData){
+  var data=(locksData && locksData[groupKey]) || computeGroupLocks(groupKey);
+  var possible=data.possible||{}, out={};
+  Object.keys(possible).forEach(function(team){
+    var positions=Object.keys(possible[team]).map(Number);
+    if(!positions.length){ out[team]='pending'; return; }
+    var maxPos=Math.max.apply(null,positions);
+    var minPos=Math.min.apply(null,positions);
+    if(maxPos<=2) out[team]='advanced';
+    else if(minPos===4) out[team]='eliminated';
+    else out[team]='pending';
+  });
   return out;
 }
 // All 72 group-stage matches done? Used to decide if 3rd-place teams qualify
@@ -3399,13 +3494,15 @@ function predictedSlot(name, ctx){
   if((m=name.match(/^Winner Group ([A-L])$/))){
     var row=st[m[1]]&&st[m[1]][0];
     if(!row) return null;
-    var lockedAt1 = gl[m[1]] && gl[m[1]][row.team]===1;
+    var lkd=gl[m[1]]&&gl[m[1]].locked||{};
+    var lockedAt1 = lkd[row.team]===1;
     return {team:row.team, group:m[1], pos:1, posLabel:'أول '+m[1], tentative: !lockedAt1};
   }
   if((m=name.match(/^Runner[- ]?up Group ([A-L])$/))){
     var row2=st[m[1]]&&st[m[1]][1];
     if(!row2) return null;
-    var lockedAt2 = gl[m[1]] && gl[m[1]][row2.team]===2;
+    var lkd2=gl[m[1]]&&gl[m[1]].locked||{};
+    var lockedAt2 = lkd2[row2.team]===2;
     return {team:row2.team, group:m[1], pos:2, posLabel:'ثاني '+m[1], tentative: !lockedAt2};
   }
   if((m=name.match(/^3rd Group ([A-L\/]+)$/))){
