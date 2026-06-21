@@ -2341,11 +2341,17 @@ function genDailySummary(){
   var _allT=Object.keys(up).map(function(k){return up[k];}).sort(function(a,b){return b.pts-a.pts;});
   var topT=[]; if(_allT.length){var _top=_allT[0].pts; topT=_allT.filter(function(u){return u.pts===_top;});}
   var ttruth=tournamentTruth();
-  var totals=Object.keys(usersData||{}).map(function(k){
-    var t=0;MATCHES.forEach(function(m){var r=result(m);var p=predsData[m.id]&&predsData[m.id][k];if(p&&r)t+=scoreOf(p,r);});
+  var totals=Object.keys(usersData||{}).filter(function(k){return !(usersData[k]&&usersData[k].removed);}).map(function(k){
+    var t=0, ex=0;
+    MATCHES.forEach(function(m){
+      var r=result(m); if(!r) return;
+      var p=predsData[m.id]&&predsData[m.id][k]; if(!p) return;
+      t+=scoreOf(p,r);
+      if(Number(p.h)===Number(r.h)&&Number(p.a)===Number(r.a)) ex++;
+    });
     t+=tournamentPointsFor(tournamentPicksOf(k),ttruth);
-    return {name:(usersData[k]&&usersData[k].name)||k,pts:t};
-  }).sort(function(a,b){return b.pts-a.pts;}).slice(0,5);
+    return {name:(usersData[k]&&usersData[k].name)||k, pts:t, exact:ex};
+  }).sort(function(a,b){return b.pts-a.pts || b.exact-a.exact;}).slice(0,5);
 
   // ----- rank chip colour mapping (1=gold,2=silver,3=bronze, then faint) -----
   var rankStyle={
