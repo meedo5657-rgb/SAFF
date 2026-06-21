@@ -2152,15 +2152,9 @@ function adminBar(){
   var sb=document.createElement('button');sb.className='btn-summary';sb.textContent='📸 ملخّص اليوم';
   sb.addEventListener('click',genDailySummary);
   bar.appendChild(sb);
-  var sb3=document.createElement('button');sb3.className='btn-summary';sb3.style.cssText='background:rgba(220,55,55,.18);border-color:rgba(220,55,55,.5);';sb3.textContent='♻️ صفّر قصة منتخب اليوم';
-  sb3.addEventListener('click',resetTodayStory);
-  bar.appendChild(sb3);
   var sb4=document.createElement('button');sb4.className='btn-summary';sb4.style.cssText='background:rgba(230,204,120,.16);border-color:rgba(230,204,120,.55);color:#fde68a;';sb4.textContent='🗳️ استفتاء نظام الإقصائيات';
   sb4.addEventListener('click',genScoringDilemmaPoster);
   bar.appendChild(sb4);
-  var sb5=document.createElement('button');sb5.className='btn-summary';sb5.style.cssText='background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.5);color:#bbf7d0;';sb5.textContent='🌳 إعلان شجرة الإقصائيات';
-  sb5.addEventListener('click',genBracketAnnouncementPoster);
-  bar.appendChild(sb5);
   bar.appendChild(fdTokenRow());
   var n=Object.keys(resultsData||{}).length;
   var b=document.createElement('button');b.className='btn-clear-all';
