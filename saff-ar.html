@@ -2902,12 +2902,12 @@ function genScoringDilemmaPoster(){
       <div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">'+esc(brand2)+'</div>\
     </div>\
   </div>\
-  <div class="kick" style="font-size:21px;color:var(--mute);">استفتاء</div>\
+  <div class="kick" style="font-size:21px;color:var(--mute);">مقارنة</div>\
 </div>';
 
-  var eyebrow='<div style="font-weight:800;font-size:26px;color:var(--gold);letter-spacing:1px;margin-top:54px;">🗳️ قبل بداية الإقصائيات</div>';
+  var eyebrow='<div style="font-weight:800;font-size:26px;color:var(--gold);letter-spacing:1px;margin-top:54px;">⚖️ تقييم الخيارين</div>';
   var titleHtml='<h1 class="disp" style="font-size:84px;margin-top:14px;margin-bottom:18px;line-height:1.05;">نظام نقاط <span style="color:var(--gold);">الإقصائيات</span></h1>';
-  var sub='<div style="font-weight:700;font-size:28px;color:var(--mute);margin-bottom:40px;line-height:1.5;">قارن الخيارين على كل معيار — ثم صوّت</div>';
+  var sub='<div style="font-weight:700;font-size:28px;color:var(--mute);margin-bottom:40px;line-height:1.5;">مقارنة الخيارين على كل معيار</div>';
 
   // ---- matrix data (categories × options) ----
   // rating: 0..3 (filled dots). Each row evaluates both options on the same axis.
@@ -2926,14 +2926,13 @@ function genScoringDilemmaPoster(){
      bTxt:'النهائي يعطي ١٫٦ ضعف نقاط مباراة المجموعات.'},
     {label:'الحدّ من العشوائية',sub:'تقليل وزن الترجيح/الإضافي في الجدول',   a:3, b:1,
      aTxt:'ضربة ترجيح موفّقة تمنحك ٥ نقاط فقط.',
-     bTxt:'ضربة ترجيح موفّقة تمنحك ٨ نقاط ثقيلة.'},
-    {label:'التفاعل في النهاية',sub:'حماس اللاعبين في الإقصائيات',           a:1, b:3,
-     aTxt:'كل المباريات بنفس الوزن، فالحماس ثابت.',
-     bTxt:'النقاط ترتفع ٦٠٪ في الإقصائيات، فالحماس يتصاعد.'}
+     bTxt:'ضربة ترجيح موفّقة تمنحك ٨ نقاط ثقيلة.'}
   ];
   var totalA=0, totalB=0;
   CATS.forEach(function(c){totalA+=c.a;totalB+=c.b;});
   var maxTotal = CATS.length*3;
+  // Gold highlight goes to the higher-total option (defaults to B if tied).
+  var aIsLeader = totalA > totalB;
 
   // ---- header row: empty (category) | option A | option B ----
   function optHead(opts){
@@ -2953,16 +2952,22 @@ function genScoringDilemmaPoster(){
   var headOptA = optHead({
     tag:'أ', eyebrow:'الخيار الأول', title:'إبقاء النظام',
     exact:5, winner:3,
-    bg1:'rgba(255,255,255,.07)', bg2:'rgba(255,255,255,.02)',
-    border:'rgba(255,255,255,.22)', chip:'rgba(255,255,255,.22)', chipText:'#fff',
-    label:'#fff'
+    bg1: aIsLeader ? 'rgba(230,204,120,.20)' : 'rgba(255,255,255,.07)',
+    bg2: aIsLeader ? 'rgba(230,204,120,.04)' : 'rgba(255,255,255,.02)',
+    border: aIsLeader ? 'rgba(230,204,120,.55)' : 'rgba(255,255,255,.22)',
+    chip: aIsLeader ? 'var(--gold)' : 'rgba(255,255,255,.22)',
+    chipText: aIsLeader ? '#0A2C20' : '#fff',
+    label: aIsLeader ? 'var(--gold)' : '#fff'
   });
   var headOptB = optHead({
     tag:'ب', eyebrow:'الخيار الثاني', title:'زيادة النقاط',
     exact:8, winner:5,
-    bg1:'rgba(230,204,120,.20)', bg2:'rgba(230,204,120,.04)',
-    border:'rgba(230,204,120,.55)', chip:'var(--gold)', chipText:'#0A2C20',
-    label:'var(--gold)'
+    bg1: !aIsLeader ? 'rgba(230,204,120,.20)' : 'rgba(255,255,255,.07)',
+    bg2: !aIsLeader ? 'rgba(230,204,120,.04)' : 'rgba(255,255,255,.02)',
+    border: !aIsLeader ? 'rgba(230,204,120,.55)' : 'rgba(255,255,255,.22)',
+    chip: !aIsLeader ? 'var(--gold)' : 'rgba(255,255,255,.22)',
+    chipText: !aIsLeader ? '#0A2C20' : '#fff',
+    label: !aIsLeader ? 'var(--gold)' : '#fff'
   });
 
   var matrixHead = '<div style="display:flex;gap:14px;align-items:stretch;margin-bottom:14px;">'
@@ -3001,8 +3006,8 @@ function genScoringDilemmaPoster(){
         +'<div style="font-weight:900;font-size:22px;color:#fff;line-height:1.2;">'+esc(c.label)+'</div>'
         +'<div style="font-weight:600;font-size:14px;color:var(--mute);margin-top:4px;line-height:1.4;">'+esc(c.sub)+'</div>'
       +'</div>'
-      +dotsCell(c.a, false, c.aTxt)
-      +dotsCell(c.b, true,  c.bTxt)
+      +dotsCell(c.a, aIsLeader, c.aTxt)
+      +dotsCell(c.b, !aIsLeader, c.bTxt)
     +'</div>';
   });
   var matrixBody = '<div style="display:flex;flex-direction:column;gap:10px;">'+rows+'</div>';
@@ -3023,19 +3028,13 @@ function genScoringDilemmaPoster(){
     +'<div style="flex:0 0 360px;display:flex;align-items:center;justify-content:flex-start;padding:0 18px;">'
       +'<div style="font-weight:900;font-size:24px;color:var(--gold);">المجموع</div>'
     +'</div>'
-    +totalCell(totalA, false)
-    +totalCell(totalB, true)
+    +totalCell(totalA, aIsLeader)
+    +totalCell(totalB, !aIsLeader)
   +'</div>';
 
   var matrix = matrixHead + matrixBody + totals;
 
-  var cta='<div style="margin-top:36px;padding:26px 28px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);text-align:center;">'
-    +'<div style="font-weight:800;font-size:22px;color:var(--gold);letter-spacing:1px;margin-bottom:6px;">🗳️ صوّت الآن</div>'
-    +'<div style="font-weight:700;font-size:22px;color:#fff;line-height:1.55;">أ — نبقى زي ما إحنا · ب — نزيد نقاط الإقصائيات</div>'
-    +'<div style="font-weight:600;font-size:18px;color:var(--mute);margin-top:8px;">رأي الأغلبية يُعتمد قبل دور الـ٣٢</div>'
-  +'</div>';
-
-  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+matrix+cta+'</div></div>';
+  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+matrix+'</div></div>';
   var posterRoot=document.getElementById('posterRoot');
   posterRoot.innerHTML=posterHtml;
 
