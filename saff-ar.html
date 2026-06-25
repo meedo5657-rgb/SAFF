@@ -2037,6 +2037,11 @@ function matchCard(m){
       else draft[m.id].x2=false;
       draftEdited[m.id]=true;
       x2cls();
+      // Auto-save the toggle immediately so users don't lose ×2 by forgetting
+      // to press "حفظ التوقّع" after. Only fires when there's an existing
+      // saved prediction — otherwise saving would commit a blank 0-0.
+      if(myPred) savePred(m.id);
+      else toast('اضغط حفظ التوقّع لتثبيت ×٢');
     });
     var sb=document.createElement('button');sb.className='btn btn-green save-pred';
     sb.textContent=myPred?'حدّث التوقّع':'احفظ التوقّع';
@@ -2143,7 +2148,9 @@ function savePred(id){
     data.pw=d.pw;
   }
   if(d.x2) data.x2=true; // 2x boost card
-  ROOT.child('predictions/'+id+'/'+myKey).set(data).then(function(){toast('تم حفظ التوقّع ✅');draftEdited[id]=false;});
+  ROOT.child('predictions/'+id+'/'+myKey).set(data)
+    .then(function(){toast('تم حفظ التوقّع ✅');draftEdited[id]=false;})
+    .catch(function(e){toast('فشل الحفظ: '+((e&&e.message)||e));});
 }
 
 // ===== ADMIN =====
