@@ -73,6 +73,14 @@ body{font-family:'Tajawal',sans-serif;background:radial-gradient(120% 80% at 50%
 .score-big{font-family:'Cairo',sans-serif;font-size:3rem;font-weight:900;color:var(--gold);line-height:1;}
 .score-sub{color:var(--muted);font-size:.95rem;}
 .result-desc{color:var(--text);font-size:1.05rem;line-height:1.7;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;width:100%;}
+.breakdown{width:100%;display:flex;flex-direction:column;gap:12px;margin-top:4px;}
+.breakdown h3{font-family:'Cairo',sans-serif;font-size:1.05rem;font-weight:800;color:#fff;text-align:right;margin-bottom:2px;}
+.bd-row{display:flex;flex-direction:column;gap:5px;}
+.bd-top{display:flex;justify-content:space-between;font-size:.88rem;font-weight:700;}
+.bd-top .name{color:var(--text);}
+.bd-top .val{color:var(--muted);font-weight:800;}
+.bd-track{width:100%;height:9px;border-radius:9px;background:var(--surface);overflow:hidden;border:1px solid var(--line);}
+.bd-fill{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--accent2),var(--nug));transition:width .8s ease;}
 .share-row{display:flex;gap:10px;width:100%;}
 .share-row .btn{flex:1;}
 .footer{color:var(--muted);font-size:.8rem;text-align:center;margin-top:4px;}
@@ -86,7 +94,7 @@ body{font-family:'Tajawal',sans-serif;background:radial-gradient(120% 80% at 50%
     <div class="hero">
       <div class="emoji">🍗⚖️🇸🇦</div>
       <h1>سعوديٌّ أصيل <span class="vs">أم</span> تشيكن ناجتس؟</h1>
-      <p>اثنا عشر موقفًا تكشف حقيقتك: أما زلتَ متجذِّرًا في أصلك، أم مِلتَ إلى الطابع المتغرِّب؟<br>أجِبْ بصدقٍ ودون مجاملة 👀</p>
+      <p>ثمانية عشر موقفًا موزّعةً على ستة محاور تكشف حقيقتك: أما زلتَ متجذِّرًا في أصلك، أم مِلتَ إلى الطابع المتغرِّب؟<br>أجِبْ بصدقٍ ودون مجاملة 👀</p>
     </div>
     <div class="scale-bar">
       <span>أصيل 🇸🇦</span><span class="line"></span><span>متغرِّب 🍗</span>
@@ -130,6 +138,8 @@ body{font-family:'Tajawal',sans-serif;background:radial-gradient(120% 80% at 50%
       </div>
 
       <div class="result-desc" id="r-desc">…</div>
+
+      <div class="breakdown" id="r-breakdown"></div>
     </div>
 
     <div class="share-row">
@@ -142,33 +152,66 @@ body{font-family:'Tajawal',sans-serif;background:radial-gradient(120% 80% at 50%
 </div>
 
 <script>
-/* score: لكل خيار وزن من 0 (أصيل) إلى 2 (متغرّب).
+/* ===== الإطار (Framework) =====
+   ستة محاور تقيس الأصالة (0) مقابل التغرُّب (2)، لكل محور ثلاثة أسئلة.
    الخيارات مجرّدة ومخلوطة الترتيب عمدًا حتى لا تدلّ على وجهتها. */
+const DIMENSIONS = {
+  family:  "الانتماء العائلي والجماعي",
+  karam:   "الكرم والضيافة",
+  time:    "العلاقة بالوقت",
+  identity:"الهوية والتقاليد",
+  lang:    "اللغة والتعبير",
+  taste:   "الذوق ونمط الاستهلاك",
+};
+
 const QUESTIONS = [
-  { q:"ما الذي يمنحك الشعور بالطمأنينة أكثر؟",
+  /* ١ — الانتماء العائلي والجماعي */
+  { dim:"family", q:"ما الذي يمنحك الشعور بالطمأنينة أكثر؟",
     opts:[ ["أن تمتلك مساحتك الخاصة وخصوصيتك",2], ["أن تكون محاطًا بمن تعرفهم منذ الصغر",0], ["أن يكون يومك منظَّمًا ومتوقَّعًا",1] ] },
-  { q:"عند اتخاذ قرار مهم، إلى أيِّ شيء تركن أولًا؟",
-    opts:[ ["إلى تحليلك الخاص وبحثك المستقل",2], ["إلى رأي من هم أكبر منك سنًّا وخبرة",0], ["إلى إحساسك ومشورة أقرب الناس إليك",1] ] },
-  { q:"كيف تنظر إلى الوقت؟",
-    opts:[ ["موردٌ ثمين لا يُهدر، والمواعيد التزام",2], ["إطارٌ مرن، والعلاقات أهمُّ من الدقائق",0], ["أمرٌ أحاول ضبطه لكنه يفلت مني أحيانًا",1] ] },
-  { q:"ما أقربُ تعريفٍ للكرم في نظرك؟",
-    opts:[ ["أن تُعطي بما يليق من غير إسراف",2], ["أن تُعطي حين يُطلب منك فعلًا",1], ["أن تُعطي بلا حساب ولو فاض العطاء",0] ] },
-  { q:"كيف ترى الضيافة المفاجئة دون موعد؟",
-    opts:[ ["واجبٌ لا يُسأل عنه، والباب مفتوح دائمًا",0], ["مرحَّبٌ بها ما دامت لا تُثقل كاهلك",1], ["ألطفُ حين تكون بترتيبٍ وموعدٍ مسبق",2] ] },
-  { q:"ما الذي يزعجك أكثر في تعامل الناس؟",
-    opts:[ ["الإخلال بالمواعيد وعدم تقدير الوقت",2], ["التقصير في احترام الكبير والذوق العام",0], ["الفضول والتدخُّل فيما لا يعنيهم",1] ] },
-  { q:"ما عطلتك المثالية؟",
-    opts:[ ["لقاءٌ مفتوح تتّسع دائرته بلا تخطيط",0], ["هدوءٌ تستعيد فيه طاقتك بمفردك",1], ["رحلةٌ مدروسة بحجوزاتٍ وبرنامجٍ واضح",2] ] },
-  { q:"حين يغمرك الفرح، مع من تتقاسمه؟",
+  { dim:"family", q:"حين يغمرك الفرح، مع من تتقاسمه؟",
     opts:[ ["مع دائرةٍ صغيرة مختارةٍ بعناية",2], ["مع العائلة الكبيرة كلِّها دون استثناء",0], ["أحتفظ به لنفسي في الغالب",1] ] },
-  { q:"ما أهمُّ ما تُقدِّره في مكانٍ تأكل فيه؟",
-    opts:[ ["وفرةُ الطعام وطِيبه ولو بسُط المكان",0], ["نظافتُه وسرعةُ خدمته",1], ["أناقتُه وذوقُ تقديمه",2] ] },
-  { q:"كيف تصف علاقتك بتقاليدك وجذورك؟",
-    opts:[ ["أحترمها وأنتقي منها ما يناسب حياتي",1], ["أساسُ هويتي وأحرص على توريثها لمن بعدي",0], ["جزءٌ من الماضي، وأتطلّع إلى ما هو أحدث",2] ] },
-  { q:"عند أوّل مشكلة تواجهك، إلى من تلجأ؟",
+  { dim:"family", q:"عند أوّل مشكلةٍ تواجهك، إلى من تلجأ؟",
     opts:[ ["أحاول حلَّها بنفسي قبل كلِّ شيء",2], ["إلى الأهل، فهم السَّنَد الأوّل",0], ["إلى صديقٍ أثق برأيه وحكمته",1] ] },
-  { q:"ما الذي يصف ذوقك العام؟",
-    opts:[ ["الحداثةُ والتجديد والطابع العالمي",2], ["البساطةُ والعملية",1], ["الأصالةُ والدفء وما اعتاد عليه الناس",0] ] },
+
+  /* ٢ — الكرم والضيافة */
+  { dim:"karam", q:"ما أقربُ تعريفٍ للكرم في نظرك؟",
+    opts:[ ["أن تُعطي بما يليق من غير إسراف",2], ["أن تُعطي حين يُطلب منك فعلًا",1], ["أن تُعطي بلا حساب ولو فاض العطاء",0] ] },
+  { dim:"karam", q:"كيف ترى الضيافة المفاجئة دون موعد؟",
+    opts:[ ["واجبٌ لا يُسأل عنه، والباب مفتوح دائمًا",0], ["مرحَّبٌ بها ما دامت لا تُثقل كاهلك",1], ["ألطفُ حين تكون بترتيبٍ وموعدٍ مسبق",2] ] },
+  { dim:"karam", q:"حين تدعو أصحابك إلى وليمة، كيف تتصرّف؟",
+    opts:[ ["أُكثر الطعام حتى يفيض، فالنقص عيب",0], ["أُقدِّر الكمية بدقّةٍ دون زيادة",2], ["يُسهم كلٌّ منهم بطبقٍ يُحضره معه",1] ] },
+
+  /* ٣ — العلاقة بالوقت */
+  { dim:"time", q:"كيف تنظر إلى الوقت؟",
+    opts:[ ["موردٌ ثمين لا يُهدر، والمواعيد التزام",2], ["إطارٌ مرن، والعلاقات أهمُّ من الدقائق",0], ["أمرٌ أحاول ضبطه لكنه يفلت مني أحيانًا",1] ] },
+  { dim:"time", q:"تأخّر صاحبك نصف ساعةٍ دون اعتذار… شعورك؟",
+    opts:[ ["أمرٌ طبيعي لا يستحقّ الانزعاج",0], ["أتفهّمه، لكنه يضايقني قليلًا",1], ["أراه إخلالًا بالاحترام والالتزام",2] ] },
+  { dim:"time", q:"كيف تخطّط ليومك عادةً؟",
+    opts:[ ["جدولٌ دقيق موزَّع بالمواعيد",2], ["خطوطٌ عامة مرنة قابلة للتغيير",1], ["أترك الأمور تجري كما تشاء",0] ] },
+
+  /* ٤ — الهوية والتقاليد */
+  { dim:"identity", q:"كيف تصف علاقتك بتقاليدك وجذورك؟",
+    opts:[ ["أحترمها وأنتقي منها ما يناسب حياتي",1], ["أساسُ هويتي وأحرص على توريثها لمن بعدي",0], ["جزءٌ من الماضي، وأتطلّع إلى ما هو أحدث",2] ] },
+  { dim:"identity", q:"في المناسبات الرسمية، إلى أيِّ مظهرٍ تميل؟",
+    opts:[ ["الزيّ التقليدي أرتديه باعتزاز",0], ["مزيجٌ يجمع بين الأصالة والعصرية",1], ["الطابع العالمي الأنيق",2] ] },
+  { dim:"identity", q:"حين تسمع بعادةٍ قديمةٍ متوارثة، ما شعورك؟",
+    opts:[ ["اعتزازٌ وحرصٌ على إحيائها",0], ["احترامٌ مع انتقاءٍ لما يناسب",1], ["فضولٌ دون تعلُّقٍ بها",2] ] },
+
+  /* ٥ — اللغة والتعبير */
+  { dim:"lang", q:"حين يعجبك شيءٌ كثيرًا، ما الذي يخرج منك تلقائيًّا؟",
+    opts:[ ["تعبيرٌ عربيٌّ أصيل عن الإعجاب",0], ["مزيجٌ من العربية وكلماتٍ أجنبية",1], ["كلمةٌ أجنبيةٌ رائجة",2] ] },
+  { dim:"lang", q:"ما لغة المحتوى الذي تتابعه في معظم وقتك؟",
+    opts:[ ["عربيٌّ في معظمه",0], ["مزيجٌ متوازن بين العربية والأجنبية",1], ["أجنبيٌّ في معظمه",2] ] },
+  { dim:"lang", q:"عند الردِّ على تحيةٍ عابرة، بماذا تردُّ غالبًا؟",
+    opts:[ ["تحيةٌ وافيةٌ وسؤالٌ عن الحال والأهل",0], ["ردٌّ مقتضبٌ ثم أمضي",1], ["عبارةٌ أجنبيةٌ سريعة",2] ] },
+
+  /* ٦ — الذوق ونمط الاستهلاك */
+  { dim:"taste", q:"ما أهمُّ ما تُقدِّره في مكانٍ تأكل فيه؟",
+    opts:[ ["وفرةُ الطعام وطِيبه ولو بسُط المكان",0], ["نظافتُه وسرعةُ خدمته",1], ["أناقتُه وذوقُ تقديمه",2] ] },
+  { dim:"taste", q:"عند شراء شيءٍ ما، ما الذي يحكم اختيارك؟",
+    opts:[ ["ما اعتاد عليه الناس وأثبت جدارته",0], ["الأنسبُ عمليًّا وسعرًا",1], ["الأحدثُ والأكثر رواجًا عالميًّا",2] ] },
+  { dim:"taste", q:"ما الذي يصف ذوقك العام؟",
+    opts:[ ["الأصالةُ والدفء وما اعتاد عليه الناس",0], ["البساطةُ والعملية",1], ["الحداثةُ والتجديد والطابع العالمي",2] ] },
 ];
 
 let current=0;
@@ -191,7 +234,7 @@ function show(id){
 function renderQ(){
   const item=QUESTIONS[current];
   const total=QUESTIONS.length;
-  document.getElementById('q-num').textContent='سؤال '+arNum(current+1);
+  document.getElementById('q-num').textContent='المحور: '+DIMENSIONS[item.dim];
   document.getElementById('q-text').textContent=item.q;
   document.getElementById('prog-label').textContent='السؤال '+arNum(current+1)+' من '+arNum(total);
   const pct=Math.round((current)/total*100);
@@ -228,8 +271,13 @@ function prevQ(){ if(current>0){ current--; renderQ(); } }
 
 function showResult(){
   let raw=0,max=0;
-  answers.forEach((a,i)=>{ raw+=QUESTIONS[i].opts[a][1]; max+=2; });
-  const pct=Math.round(raw/max*100); // 0 = سعودي أصيل ، 100 = نقتس كامل
+  const dimRaw={}, dimMax={};
+  Object.keys(DIMENSIONS).forEach(k=>{ dimRaw[k]=0; dimMax[k]=0; });
+  answers.forEach((a,i)=>{
+    const w=QUESTIONS[i].opts[a][1], d=QUESTIONS[i].dim;
+    raw+=w; max+=2; dimRaw[d]+=w; dimMax[d]+=2;
+  });
+  const pct=Math.round(raw/max*100); // 0 = أصيل ، 100 = متغرّب
 
   const tiers=[
     {min:0,  max:15, emoji:"🇸🇦",  title:"أصيلٌ عريق",             desc:"أصالتُك راسخة كالجذور. تُقدِّم العائلة والكرم واحترام الكبير على ما سواها، وتحمل تقاليدك بفخر. لا تتغيّر 🤝"},
@@ -250,6 +298,17 @@ function showResult(){
   const knob=document.getElementById('r-knob');
   knob.textContent=t.emoji;
   knob.style.right=pct+'%';
+
+  // تفصيل المحاور
+  const bd=document.getElementById('r-breakdown');
+  let html='<h3>تفصيل المحاور</h3>';
+  Object.keys(DIMENSIONS).forEach(k=>{
+    const p=dimMax[k]?Math.round(dimRaw[k]/dimMax[k]*100):0;
+    html+='<div class="bd-row"><div class="bd-top"><span class="name">'+DIMENSIONS[k]+'</span>'+
+          '<span class="val">'+p+'% متغرِّب</span></div>'+
+          '<div class="bd-track"><div class="bd-fill" style="width:'+p+'%"></div></div></div>';
+  });
+  bd.innerHTML=html;
 
   window._shareText='كانت نتيجتي "'+t.title+'" بنسبة '+pct+'% على مقياس التغرُّب 🍗 في اختبار "سعوديٌّ أصيل أم تشيكن ناجتس؟" — جرِّب أنت أيضًا!';
   show('screen-result');
