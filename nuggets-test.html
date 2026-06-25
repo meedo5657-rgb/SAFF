@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سعودي أصيل ولا تشيكن نقتس؟ 🍗</title>
+<meta name="theme-color" content="#0a5c33">
+<meta property="og:title" content="سعودي أصيل ولا تشيكن نقتس؟ 🍗">
+<meta property="og:description" content="اختبار يكشف قد إيش أنت سعودي أصيل ولا متغرب (تشيكن نقتس). جاوب على الأسئلة واكتشف نتيجتك!">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Cairo:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a1810; --surface:#102a1c; --card:#0d2417;
+  --accent1:#0a5c33; --accent2:#2ea96a; --accent3:#07371f;
+  --gold:#e8c468; --text:#eafff2; --muted:#8fb3a0;
+  --line:rgba(255,255,255,.08);
+  --nug:#e8a23c;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{font-family:'Tajawal',sans-serif;background:radial-gradient(120% 80% at 50% 0%,#11331f 0%,var(--bg) 60%);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:22px 16px 70px;}
+.app{width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;gap:18px;}
+.screen{display:none;width:100%;flex-direction:column;align-items:center;gap:18px;animation:fade .35s ease;}
+.screen.active{display:flex;}
+@keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+/* ===== intro ===== */
+.hero{text-align:center;padding-top:8px;}
+.hero .emoji{font-size:3.6rem;line-height:1;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4));}
+.hero h1{font-family:'Cairo',sans-serif;font-size:2rem;font-weight:900;color:#fff;margin-top:10px;line-height:1.25;}
+.hero h1 .vs{color:var(--nug);}
+.hero p{color:var(--muted);font-size:1rem;margin-top:10px;line-height:1.6;}
+.scale-bar{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);margin-top:6px;}
+.scale-bar .line{flex:1;height:6px;border-radius:6px;background:linear-gradient(90deg,var(--accent2),var(--nug));}
+
+.btn{width:100%;padding:15px;border-radius:14px;border:none;font-family:'Tajawal',sans-serif;font-size:1.05rem;font-weight:800;cursor:pointer;transition:transform .1s,opacity .2s;}
+.btn:active{transform:scale(.97);}
+.btn-green{background:linear-gradient(135deg,var(--accent2),var(--accent1));color:#fff;box-shadow:0 8px 22px rgba(10,92,51,.45);}
+.btn-ghost{background:var(--surface);color:var(--text);border:1.5px solid var(--line);}
+
+/* ===== progress ===== */
+.progress-wrap{width:100%;display:flex;flex-direction:column;gap:8px;}
+.progress-top{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);font-weight:700;}
+.progress-track{width:100%;height:10px;background:var(--surface);border-radius:10px;overflow:hidden;border:1px solid var(--line);}
+.progress-fill{height:100%;width:0;border-radius:10px;background:linear-gradient(90deg,var(--accent2),var(--gold));transition:width .4s ease;}
+
+/* ===== question ===== */
+.q-card{width:100%;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px 20px;display:flex;flex-direction:column;gap:18px;}
+.q-num{font-size:.8rem;color:var(--accent2);font-weight:800;letter-spacing:.5px;}
+.q-text{font-family:'Cairo',sans-serif;font-size:1.45rem;font-weight:800;color:#fff;line-height:1.4;}
+.options{display:flex;flex-direction:column;gap:12px;}
+.opt{width:100%;text-align:right;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:16px 16px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:1.05rem;font-weight:600;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;display:flex;align-items:center;gap:12px;}
+.opt:hover{border-color:var(--accent2);background:#143a25;}
+.opt:active{transform:scale(.98);}
+.opt .dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);flex-shrink:0;transition:.15s;}
+.opt.sel{border-color:var(--accent2);background:#16462c;}
+.opt.sel .dot{border-color:var(--accent2);background:var(--accent2);box-shadow:inset 0 0 0 3px var(--card);}
+
+.nav-row{display:flex;gap:10px;width:100%;}
+.nav-row .btn{flex:1;}
+
+/* ===== result ===== */
+.result-card{width:100%;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:28px 22px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;}
+.result-emoji{font-size:4.4rem;line-height:1;}
+.result-title{font-family:'Cairo',sans-serif;font-size:1.9rem;font-weight:900;color:#fff;}
+.meter{width:100%;margin:6px 0;}
+.meter-labels{display:flex;justify-content:space-between;font-size:.82rem;font-weight:800;margin-bottom:8px;}
+.meter-labels .s{color:var(--accent2);}
+.meter-labels .n{color:var(--nug);}
+.meter-track{width:100%;height:26px;border-radius:14px;background:linear-gradient(90deg,var(--nug) 0%,#6b5a2e 45%,#1d6e44 55%,var(--accent2) 100%);position:relative;overflow:visible;border:1px solid var(--line);}
+.meter-knob{position:absolute;top:50%;width:34px;height:34px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 4px 12px rgba(0,0,0,.5);transition:right 1s cubic-bezier(.2,.9,.3,1);}
+.score-big{font-family:'Cairo',sans-serif;font-size:3rem;font-weight:900;color:var(--gold);line-height:1;}
+.score-sub{color:var(--muted);font-size:.95rem;}
+.result-desc{color:var(--text);font-size:1.05rem;line-height:1.7;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;width:100%;}
+.share-row{display:flex;gap:10px;width:100%;}
+.share-row .btn{flex:1;}
+.footer{color:var(--muted);font-size:.8rem;text-align:center;margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- INTRO -->
+  <section class="screen active" id="screen-intro">
+    <div class="hero">
+      <div class="emoji">🍗⚖️🇸🇦</div>
+      <h1>سعودي أصيل <span class="vs">ولا</span> تشيكن نقتس؟</h1>
+      <p>١٢ سؤال بسيط بيكشفون حقيقتك… هل أنت ابن جلدتك ولا "متغرب" بالكامل؟<br>جاوب بصدق ولا تغش 👀</p>
+    </div>
+    <div class="scale-bar">
+      <span>سعودي 🇸🇦</span><span class="line"></span><span>نقتس 🍗</span>
+    </div>
+    <button class="btn btn-green" onclick="startQuiz()">يلا نبدأ 🚀</button>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="screen" id="screen-quiz">
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span id="prog-label">السؤال ١ من ١٢</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-num" id="q-num">سؤال ١</div>
+      <div class="q-text" id="q-text">…</div>
+      <div class="options" id="options"></div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" id="btn-back" onclick="prevQ()">رجوع</button>
+      <button class="btn btn-green" id="btn-next" onclick="nextQ()" disabled>التالي</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="screen-result">
+    <div class="result-card" id="result-card">
+      <div class="result-emoji" id="r-emoji">🍗</div>
+      <div class="result-title" id="r-title">…</div>
+      <div class="score-big" id="r-score">0%</div>
+      <div class="score-sub" id="r-sub">من النقتسية</div>
+
+      <div class="meter">
+        <div class="meter-labels"><span class="s">سعودي أصيل 🇸🇦</span><span class="n">🍗 تشيكن نقتس</span></div>
+        <div class="meter-track"><div class="meter-knob" id="r-knob">🙂</div></div>
+      </div>
+
+      <div class="result-desc" id="r-desc">…</div>
+    </div>
+
+    <div class="share-row">
+      <button class="btn btn-green" onclick="shareResult()">📤 شارك نتيجتك</button>
+    </div>
+    <button class="btn btn-ghost" onclick="restart()">🔁 أعد الاختبار</button>
+    <div class="footer">اختبار للتسلية فقط — ما يحدد جنسيتك 😅</div>
+  </section>
+
+</div>
+
+<script>
+/* score: كل خيار له وزن من 0 (سعودي أصيل) إلى 2 (تشيكن نقتس كامل) */
+const QUESTIONS = [
+  { q:"وش تطلب أول ما تدخل المطعم؟",
+    opts:[ ["كبسة أو مندي بلحم 🍛",0], ["برغر أو شاورمة 🍔",1], ["تشيكن نقتس وفرايز 🍟",2] ] },
+  { q:"الجمعة بعد الصلاة، وش الجو؟",
+    opts:[ ["غدا عند الجدّة وكلنا ملمومين 👵",0], ["ناخذ راحة وننام لين العصر 😴",1], ["برانش مع الربع بكافيه 🥐",2] ] },
+  { q:"قهوتك تكون…",
+    opts:[ ["قهوة عربية بالهيل ودلّة ☕",0], ["نسكافيه أو قهوة عادية",1], ["آيس لاتيه فانيلا مزبوط ❄️",2] ] },
+  { q:"كيف تحكي مع ربعك؟",
+    opts:[ ["لهجة محلية ١٠٠٪ يا الطويل 🤝",0], ["عربي مخلوط شوي إنقليزي",1], ["\"yalla bro that's so random\" 😎",2] ] },
+  { q:"وش تسمع في السيارة؟",
+    opts:[ ["شيلات وطرب خليجي 🎶",0], ["عربي بوب وأغاني مشهورة",1], ["بودكاست إنقليزي وراب أجنبي 🎧",2] ] },
+  { q:"العزيمة الكبيرة، وين تجلس؟",
+    opts:[ ["عالأرض على الفرشة والمجلس 🪑",0], ["كنب… بس أقدر على الأرض",1], ["لازم طاولة وكراسي وإلا ما آكل",2] ] },
+  { q:"الشتا والبر، رأيك؟",
+    opts:[ ["كشتة وحطب وقهوة، عشقي ❤️🔥",0], ["أروح بس ما أطوّل",1], ["البر؟ أفضّل المول والتكييف 🏬",2] ] },
+  { q:"وش تلبس في المناسبات؟",
+    opts:[ ["ثوب وبشت وغترة معدّلة 🧣",0], ["ثوب عادي بدون تكلّف",1], ["بدلة أو كاجوال أوروبي 👔",2] ] },
+  { q:"تاكل بإيش؟",
+    opts:[ ["بيدي اليمين والرز يطير ✋",0], ["ملعقة وشوكة عادي",1], ["سكين وشوكة وإتيكيت كامل 🍴",2] ] },
+  { q:"الفطور المثالي؟",
+    opts:[ ["فول وتميس وشكشوكة 🍳",0], ["بيض وخبز وجبن",1], ["أفوكادو توست وسموذي 🥑",2] ] },
+  { q:"موعدك مع الناس عادةً…",
+    opts:[ ["\"عقب المغرب\" وكلٌّ يفهم 🌙",0], ["أحدد ساعة بس أتأخر شوي",1], ["٧:٠٠ شارب يعني ٦:٥٥ موجود ⏰",2] ] },
+  { q:"لو ضاع جوالك، أول شي تدوّر…",
+    opts:[ ["رقم العم عشان يوصلني 📞",0], ["أبحث عنه بنفسي بهدوء",1], ["\"Find My\" والـ iCloud والـ tracking 🛰️",2] ] },
+];
+
+let current=0;
+const answers=new Array(QUESTIONS.length).fill(null);
+
+const arNum=n=>n.toLocaleString('ar-EG');
+
+function startQuiz(){
+  show('screen-quiz');
+  current=0;
+  renderQ();
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderQ(){
+  const item=QUESTIONS[current];
+  const total=QUESTIONS.length;
+  document.getElementById('q-num').textContent='سؤال '+arNum(current+1);
+  document.getElementById('q-text').textContent=item.q;
+  document.getElementById('prog-label').textContent='السؤال '+arNum(current+1)+' من '+arNum(total);
+  const pct=Math.round((current)/total*100);
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('prog-fill').style.width=pct+'%';
+
+  const wrap=document.getElementById('options');
+  wrap.innerHTML='';
+  item.opts.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='opt'+(answers[current]===i?' sel':'');
+    b.innerHTML='<span class="dot"></span><span>'+o[0]+'</span>';
+    b.onclick=()=>selectOpt(i);
+    wrap.appendChild(b);
+  });
+
+  document.getElementById('btn-back').style.visibility=current===0?'hidden':'visible';
+  document.getElementById('btn-next').disabled=answers[current]===null;
+  document.getElementById('btn-next').textContent=current===total-1?'شوف النتيجة 🎉':'التالي';
+}
+
+function selectOpt(i){
+  answers[current]=i;
+  document.querySelectorAll('#options .opt').forEach((el,idx)=>el.classList.toggle('sel',idx===i));
+  document.getElementById('btn-next').disabled=false;
+}
+
+function nextQ(){
+  if(answers[current]===null)return;
+  if(current<QUESTIONS.length-1){ current++; renderQ(); }
+  else showResult();
+}
+function prevQ(){ if(current>0){ current--; renderQ(); } }
+
+function showResult(){
+  let raw=0,max=0;
+  answers.forEach((a,i)=>{ raw+=QUESTIONS[i].opts[a][1]; max+=2; });
+  const pct=Math.round(raw/max*100); // 0 = سعودي أصيل ، 100 = نقتس كامل
+
+  const tiers=[
+    {min:0,  max:15, emoji:"🇸🇦",  title:"سعودي أصيل ومخضرم",   desc:"يا سلام! أنت من جيل الدلّة والمجلس والكبسة. أصالة تتنفّس تراث، والعمّ فخور فيك. لا تتغيّر 🤝"},
+    {min:16, max:35, emoji:"🌴",  title:"سعودي بنكهة عصرية",    desc:"جذورك ثابتة بس تواكب الزمن. تعرف وقت الكبسة ووقت اللاتيه. توازن جميل 👌"},
+    {min:36, max:55, emoji:"⚖️",  title:"نص نص — متوازن",       desc:"خمسين بخمسين! ساعة سعودي أصيل وساعة تشيكن نقتس. حربائي… تتأقلم مع أي مجلس 😎"},
+    {min:56, max:75, emoji:"🍟",  title:"تشيكن نقتس بنكهة محلية",desc:"مِلت كثير للجهة المتغربة! تحب الكافيهات والبرانش، بس لسا تنحاش للكبسة أحياناً. خفّفها شوي 😅"},
+    {min:76, max:100,emoji:"🍗",  title:"تشيكن نقتس خالص!",      desc:"يا حليلك! آيس لاتيه وأفوكادو توست و\"bro\" في كل جملة. الجدّة قلقانة عليك… ارجع لجذورك 🥹"},
+  ];
+  const t=tiers.find(x=>pct>=x.min&&pct<=x.max)||tiers[2];
+
+  document.getElementById('r-emoji').textContent=t.emoji;
+  document.getElementById('r-title').textContent=t.title;
+  document.getElementById('r-score').textContent=pct+'%';
+  document.getElementById('r-sub').textContent='من النقتسية 🍗';
+  document.getElementById('r-desc').textContent=t.desc;
+
+  // knob position: right=0% -> سعودي side (right), right=100% -> nuggets side (left)
+  const knob=document.getElementById('r-knob');
+  knob.textContent=t.emoji;
+  knob.style.right=pct+'%';
+
+  window._shareText='طلعت "'+t.title+'" بنسبة '+pct+'% نقتس 🍗 في اختبار "سعودي أصيل ولا تشيكن نقتس؟" — جرّب نفسك!';
+  show('screen-result');
+}
+
+async function shareResult(){
+  const text=window._shareText||'جرّب اختبار: سعودي أصيل ولا تشيكن نقتس؟ 🍗';
+  const url=location.href;
+  if(navigator.share){
+    try{ await navigator.share({title:'سعودي أصيل ولا تشيكن نقتس؟',text,url}); return; }catch(e){}
+  }
+  try{
+    await navigator.clipboard.writeText(text+'\n'+url);
+    alert('تم نسخ النتيجة! الصقها وين ما تبي 📋');
+  }catch(e){ alert(text); }
+}
+
+function restart(){ answers.fill(null); current=0; show('screen-intro'); }
+</script>
+</body>
+</html>
