@@ -3112,7 +3112,7 @@ function genTournamentScoringPoster(){
   var CATS=[
     {label:'العدالة',        sub:'عدم تغيير القواعد بعد بداية البطولة',     a:3, b:0,
      aTxt:'الكل دخل البطولة على أساس هذي النقاط من اليوم الأول.',
-     bTxt:'تخفيض القيمة الآن ظلم لمن اختار توقّعًا جريئًا على أمل ٣٠ نقطة.'},
+     bTxt:'تخفيض القيمة الآن غير عادل لمن اختار توقّعه اعتمادًا على ٣٠ نقطة.'},
     {label:'توازن المهارة',   sub:'هل يعكس الجدول مهارة المباريات الطويلة؟', a:1, b:3,
      aTxt:'ضربة وحدة صحيحة تعادل ٩ توقّعات نتيجة مضبوطة في المباريات.',
      bTxt:'مهارة التوقّع في ١٠٤ مباراة تبقى أهم من ضربة الحظ في توقّعَين.'},
@@ -3178,15 +3178,9 @@ function genTournamentScoringPoster(){
       var on = i<score;
       dots += '<div style="width:18px;height:18px;border-radius:50%;background:'+(on?filled:'transparent')+';border:2px solid '+(on?filled:empty)+';"></div>';
     }
-    var label='', lcol='var(--mute)';
-    if(score===3){label='قوي';   lcol='#7fd9a6';}
-    else if(score===2){label='جيد'; lcol='#e6cc78';}
-    else if(score===1){label='ضعيف';lcol='#e89b9b';}
-    else {label='سيّئ'; lcol='#e89b9b';}
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;background:'+(highlight?'rgba(230,204,120,.06)':'rgba(255,255,255,.03)')+';border:1px solid '+(highlight?'rgba(230,204,120,.22)':'rgba(255,255,255,.10)')+';border-radius:12px;padding:14px 12px;">'
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;background:'+(highlight?'rgba(230,204,120,.06)':'rgba(255,255,255,.03)')+';border:1px solid '+(highlight?'rgba(230,204,120,.22)':'rgba(255,255,255,.10)')+';border-radius:12px;padding:14px 12px;">'
       +'<div style="display:flex;gap:6px;direction:ltr;">'+dots+'</div>'
-      +'<div style="font-weight:700;font-size:14px;color:'+lcol+';">'+esc(label)+'</div>'
-      +(summary?'<div style="font-weight:700;font-size:14px;color:#fff;line-height:1.4;text-align:center;border-top:1px solid rgba(255,255,255,.10);padding-top:8px;width:100%;">'+esc(summary)+'</div>':'')
+      +(summary?'<div style="font-weight:700;font-size:14px;color:#fff;line-height:1.5;text-align:center;width:100%;">'+esc(summary)+'</div>':'')
     +'</div>';
   }
 
