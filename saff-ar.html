@@ -221,6 +221,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .poll-submit{padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#0a5c33,#1e7a4a);color:#fff;font-family:inherit;font-weight:900;font-size:.95rem;cursor:pointer;letter-spacing:.4px;}
 .poll-submit:disabled{background:rgba(255,255,255,.06);color:var(--muted);cursor:default;border:1px solid var(--line);}
 .poll-submit:not(:disabled):hover{filter:brightness(1.1);}
+.poll-foot.poll-ineligible{color:#fca5a5;font-weight:700;background:rgba(220,38,38,.10);border:1px solid rgba(220,38,38,.35);border-top:1px solid rgba(220,38,38,.35);border-radius:8px;padding:10px;}
 .sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
 .sc-rank{font-weight:800;color:var(--muted);min-width:24px;text-align:center;font-size:.95rem;}
 .sc-row:nth-child(1) .sc-rank,.sc-row:nth-child(2) .sc-rank{color:#fde68a;}
@@ -4496,8 +4497,25 @@ function computeAllStats(){
 }
 // ===== Poll banner =====
 var pollPendingVote=null; // local-only until "تسليم" is pressed; never edits Firebase
+var POLL_MIN_PRED_PCT=0.8; // min share of group matches predicted to be eligible to vote
 function pollVisibleForMe(){ return isAdmin || Date.now()>=POLL_OPENS_MS; }
 function pollIsOpen(){ var n=Date.now(); return n>=POLL_OPENS_MS && n<POLL_CLOSES_MS; }
+// How many of the 72 group matches did *I* predict? Used to gate voting.
+function myGroupPredictionCount(){
+  if(!myKey) return 0;
+  var n=0;
+  MATCHES.forEach(function(m){
+    if(m.stage!=='group') return;
+    if(predsData[m.id] && predsData[m.id][myKey]) n++;
+  });
+  return n;
+}
+function myPollEligibility(){
+  var total=MATCHES.filter(function(m){return m.stage==='group';}).length;
+  var have=myGroupPredictionCount();
+  var min=Math.ceil(total*POLL_MIN_PRED_PCT);
+  return {have:have, min:min, total:total, eligible:have>=min};
+}
 function _pollFmtAR(ms){
   var d=new Date(ms);
   var hh=d.getHours(), suf=(hh>=12?'م':'ص'); var h12=hh%12; if(h12===0) h12=12;
@@ -4506,12 +4524,16 @@ function _pollFmtAR(ms){
 function selectPollOption(key){
   // Locked for regular users after submit; admin can keep changing for testing.
   if(pollData && pollData[myKey] && !isAdmin) return;
+  var elig=myPollEligibility();
+  if(!elig.eligible && !isAdmin) return;
   pollPendingVote=key;
   renderPollBanner();
 }
 function submitPollVote(){
   if(!myKey){ toast('سجّل دخولك أولًا'); return; }
   if(pollData && pollData[myKey] && !isAdmin){ toast('سبق وسلّمت صوتك'); return; }
+  var elig=myPollEligibility();
+  if(!elig.eligible && !isAdmin){ toast('تحتاج توقّع '+arNum(elig.min)+' مباراة على الأقل للتصويت'); return; }
   if(!pollPendingVote){ toast('اختر خيارًا أولًا'); return; }
   if(!pollIsOpen() && !isAdmin){ toast('التصويت مغلق'); return; }
   var v=pollPendingVote;
@@ -4531,9 +4553,11 @@ function renderPollBanner(){
   var open   = !notYet && !closed;
   var myVote = pollData && pollData[myKey] || null;
   var hasVoted = !!myVote;
+  var elig = myPollEligibility();
   // Admin always can vote/re-vote (testing bypass). Regular users only when
-  // the poll is open AND they haven't submitted yet — final and uneditable.
-  var canVoteNow = isAdmin || (open && !hasVoted);
+  // the poll is open AND they haven't submitted yet AND they've predicted
+  // at least POLL_MIN_PRED_PCT of the group matches (active participants).
+  var canVoteNow = isAdmin || (open && !hasVoted && elig.eligible);
   // Tally
   var counts={A:0,B:0,C:0}, total=0;
   Object.keys(pollData||{}).forEach(function(k){
@@ -4576,7 +4600,9 @@ function renderPollBanner(){
     var label = ready ? (isAdmin && hasVoted ? 'تحديث الصوت (أدمن)' : 'تسليم الصوت') : 'اختر خيارًا للتصويت';
     inner+='<button class="poll-submit" id="pollSubmitBtn"'+(ready?'':' disabled')+'>'+esc(label)+'</button>';
   }
-  if(hasVoted && !showCounts){
+  if(!elig.eligible && !hasVoted && !isAdmin){
+    inner+='<div class="poll-foot poll-ineligible">⛔ لا يحق لك التصويت — توقّعاتك '+arNum(elig.have)+' من '+arNum(elig.total)+' (المطلوب '+arNum(elig.min)+' على الأقل، أي ٨٠٪)</div>';
+  } else if(hasVoted && !showCounts){
     inner+='<div class="poll-foot">✓ سُلِّم صوتك: <b>'+esc(myVote==='A'?'أ — إبقاء':(myVote==='B'?'ب — تقليل بسيط':'ج — تقليل أكبر'))+'</b></div>';
   } else if(showCounts){
     inner+='<div class="poll-foot">إجمالي الأصوات: <b>'+arNum(total)+'</b>'+(myVote?(' · صوّتك: <b>'+esc(myVote==='A'?'أ':(myVote==='B'?'ب':'ج'))+'</b>'):'')+'</div>';
