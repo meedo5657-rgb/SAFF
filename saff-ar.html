@@ -4293,6 +4293,7 @@ function computeAllStats(){
   var truth=tournamentTruth();
   var groupMatches=MATCHES.filter(function(m){return m.stage==='group';});
 
+  var minPreds=Math.ceil(groupMatches.length*0.5);
   var players=keys.map(function(k){
     var u=usersData[k]||{};
     var total=0, exact=0, predicted=0, predPlayed=0, boosts=0, boostsHit=0;
@@ -4330,7 +4331,11 @@ function computeAllStats(){
       pickChamp:picks.champion||null, pickScorer:picks.scorer||null,
       perRound:perRound
     };
-  });
+  // Only count players who predicted at least 50% of group matches (active participants).
+  }).filter(function(p){return p.predicted>=minPreds;});
+
+  if(!players.length) return null;
+  var activeKeys={}; players.forEach(function(p){activeKeys[p.key]=true;});
 
   // Leader & full sort
   var sorted=players.slice().sort(function(a,b){return b.total-a.total || b.exact-a.exact;});
@@ -4378,7 +4383,7 @@ function computeAllStats(){
   groupMatches.forEach(function(m){
     var o=predsData[m.id]||{};
     Object.keys(o).forEach(function(k){
-      if(!(usersData[k] && !usersData[k].removed)) return;
+      if(!activeKeys[k]) return;
       var p=o[k];
       var key=p.h+'-'+p.a;
       scoreCounts[key]=(scoreCounts[key]||0)+1;
@@ -4396,7 +4401,7 @@ function computeAllStats(){
     var o=predsData[m.id]||{};
     var wrong=0, totalP=0;
     Object.keys(o).forEach(function(k){
-      if(!(usersData[k] && !usersData[k].removed)) return;
+      if(!activeKeys[k]) return;
       totalP++;
       var p=o[k];
       var predSide=sign(Number(p.h)-Number(p.a));
