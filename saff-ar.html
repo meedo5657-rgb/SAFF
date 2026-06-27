@@ -1061,7 +1061,7 @@ var POLL_CLOSES_MS=Date.UTC(2026,5,28,18,0,0);
 var POLL_OPTIONS=[
   {key:'A', label:'إبقاء النقاط', champ:30, scorer:15},
   {key:'B', label:'تقليل بسيط',   champ:15, scorer:10},
-  {key:'C', label:'تقليل أكبر',   champ:12, scorer:6}
+  {key:'C', label:'تقليل أكبر',   champ:12, scorer:8}
 ];
 var pollData={};
 // auto-pulled from openfootball (knockout teams + official results)
@@ -3207,7 +3207,7 @@ function genTournamentScoringPoster(){
   }
   var optA = optionCard({tag:'أ', eyebrow:'الخيار الأول', title:'إبقاء النقاط الحاليّة',  champ:30, scorer:15});
   var optB = optionCard({tag:'ب', eyebrow:'الخيار الثاني', title:'تقليل بسيط',           champ:15, scorer:10});
-  var optC = optionCard({tag:'ج', eyebrow:'الخيار الثالث', title:'تقليل أكبر',           champ:12, scorer:6});
+  var optC = optionCard({tag:'ج', eyebrow:'الخيار الثالث', title:'تقليل أكبر',           champ:12, scorer:8});
   var options = '<div style="display:flex;flex-direction:column;gap:18px;">'+optA+optB+optC+'</div>';
 
   var voting='<div style="margin-top:40px;padding:34px 30px;border-radius:18px;background:linear-gradient(150deg, rgba(230,204,120,.20), rgba(230,204,120,.05));border:1.5px solid rgba(230,204,120,.55);">'
