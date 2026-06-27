@@ -172,6 +172,24 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .br-third{margin-top:14px;padding:8px;border-radius:10px;background:rgba(255,255,255,.025);border:1px dashed var(--line);display:flex;flex-direction:column;gap:6px;}
 .br-third-h{font-size:.68rem;font-weight:800;color:var(--muted);text-align:center;letter-spacing:.5px;}
 .br-hint{font-size:.72rem;color:var(--muted);text-align:center;padding:4px;}
+/* Stats page */
+.stat-sec{display:flex;flex-direction:column;gap:10px;}
+.stat-sec-h{font-size:1rem;font-weight:800;color:#fde68a;padding:6px 2px;border-bottom:1px solid var(--line);}
+.stat-grid{display:flex;flex-direction:column;gap:10px;}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;}
+.stat-head{display:flex;align-items:center;gap:10px;font-weight:800;font-size:.78rem;color:var(--muted);}
+.stat-ic{font-size:1.05rem;line-height:1;}
+.stat-title{flex:1;}
+.stat-main{font-size:.95rem;color:var(--text);line-height:1.4;}
+.stat-main .big{font-size:1.15rem;color:#fff;font-weight:900;}
+.stat-sub{font-size:.78rem;color:var(--muted);}
+.up-match{font-weight:700;color:var(--text);}
+.pick-list{display:flex;flex-direction:column;gap:6px;}
+.pick-row{display:grid;grid-template-columns:1fr 1fr 32px;gap:8px;align-items:center;font-size:.82rem;}
+.pick-name{color:var(--text);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pick-bar-wrap{height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;}
+.pick-bar{height:100%;background:linear-gradient(90deg,#fde68a,#f5b301);border-radius:4px;}
+.pick-count{text-align:end;font-weight:800;color:#fde68a;}
 .sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
 .sc-rank{font-weight:800;color:var(--muted);min-width:24px;text-align:center;font-size:.95rem;}
 .sc-row:nth-child(1) .sc-rank,.sc-row:nth-child(2) .sc-rank{color:#fde68a;}
@@ -635,11 +653,23 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
   </div>
 </div>
 
+<!-- STATS -->
+<div class="screen" id="sStats">
+  <div class="topbar">
+    <div class="me-chip">👤 <b id="meName5">--</b><svg class="me-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="me-out-label">تسجيل الخروج</span></div>
+    <button class="icon-btn" id="btnSettings5">⚙️</button>
+  </div>
+  <div class="section-title">📈 إحصائيات دور المجموعات</div>
+  <button id="btnStatsPoster" class="btn btn-grad" style="margin:8px 0 14px;padding:12px;font-size:.95rem;display:none;">📸 بوستر الإحصائيات</button>
+  <div id="statsView" style="width:100%;display:flex;flex-direction:column;gap:14px;"></div>
+</div>
+
 <!-- TABBAR -->
 <div class="tabbar" id="tabbar" style="display:none">
   <button class="tab active" data-tab="sMatches"><span class="ico">⚽</span>المباريات</button>
   <button class="tab" data-tab="sGroups"><span class="ico">📊</span>المجموعات</button>
   <button class="tab" data-tab="sLeader"><span class="ico">🏅</span>الترتيب</button>
+  <button class="tab" data-tab="sStats"><span class="ico">📈</span>إحصائيات</button>
   <button class="tab" data-tab="sRules"><span class="ico">📖</span>القوانين</button>
 </div>
 
@@ -1618,6 +1648,7 @@ function enter(){
   document.getElementById('meName2').textContent=myName;
   document.getElementById('meName3').textContent=myName;
   document.getElementById('meName4').textContent=myName;
+  document.getElementById('meName5').textContent=myName;
   document.getElementById('tabbar').style.display='flex';
   applyAdminUI();
   show('sMatches');
@@ -3191,6 +3222,98 @@ function genTournamentScoringPoster(){
     } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
   });
 }
+// ===== "إحصائيات دور المجموعات" share poster (same SAFF identity) =====
+function genStatsPoster(){
+  toast('جاري تجهيز الإحصائيات…');
+  var s=computeAllStats();
+  if(!s){ toast('لا توجد بيانات بعد'); return; }
+  var arcRings=[[1450,140,.12],[1200,120,.10],[950,100,.08],[700,80,.06]];
+  var arcsHtml='<svg class="arcs" viewBox="0 0 1080 2180" preserveAspectRatio="xMidYMid slice">';
+  arcRings.forEach(function(g){arcsHtml+='<circle cx="-100" cy="-70" r="'+g[0]+'" fill="none" stroke="#E6CC78" stroke-width="'+g[1]+'" stroke-opacity="'+g[2]+'"/>';});
+  arcsHtml+='</svg>';
+
+  var brand1='دوري التوقّعات', brand2='كأس العالم 2026';
+  var headerHtml='\
+<div style="display:flex;justify-content:space-between;align-items:center;">\
+  <div style="display:flex;align-items:center;gap:20px;">\
+    <div role="img" aria-label="" style="width:79px;height:78px;background-image:url('+SAFF_LOGO_DATA+');background-size:contain;background-repeat:no-repeat;background-position:center;flex-shrink:0;"></div>\
+    <div style="width:2px;height:56px;background:rgba(255,255,255,.28);"></div>\
+    <div style="text-align:right;line-height:1.25;">\
+      <div style="font-size:24px;font-weight:900;color:#fff;">'+esc(brand1)+'</div>\
+      <div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">'+esc(brand2)+'</div>\
+    </div>\
+  </div>\
+  <div class="kick" style="font-size:21px;color:var(--mute);">إحصائيات</div>\
+</div>';
+
+  var eyebrow='<div style="font-weight:800;font-size:26px;color:var(--gold);letter-spacing:1px;margin-top:54px;">📈 خلاصة دور المجموعات</div>';
+  var titleHtml='<h1 class="disp" style="font-size:84px;margin-top:14px;margin-bottom:18px;line-height:1.05;">إحصائيات <span style="color:var(--gold);">الموسم</span></h1>';
+  var sub='<div style="font-weight:700;font-size:28px;color:var(--mute);margin-bottom:38px;line-height:1.5;">أبرز ٨ إحصائيات بعد ٧٢ مباراة</div>';
+
+  function card(icon, title, main, sub){
+    return '<div style="display:flex;align-items:center;gap:20px;padding:22px 26px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);">'
+      +'<div style="font-size:42px;line-height:1;flex-shrink:0;">'+icon+'</div>'
+      +'<div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0;">'
+        +'<div style="font-weight:800;font-size:18px;color:var(--gold);letter-spacing:.5px;">'+esc(title)+'</div>'
+        +'<div style="font-weight:900;font-size:28px;color:#fff;line-height:1.25;">'+main+'</div>'
+        +(sub?'<div style="font-weight:600;font-size:18px;color:var(--mute);margin-top:2px;">'+esc(sub)+'</div>':'')
+      +'</div>'
+    +'</div>';
+  }
+
+  var cards=[];
+  cards.push(card('🥇','بطل دور المجموعات', esc(s.leader.name), arNum(s.leader.total)+' نقطة'));
+  if(s.accurate) cards.push(card('🎯','الأكثر دقّة', esc(s.accurate.name), _arPct(s.accurate.pct)+' · '+arNum(s.accurate.exact)+' من '+arNum(s.accurate.total)));
+  if(s.biggestJump) cards.push(card('🚀','أكبر قفزة', esc(s.biggestJump.name), 'من المركز '+arNum(s.biggestJump.r1)+' إلى '+arNum(s.biggestJump.r3)));
+  if(s.saudiExpert) cards.push(card('🇸🇦','خبير المنتخب السعودي', esc(s.saudiExpert.name), arNum(s.saudiExpert.saudiPts)+' نقطة من '+arNum(s.saudiExpert.saudiCount)+' مباريات'));
+  if(s.biggestUpset) cards.push(card('⚡','مفاجأة المجموعات', '<bdi>'+esc(arTeam(s.biggestUpset.m.home))+'</bdi> ضد <bdi>'+esc(arTeam(s.biggestUpset.m.away))+'</bdi>', arNum(s.biggestUpset.wrong)+' من '+arNum(s.biggestUpset.total)+' لاعبًا توقّعوها غلط'));
+  if(s.mostScore) cards.push(card('📊','أكثر نتيجة متوقّعة', esc(arNum(s.mostScore.h)+' - '+arNum(s.mostScore.a)), arNum(s.mostScore.count)+' توقّع'));
+  if(s.champPicks && s.champPicks.length) cards.push(card('🏆','الأكثر توقّعًا للقب', esc(arTeam(s.champPicks[0].team)||s.champPicks[0].team), arNum(s.champPicks[0].count)+' لاعب اختاره'));
+  if(s.twins) cards.push(card('👯','التوأم الروحي', esc(s.twins.a)+' &amp; '+esc(s.twins.b), arNum(s.twins.agreement)+' توقّع مطابق من '+arNum(s.twins.total)));
+
+  var grid='<div style="display:flex;flex-direction:column;gap:14px;">'+cards.slice(0,8).join('')+'</div>';
+
+  var foot='<div style="margin-top:36px;padding:20px;border-radius:14px;background:rgba(0,0,0,.18);border:1px solid var(--row-edge);text-align:center;font-weight:700;font-size:20px;color:var(--mute);">شاهد كامل الإحصائيات داخل التطبيق · تاب "إحصائيات"</div>';
+
+  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+grid+foot+'</div></div>';
+  var posterRoot=document.getElementById('posterRoot');
+  posterRoot.innerHTML=posterHtml;
+
+  var fname='wc2026-group-stage-stats.png';
+  function shareCanvas(cv){
+    toast('2/3: جاري التحويل…');
+    try{
+      cv.toBlob(function(blob){
+        if(!blob){toast('فشل: blob فاضي');posterRoot.innerHTML='';return;}
+        toast('3/3: جاري المشاركة…');
+        var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
+        if(file && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'إحصائيات دور المجموعات'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
+        } else { dl(); }
+        function dl(){
+          var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');
+        }
+        posterRoot.innerHTML='';
+      },'image/png');
+    }catch(e){toast('فشل toBlob: '+(e&&e.message||e));posterRoot.innerHTML='';}
+  }
+  var fontsReady=Promise.race([(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve(),new Promise(function(r){setTimeout(r,1500);})]);
+  fontsReady.then(function(){
+    var target=posterRoot.querySelector('.poster');
+    if(!target){toast('فشل: قالب البوستر غير موجود');posterRoot.innerHTML='';return;}
+    var rect=target.getBoundingClientRect(), h=Math.max(1200,Math.round(rect.height));
+    toast('1/3: جاري الرسم…');
+    var to=setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';},20000);
+    if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
+      htmlToImage.toBlob(target,{backgroundColor:null,cacheBust:true,pixelRatio:Math.min(2,window.devicePixelRatio||1),width:1080,height:h,skipFonts:true}).then(function(blob){
+        clearTimeout(to);if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
+        shareCanvas({toBlob:function(cb){cb(blob);}});
+      }).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html-to-image: '+(e&&e.message||e));});
+    } else if(typeof html2canvas==='function'){
+      html2canvas(target,{backgroundColor:null,scale:1,useCORS:true,allowTaint:false,imageTimeout:5000,logging:false,width:1080,height:h,windowWidth:1080,windowHeight:h}).then(function(cv){clearTimeout(to);shareCanvas(cv);}).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html2canvas: '+(e&&e.message||e));});
+    } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
+  });
+}
 function adminZone(m){
   var z=document.createElement('div');z.className='admin-zone';
   var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='النتيجة الرسمية';z.appendChild(lbl);
@@ -3273,7 +3396,7 @@ function isAdminUser(){return !!myName && myName.trim().toLowerCase()===ADMIN_NA
 function applyAdminUI(){
   var au=isAdminUser();
   if(!au && isAdmin){isAdmin=false;try{localStorage.removeItem('saff_admin');}catch(e){}}
-  ['btnSettings','btnSettings2','btnSettings3','btnSettings4'].forEach(function(id){
+  ['btnSettings','btnSettings2','btnSettings3','btnSettings4','btnSettings5'].forEach(function(id){
     var b=document.getElementById(id);
     b.style.display=au?'':'none';
     b.classList.toggle('admin-on',isAdmin);
@@ -3300,6 +3423,7 @@ document.getElementById('btnSettings').addEventListener('click',openSettings);
 document.getElementById('btnSettings2').addEventListener('click',openSettings);
 document.getElementById('btnSettings3').addEventListener('click',openSettings);
 document.getElementById('btnSettings4').addEventListener('click',openSettings);
+document.getElementById('btnSettings5').addEventListener('click',openSettings);
 
 // ===== TEAMS MODAL =====
 function openTeamModal(m){
@@ -4158,6 +4282,252 @@ function renderLeader(){
   });
 }
 
+// ===== STATS PAGE =====
+// Aggregate all the post-group-stage stats. Returns null when there are no
+// active users yet. Many of these are O(N×M) — N players × M matches — but
+// the dataset is small (~30 players × 72 group matches = 2160 ops), so we
+// just recompute on every render of the stats page.
+function computeAllStats(){
+  var keys=Object.keys(usersData||{}).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
+  if(!keys.length) return null;
+  var truth=tournamentTruth();
+  var groupMatches=MATCHES.filter(function(m){return m.stage==='group';});
+
+  var players=keys.map(function(k){
+    var u=usersData[k]||{};
+    var total=0, exact=0, predicted=0, predPlayed=0, boosts=0, boostsHit=0;
+    var saudiPts=0, saudiCount=0;
+    var perRound={1:0,2:0,3:0};
+    var roundCounts={1:0,2:0,3:0};
+    groupMatches.forEach(function(m){
+      var pred=predsData[m.id]&&predsData[m.id][k];
+      if(!pred) return;
+      predicted++;
+      if(pred.x2) boosts++;
+      var r=result(m);
+      if(!r) return;
+      predPlayed++;
+      var base=pointsFor(pred,r);
+      var pts=base*((pred&&pred.x2)?2:1);
+      total+=pts;
+      if(pred.x2 && base>0) boostsHit++;
+      if(Number(pred.h)===Number(r.h) && Number(pred.a)===Number(r.a)) exact++;
+      if(m.home==='Saudi Arabia' || m.away==='Saudi Arabia'){
+        saudiPts+=pts; saudiCount++;
+      }
+      var md=GROUP_MD[m.id];
+      if(md){
+        for(var rr=md; rr<=3; rr++){ perRound[rr]+=pts; roundCounts[rr]++; }
+      }
+    });
+    var picks=tournamentPicksOf(k);
+    total+=tournamentPointsFor(picks,truth);
+    return {
+      key:k, name:u.name||k,
+      total:total, exact:exact, predicted:predicted, predPlayed:predPlayed,
+      boosts:boosts, boostsHit:boostsHit,
+      saudiPts:saudiPts, saudiCount:saudiCount,
+      pickChamp:picks.champion||null, pickScorer:picks.scorer||null,
+      perRound:perRound
+    };
+  });
+
+  // Leader & full sort
+  var sorted=players.slice().sort(function(a,b){return b.total-a.total || b.exact-a.exact;});
+  var leader=sorted[0];
+
+  // Most accurate (highest exact %, min 5 predictions)
+  var accurate=players.filter(function(p){return p.predPlayed>=5;})
+    .map(function(p){return {name:p.name, pct:p.exact/p.predPlayed, exact:p.exact, total:p.predPlayed};})
+    .sort(function(a,b){return b.pct-a.pct;})[0];
+
+  // Rank by round (cumulative pts up to round R)
+  function rankByRound(round){
+    var arr=players.slice().sort(function(a,b){return b.perRound[round]-a.perRound[round];});
+    var r={}; arr.forEach(function(p,i){r[p.key]=i+1;}); return r;
+  }
+  var r1=rankByRound(1), r3=rankByRound(3);
+  var jumps=players.map(function(p){
+    return {key:p.key, name:p.name, r1:r1[p.key], r3:r3[p.key], change:r1[p.key]-r3[p.key]};
+  });
+  var biggestJump=jumps.slice().sort(function(a,b){return b.change-a.change;})[0];
+  var biggestDrop=jumps.slice().sort(function(a,b){return a.change-b.change;})[0];
+
+  // Saudi expert
+  var saudiPlayers=players.filter(function(p){return p.saudiCount>0;})
+    .sort(function(a,b){return b.saudiPts-a.saudiPts;});
+  var saudiExpert=saudiPlayers[0];
+
+  // Boost usage
+  var topBooster=players.slice().sort(function(a,b){return b.boostsHit-a.boostsHit || b.boosts-a.boosts;})[0];
+
+  // Champion picks distribution
+  var champCounts={};
+  players.forEach(function(p){if(p.pickChamp){champCounts[p.pickChamp]=(champCounts[p.pickChamp]||0)+1;}});
+  var champPicks=Object.keys(champCounts).map(function(t){return {team:t,count:champCounts[t]};})
+    .sort(function(a,b){return b.count-a.count;});
+
+  // Scorer picks distribution
+  var scorerCounts={};
+  players.forEach(function(p){if(p.pickScorer){scorerCounts[p.pickScorer]=(scorerCounts[p.pickScorer]||0)+1;}});
+  var scorerPicks=Object.keys(scorerCounts).map(function(s){return {player:s,count:scorerCounts[s]};})
+    .sort(function(a,b){return b.count-a.count;});
+
+  // Most predicted score across all group predictions (active players)
+  var scoreCounts={};
+  groupMatches.forEach(function(m){
+    var o=predsData[m.id]||{};
+    Object.keys(o).forEach(function(k){
+      if(!(usersData[k] && !usersData[k].removed)) return;
+      var p=o[k];
+      var key=p.h+'-'+p.a;
+      scoreCounts[key]=(scoreCounts[key]||0)+1;
+    });
+  });
+  var mostScore=Object.keys(scoreCounts).map(function(k){
+    var parts=k.split('-'); return {h:parts[0], a:parts[1], count:scoreCounts[k]};
+  }).sort(function(a,b){return b.count-a.count;})[0];
+
+  // Upset/agreement matches (by % wrong winners)
+  var matchAccuracy=[];
+  groupMatches.forEach(function(m){
+    var r=result(m); if(!r) return;
+    var actual=sign(Number(r.h)-Number(r.a));
+    var o=predsData[m.id]||{};
+    var wrong=0, totalP=0;
+    Object.keys(o).forEach(function(k){
+      if(!(usersData[k] && !usersData[k].removed)) return;
+      totalP++;
+      var p=o[k];
+      var predSide=sign(Number(p.h)-Number(p.a));
+      if(predSide!==actual) wrong++;
+    });
+    if(totalP>=5){
+      matchAccuracy.push({m:m, wrong:wrong, total:totalP, wrongPct:wrong/totalP});
+    }
+  });
+  var biggestUpset=matchAccuracy.slice().sort(function(a,b){return b.wrongPct-a.wrongPct;})[0];
+  var mostAgreed=matchAccuracy.slice().sort(function(a,b){return a.wrongPct-b.wrongPct;})[0];
+
+  // Soul twins & opposites (pairwise exact-prediction agreement, min 8 shared)
+  var twins=null, opposites=null;
+  var maxAgree=-1, minAgree=Infinity;
+  for(var i=0;i<players.length;i++){
+    for(var j=i+1;j<players.length;j++){
+      var p1=players[i], p2=players[j];
+      var agree=0, both=0;
+      groupMatches.forEach(function(m){
+        var pp1=predsData[m.id]&&predsData[m.id][p1.key];
+        var pp2=predsData[m.id]&&predsData[m.id][p2.key];
+        if(pp1 && pp2){
+          both++;
+          if(Number(pp1.h)===Number(pp2.h) && Number(pp1.a)===Number(pp2.a)) agree++;
+        }
+      });
+      if(both<8) continue;
+      if(agree>maxAgree){maxAgree=agree; twins={a:p1.name, b:p2.name, agreement:agree, total:both};}
+      if(agree<minAgree){minAgree=agree; opposites={a:p1.name, b:p2.name, agreement:agree, total:both};}
+    }
+  }
+
+  // Per-round leader trace (for the journey chart later if added)
+  return {
+    leader:leader, accurate:accurate,
+    biggestJump:biggestJump, biggestDrop:biggestDrop,
+    saudiExpert:saudiExpert, topBooster:topBooster,
+    champPicks:champPicks, scorerPicks:scorerPicks,
+    mostScore:mostScore, biggestUpset:biggestUpset, mostAgreed:mostAgreed,
+    twins:twins, opposites:opposites,
+    sorted:sorted, totalPlayers:players.length
+  };
+}
+function _statCard(icon, title, mainHtml, sub){
+  return '<div class="stat-card">'
+    +'<div class="stat-head"><span class="stat-ic">'+icon+'</span><span class="stat-title">'+esc(title)+'</span></div>'
+    +'<div class="stat-main">'+mainHtml+'</div>'
+    +(sub?'<div class="stat-sub">'+esc(sub)+'</div>':'')
+  +'</div>';
+}
+function _arPct(p){return arNum(Math.round(p*100))+'٪';}
+function renderStats(){
+  var v=document.getElementById('statsView');
+  if(!v) return;
+  var btnPoster=document.getElementById('btnStatsPoster');
+  if(btnPoster) btnPoster.style.display=isAdmin?'block':'none';
+
+  v.innerHTML='';
+  var s=computeAllStats();
+  if(!s){
+    v.innerHTML='<div class="empty">لا توجد بيانات بعد.</div>';
+    return;
+  }
+
+  // Section: Top players
+  var sec1=document.createElement('div');sec1.className='stat-sec';
+  sec1.innerHTML='<div class="stat-sec-h">🏆 اللاعبون</div><div class="stat-grid">'
+    +_statCard('🥇','بطل دور المجموعات','<b class="big">'+esc(s.leader.name)+'</b>', s.leader.total+' نقطة')
+    +(s.accurate?_statCard('🎯','الأكثر دقّة','<b class="big">'+esc(s.accurate.name)+'</b>', _arPct(s.accurate.pct)+' · '+arNum(s.accurate.exact)+' توقّع مضبوط من '+arNum(s.accurate.total)):'')
+    +(s.biggestJump?_statCard('🚀','أكبر قفزة','<b class="big">'+esc(s.biggestJump.name)+'</b>', 'من المركز '+arNum(s.biggestJump.r1)+' إلى '+arNum(s.biggestJump.r3)):'')
+    +(s.biggestDrop?_statCard('📉','أكبر سقوط','<b class="big">'+esc(s.biggestDrop.name)+'</b>', 'من المركز '+arNum(s.biggestDrop.r1)+' إلى '+arNum(s.biggestDrop.r3)):'')
+    +(s.topBooster && s.topBooster.boosts>0?_statCard('⚡','أفضل استخدام للـ×٢','<b class="big">'+esc(s.topBooster.name)+'</b>', arNum(s.topBooster.boostsHit)+' إصابة من '+arNum(s.topBooster.boosts)+' استخدام'):'')
+    +'</div>';
+  v.appendChild(sec1);
+
+  // Section: Saudi
+  var sec2=document.createElement('div');sec2.className='stat-sec';
+  sec2.innerHTML='<div class="stat-sec-h">🇸🇦 السعودية</div><div class="stat-grid">'
+    +(s.saudiExpert?_statCard('🇸🇦','خبير المنتخب السعودي','<b class="big">'+esc(s.saudiExpert.name)+'</b>', arNum(s.saudiExpert.saudiPts)+' نقطة من '+arNum(s.saudiExpert.saudiCount)+' مباريات'):'')
+    +'</div>';
+  v.appendChild(sec2);
+
+  // Section: Matches
+  var sec3=document.createElement('div');sec3.className='stat-sec';
+  sec3.innerHTML='<div class="stat-sec-h">⚽ المباريات</div><div class="stat-grid">'
+    +(s.mostScore?_statCard('📊','أكثر نتيجة متوقّعة',
+        '<b class="big">'+esc(arNum(s.mostScore.h)+' - '+arNum(s.mostScore.a))+'</b>',
+        arNum(s.mostScore.count)+' توقّع'):'')
+    +(s.biggestUpset?_statCard('⚡','مفاجأة المجموعات',
+        '<div class="up-match"><b>'+esc(arTeam(s.biggestUpset.m.home))+'</b> ضد <b>'+esc(arTeam(s.biggestUpset.m.away))+'</b></div>',
+        arNum(s.biggestUpset.wrong)+' من '+arNum(s.biggestUpset.total)+' لاعب توقّعوها غلط ('+_arPct(s.biggestUpset.wrongPct)+')'):'')
+    +(s.mostAgreed?_statCard('🤝','الأكثر اتّفاقًا',
+        '<div class="up-match"><b>'+esc(arTeam(s.mostAgreed.m.home))+'</b> ضد <b>'+esc(arTeam(s.mostAgreed.m.away))+'</b></div>',
+        _arPct(1-s.mostAgreed.wrongPct)+' من اللاعبين توقّعوها صح'):'')
+    +'</div>';
+  v.appendChild(sec3);
+
+  // Section: Tournament picks
+  var sec4=document.createElement('div');sec4.className='stat-sec';
+  function _pickBar(rows, label, top){
+    var maxC=rows.length?rows[0].count:1;
+    var html='<div class="pick-list">';
+    rows.slice(0,top||5).forEach(function(r){
+      var pct=(r.count/maxC)*100;
+      html+='<div class="pick-row"><span class="pick-name">'+esc(label==='champ'?(arTeam(r.team)||r.team):r.player)+'</span>'
+        +'<div class="pick-bar-wrap"><div class="pick-bar" style="width:'+pct+'%"></div></div>'
+        +'<span class="pick-count">'+arNum(r.count)+'</span></div>';
+    });
+    html+='</div>';
+    return html;
+  }
+  sec4.innerHTML='<div class="stat-sec-h">🏆 توقّعات البطل والهدّاف</div><div class="stat-grid">'
+    +_statCard('🏆','توزيع توقّعات البطل', _pickBar(s.champPicks,'champ'), arNum(s.champPicks.length)+' منتخب اختاره اللاعبون')
+    +_statCard('⚽','توزيع توقّعات الهدّاف', _pickBar(s.scorerPicks,'scorer'), arNum(s.scorerPicks.length)+' لاعب اختاره المتوقّعون')
+    +'</div>';
+  v.appendChild(sec4);
+
+  // Section: Social
+  var sec5=document.createElement('div');sec5.className='stat-sec';
+  sec5.innerHTML='<div class="stat-sec-h">🤝 اجتماعيًا</div><div class="stat-grid">'
+    +(s.twins?_statCard('👯','التوأم الروحي',
+        '<b class="big">'+esc(s.twins.a)+' &amp; '+esc(s.twins.b)+'</b>',
+        arNum(s.twins.agreement)+' توقّع مطابق من '+arNum(s.twins.total)):'')
+    +(s.opposites?_statCard('⚔️','النقيضان',
+        '<b class="big">'+esc(s.opposites.a)+' &amp; '+esc(s.opposites.b)+'</b>',
+        arNum(s.opposites.agreement)+' توقّع مطابق فقط من '+arNum(s.opposites.total)):'')
+    +'</div>';
+  v.appendChild(sec5);
+}
+
 // ===== USER PREDICTIONS MODAL =====
 function openUserPreds(userKey){
   var ov=document.getElementById('userPredsOverlay');
@@ -4291,7 +4661,8 @@ function deletePlayer(key,name){
 }
 
 // ===== TABS =====
-document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){show(t.dataset.tab);});});
+document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){show(t.dataset.tab);if(t.dataset.tab==='sStats')renderStats();});});
+document.getElementById('btnStatsPoster').addEventListener('click',function(){genStatsPoster();});
 document.querySelectorAll('.sub-tab[data-sub]').forEach(function(b){b.addEventListener('click',function(){
   var s=b.dataset.sub;
   document.querySelectorAll('.sub-tab[data-sub]').forEach(function(x){x.classList.toggle('active',x.dataset.sub===s);});
