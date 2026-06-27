@@ -138,6 +138,15 @@
         "$rid": {
           ".write": "auth != null"
         }
+      },
+
+      "polls": {
+        "$pid": {
+          "$key": {
+            ".write": "auth != null",
+            ".validate": "newData.isString() && newData.val().length <= 4"
+          }
+        }
       }
     }
   }

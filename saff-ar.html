@@ -207,7 +207,9 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .poll-opt-tag{width:26px;height:26px;border-radius:50%;background:var(--gold);color:#0A2C20;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
 .poll-opt.chosen .poll-opt-tag{background:#fde68a;}
 .poll-opt-label{flex:1;color:#fff;}
-.poll-opt-pts{font-weight:800;color:#fde68a;font-size:.85rem;}
+.poll-opt-pts-row{display:flex;gap:14px;flex-wrap:wrap;margin-inline-start:36px;font-size:.78rem;color:var(--muted);font-weight:600;}
+.poll-opt-pts{display:inline-flex;align-items:baseline;gap:5px;}
+.poll-opt-pts b{font-weight:900;font-size:1rem;color:#fde68a;}
 .poll-opt-bar-wrap{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
 .poll-opt-bar{height:100%;background:linear-gradient(90deg,#fde68a,#f5b301);border-radius:3px;transition:width .3s;}
 .poll-opt-meta{font-size:.72rem;color:var(--muted);font-weight:700;display:flex;justify-content:flex-start;}
@@ -4530,7 +4532,10 @@ function renderPollBanner(){
       +'<div class="poll-opt-row">'
         +'<span class="poll-opt-tag">'+esc(o.key==='A'?'أ':(o.key==='B'?'ب':'ج'))+'</span>'
         +'<span class="poll-opt-label">'+esc(o.label)+'</span>'
-        +'<span class="poll-opt-pts">'+arNum(o.champ)+'/'+arNum(o.scorer)+'</span>'
+      +'</div>'
+      +'<div class="poll-opt-pts-row">'
+        +'<span class="poll-opt-pts">🏆 البطل <b>'+arNum(o.champ)+'</b></span>'
+        +'<span class="poll-opt-pts">⚽ الهدّاف <b>'+arNum(o.scorer)+'</b></span>'
       +'</div>'
       +(showCounts?'<div class="poll-opt-bar-wrap"><div class="poll-opt-bar" style="width:'+pct+'%"></div></div>'
         +'<div class="poll-opt-meta">'+arNum(counts[o.key])+' صوت · '+arNum(pct)+'٪</div>':'')
