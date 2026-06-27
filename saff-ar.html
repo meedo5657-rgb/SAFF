@@ -4504,21 +4504,21 @@ function _pollFmtAR(ms){
   return AR_WEEKDAY[d.getDay()]+' '+arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' · '+arNum(h12)+suf;
 }
 function selectPollOption(key){
-  // Only allowed pre-submit; once Firebase has a vote, the button is disabled.
-  if(pollData && pollData[myKey]) return;
+  // Locked for regular users after submit; admin can keep changing for testing.
+  if(pollData && pollData[myKey] && !isAdmin) return;
   pollPendingVote=key;
   renderPollBanner();
 }
 function submitPollVote(){
   if(!myKey){ toast('سجّل دخولك أولًا'); return; }
-  if(pollData && pollData[myKey]){ toast('سبق وسلّمت صوتك'); return; }
+  if(pollData && pollData[myKey] && !isAdmin){ toast('سبق وسلّمت صوتك'); return; }
   if(!pollPendingVote){ toast('اختر خيارًا أولًا'); return; }
   if(!pollIsOpen() && !isAdmin){ toast('التصويت مغلق'); return; }
   var v=pollPendingVote;
   ROOT.child('polls/'+POLL_KEY+'/'+myKey).set(v)
     .then(function(){
       pollPendingVote=null;
-      toast('تم تسليم صوتك ✅');
+      toast(isAdmin?'تم تحديث صوتك (أدمن) ✅':'تم تسليم صوتك ✅');
     })
     .catch(function(e){toast('فشل التصويت: '+((e&&e.message)||e));});
 }
@@ -4531,7 +4531,9 @@ function renderPollBanner(){
   var open   = !notYet && !closed;
   var myVote = pollData && pollData[myKey] || null;
   var hasVoted = !!myVote;
-  var canVoteNow = (open || isAdmin) && !hasVoted;
+  // Admin always can vote/re-vote (testing bypass). Regular users only when
+  // the poll is open AND they haven't submitted yet — final and uneditable.
+  var canVoteNow = isAdmin || (open && !hasVoted);
   // Tally
   var counts={A:0,B:0,C:0}, total=0;
   Object.keys(pollData||{}).forEach(function(k){
@@ -4568,10 +4570,11 @@ function renderPollBanner(){
     +'</button>';
   });
   inner+='</div>';
-  // Submit button — only when user hasn't voted yet and poll is open (or admin preview)
+  // Submit button — only when user hasn't voted yet and poll is open (or admin can re-submit anytime)
   if(canVoteNow){
     var ready = !!pollPendingVote;
-    inner+='<button class="poll-submit" id="pollSubmitBtn"'+(ready?'':' disabled')+'>'+(ready?'تسليم الصوت':'اختر خيارًا للتصويت')+'</button>';
+    var label = ready ? (isAdmin && hasVoted ? 'تحديث الصوت (أدمن)' : 'تسليم الصوت') : 'اختر خيارًا للتصويت';
+    inner+='<button class="poll-submit" id="pollSubmitBtn"'+(ready?'':' disabled')+'>'+esc(label)+'</button>';
   }
   if(hasVoted && !showCounts){
     inner+='<div class="poll-foot">✓ سُلِّم صوتك: <b>'+esc(myVote==='A'?'أ — إبقاء':(myVote==='B'?'ب — تقليل بسيط':'ج — تقليل أكبر'))+'</b></div>';
