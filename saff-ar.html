@@ -4207,6 +4207,129 @@ function renderLeader(){
   });
 }
 
+// ===== Poll banner =====
+var pollPendingVote=null; // local-only until "تسليم" is pressed; never edits Firebase
+var POLL_MIN_PRED_PCT=0.8; // min share of group matches predicted to be eligible to vote
+function pollVisibleForMe(){ return isAdmin || Date.now()>=POLL_OPENS_MS; }
+function pollIsOpen(){ var n=Date.now(); return n>=POLL_OPENS_MS && n<POLL_CLOSES_MS; }
+// How many of the 72 group matches did *I* predict? Used to gate voting.
+function myGroupPredictionCount(){
+  if(!myKey) return 0;
+  var n=0;
+  MATCHES.forEach(function(m){
+    if(m.stage!=='group') return;
+    if(predsData[m.id] && predsData[m.id][myKey]) n++;
+  });
+  return n;
+}
+function myPollEligibility(){
+  var total=MATCHES.filter(function(m){return m.stage==='group';}).length;
+  var have=myGroupPredictionCount();
+  var min=Math.ceil(total*POLL_MIN_PRED_PCT);
+  return {have:have, min:min, total:total, eligible:have>=min};
+}
+function _pollFmtAR(ms){
+  var d=new Date(ms);
+  var hh=d.getHours(), suf=(hh>=12?'م':'ص'); var h12=hh%12; if(h12===0) h12=12;
+  return AR_WEEKDAY[d.getDay()]+' '+arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' · '+arNum(h12)+suf;
+}
+function selectPollOption(key){
+  // Locked for regular users after submit; admin can keep changing for testing.
+  if(pollData && pollData[myKey] && !isAdmin) return;
+  var elig=myPollEligibility();
+  if(!elig.eligible && !isAdmin) return;
+  pollPendingVote=key;
+  renderPollBanner();
+}
+function submitPollVote(){
+  if(!myKey){ toast('سجّل دخولك أولًا'); return; }
+  if(pollData && pollData[myKey] && !isAdmin){ toast('سبق وسلّمت صوتك'); return; }
+  var elig=myPollEligibility();
+  if(!elig.eligible && !isAdmin){ toast('تحتاج توقّع '+arNum(elig.min)+' مباراة على الأقل للتصويت'); return; }
+  if(!pollPendingVote){ toast('اختر خيارًا أولًا'); return; }
+  if(!pollIsOpen() && !isAdmin){ toast('التصويت مغلق'); return; }
+  var v=pollPendingVote;
+  ROOT.child('polls/'+POLL_KEY+'/'+myKey).set(v)
+    .then(function(){
+      pollPendingVote=null;
+      toast(isAdmin?'تم تحديث صوتك (أدمن) ✅':'تم تسليم صوتك ✅');
+    })
+    .catch(function(e){toast('فشل التصويت: '+((e&&e.message)||e));});
+}
+function renderPollBanner(){
+  var box=document.getElementById('pollBanner'); if(!box) return;
+  if(!pollVisibleForMe()){ box.innerHTML=''; return; }
+  var now=Date.now();
+  var notYet = now<POLL_OPENS_MS;
+  var closed = now>=POLL_CLOSES_MS;
+  var open   = !notYet && !closed;
+  var myVote = pollData && pollData[myKey] || null;
+  var hasVoted = !!myVote;
+  var elig = myPollEligibility();
+  // Admin always can vote/re-vote (testing bypass). Regular users only when
+  // the poll is open AND they haven't submitted yet AND they've predicted
+  // at least POLL_MIN_PRED_PCT of the group matches (active participants).
+  var canVoteNow = isAdmin || (open && !hasVoted && elig.eligible);
+  // Tally
+  var counts={A:0,B:0,C:0}, total=0;
+  Object.keys(pollData||{}).forEach(function(k){
+    if(usersData[k] && usersData[k].removed) return;
+    var v=pollData[k]; if(counts[v]!==undefined){counts[v]++; total++;}
+  });
+  // Visibility of counts: always to admin, after close to all
+  var showCounts = isAdmin || closed;
+  var statusBadge = notYet ? '<span class="poll-status poll-soon">معاينة · يفتح '+esc(_pollFmtAR(POLL_OPENS_MS))+'</span>'
+    : closed             ? '<span class="poll-status poll-closed">مغلق</span>'
+                         : '<span class="poll-status poll-open">مفتوح · يُغلق '+esc(_pollFmtAR(POLL_CLOSES_MS))+'</span>';
+  var inner='<div class="poll-card">'
+    +'<div class="poll-head">🗳️ تصويت: نقاط البطل والهدّاف '+statusBadge+'</div>'
+    +'<div class="poll-sub">صوّتك يُعتمد لتحديد نظام نقاط البطل والهدّاف لباقي البطولة. <b>التصويت نهائي ولا يمكن تغييره بعد التسليم.</b></div>'
+    +'<div class="poll-opts">';
+  POLL_OPTIONS.forEach(function(o){
+    var isLocked = myVote===o.key;
+    var isPending = !hasVoted && pollPendingVote===o.key;
+    var isSelected = isLocked || isPending;
+    var canClick = canVoteNow;
+    var pct = total>0 ? Math.round((counts[o.key]/total)*100) : 0;
+    inner+='<button class="poll-opt'+(isSelected?' chosen':'')+(isLocked?' locked':'')+'" data-vote="'+esc(o.key)+'"'+(canClick?'':' disabled')+'>'
+      +'<div class="poll-opt-row">'
+        +'<span class="poll-opt-tag">'+esc(o.key==='A'?'أ':(o.key==='B'?'ب':'ج'))+'</span>'
+        +'<span class="poll-opt-label">'+esc(o.label)+'</span>'
+        +(isLocked?'<span class="poll-opt-lock">✓</span>':(isPending?'<span class="poll-opt-pending">●</span>':''))
+      +'</div>'
+      +'<div class="poll-opt-pts-row">'
+        +'<span class="poll-opt-pts">🏆 البطل <b>'+arNum(o.champ)+'</b></span>'
+        +'<span class="poll-opt-pts">⚽ الهدّاف <b>'+arNum(o.scorer)+'</b></span>'
+      +'</div>'
+      +(showCounts?'<div class="poll-opt-bar-wrap"><div class="poll-opt-bar" style="width:'+pct+'%"></div></div>'
+        +'<div class="poll-opt-meta">'+arNum(counts[o.key])+' صوت · '+arNum(pct)+'٪</div>':'')
+    +'</button>';
+  });
+  inner+='</div>';
+  // Submit button — only when user hasn't voted yet and poll is open (or admin can re-submit anytime)
+  if(canVoteNow){
+    var ready = !!pollPendingVote;
+    var label = ready ? (isAdmin && hasVoted ? 'تحديث الصوت (أدمن)' : 'تسليم الصوت') : 'اختر خيارًا للتصويت';
+    inner+='<button class="poll-submit" id="pollSubmitBtn"'+(ready?'':' disabled')+'>'+esc(label)+'</button>';
+  }
+  if(!elig.eligible && !hasVoted && !isAdmin){
+    inner+='<div class="poll-foot poll-ineligible">⛔ لا يحق لك التصويت — توقّعاتك '+arNum(elig.have)+' من '+arNum(elig.total)+' (المطلوب '+arNum(elig.min)+' على الأقل، أي ٨٠٪)</div>';
+  } else if(hasVoted && !showCounts){
+    inner+='<div class="poll-foot">✓ سُلِّم صوتك: <b>'+esc(myVote==='A'?'أ — إبقاء':(myVote==='B'?'ب — تقليل بسيط':'ج — تقليل أكبر'))+'</b></div>';
+  } else if(showCounts){
+    inner+='<div class="poll-foot">إجمالي الأصوات: <b>'+arNum(total)+'</b>'+(myVote?(' · صوّتك: <b>'+esc(myVote==='A'?'أ':(myVote==='B'?'ب':'ج'))+'</b>'):'')+'</div>';
+  }
+  inner+='</div>';
+  box.innerHTML=inner;
+  box.querySelectorAll('.poll-opt[data-vote]:not(:disabled)').forEach(function(b){
+    b.addEventListener('click',function(){ selectPollOption(b.dataset.vote); });
+  });
+  var sb=document.getElementById('pollSubmitBtn');
+  if(sb) sb.addEventListener('click',submitPollVote);
+}
+// Re-render the banner once per minute so it auto-appears at the open time
+// and auto-flips to 'closed' state without needing a manual refresh.
+setInterval(renderPollBanner, 60*1000);
 // ===== USER PREDICTIONS MODAL =====
 function openUserPreds(userKey){
   var ov=document.getElementById('userPredsOverlay');
