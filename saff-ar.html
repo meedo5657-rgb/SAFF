@@ -2162,6 +2162,9 @@ function adminBar(){
   var sb4=document.createElement('button');sb4.className='btn-summary';sb4.style.cssText='background:rgba(230,204,120,.16);border-color:rgba(230,204,120,.55);color:#fde68a;';sb4.textContent='🗳️ استفتاء نظام الإقصائيات';
   sb4.addEventListener('click',genScoringDilemmaPoster);
   bar.appendChild(sb4);
+  var sb6=document.createElement('button');sb6.className='btn-summary';sb6.style.cssText='background:rgba(230,204,120,.16);border-color:rgba(230,204,120,.55);color:#fde68a;';sb6.textContent='🏆 نقاط البطل والهدّاف';
+  sb6.addEventListener('click',genTournamentScoringPoster);
+  bar.appendChild(sb6);
   bar.appendChild(fdTokenRow());
   var n=Object.keys(resultsData||{}).length;
   var b=document.createElement('button');b.className='btn-clear-all';
@@ -3055,6 +3058,188 @@ function genScoringDilemmaPoster(){
         var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
         if(file && navigator.canShare && navigator.canShare({files:[file]})){
           navigator.share({files:[file],title:'نظام نقاط الإقصائيات'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
+        } else { dl(); }
+        function dl(){
+          var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');
+        }
+        posterRoot.innerHTML='';
+      },'image/png');
+    }catch(e){toast('فشل toBlob: '+(e&&e.message||e));posterRoot.innerHTML='';}
+  }
+  var fontsReady=Promise.race([(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve(),new Promise(function(r){setTimeout(r,1500);})]);
+  fontsReady.then(function(){
+    var target=posterRoot.querySelector('.poster');
+    if(!target){toast('فشل: قالب البوستر غير موجود');posterRoot.innerHTML='';return;}
+    var rect=target.getBoundingClientRect(), h=Math.max(1200,Math.round(rect.height));
+    toast('1/3: جاري الرسم…');
+    var to=setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';},20000);
+    if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
+      htmlToImage.toBlob(target,{backgroundColor:null,cacheBust:true,pixelRatio:Math.min(2,window.devicePixelRatio||1),width:1080,height:h,skipFonts:true}).then(function(blob){
+        clearTimeout(to);if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
+        shareCanvas({toBlob:function(cb){cb(blob);}});
+      }).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html-to-image: '+(e&&e.message||e));});
+    } else if(typeof html2canvas==='function'){
+      html2canvas(target,{backgroundColor:null,scale:1,useCORS:true,allowTaint:false,imageTimeout:5000,logging:false,width:1080,height:h,windowWidth:1080,windowHeight:h}).then(function(cv){clearTimeout(to);shareCanvas(cv);}).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html2canvas: '+(e&&e.message||e));});
+    } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
+  });
+}
+// ===== "نقاط البطل والهدّاف" — matrix comparison poster (same SAFF identity) =====
+function genTournamentScoringPoster(){
+  toast('جاري تجهيز المقارنة…');
+  var arcRings=[[1450,140,.12],[1200,120,.10],[950,100,.08],[700,80,.06]];
+  var arcsHtml='<svg class="arcs" viewBox="0 0 1080 2180" preserveAspectRatio="xMidYMid slice">';
+  arcRings.forEach(function(g){arcsHtml+='<circle cx="-100" cy="-70" r="'+g[0]+'" fill="none" stroke="#E6CC78" stroke-width="'+g[1]+'" stroke-opacity="'+g[2]+'"/>';});
+  arcsHtml+='</svg>';
+
+  var brand1='دوري التوقّعات', brand2='كأس العالم 2026';
+  var headerHtml='\
+<div style="display:flex;justify-content:space-between;align-items:center;">\
+  <div style="display:flex;align-items:center;gap:20px;">\
+    <div role="img" aria-label="" style="width:79px;height:78px;background-image:url('+SAFF_LOGO_DATA+');background-size:contain;background-repeat:no-repeat;background-position:center;flex-shrink:0;"></div>\
+    <div style="width:2px;height:56px;background:rgba(255,255,255,.28);"></div>\
+    <div style="text-align:right;line-height:1.25;">\
+      <div style="font-size:24px;font-weight:900;color:#fff;">'+esc(brand1)+'</div>\
+      <div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">'+esc(brand2)+'</div>\
+    </div>\
+  </div>\
+  <div class="kick" style="font-size:21px;color:var(--mute);">مقارنة</div>\
+</div>';
+
+  var eyebrow='<div style="font-weight:800;font-size:26px;color:var(--gold);letter-spacing:1px;margin-top:54px;">⚖️ تقييم الخيارين</div>';
+  var titleHtml='<h1 class="disp" style="font-size:76px;margin-top:14px;margin-bottom:18px;line-height:1.1;">نقاط <span style="color:var(--gold);">البطل والهدّاف</span></h1>';
+  var sub='<div style="font-weight:700;font-size:28px;color:var(--mute);margin-bottom:40px;line-height:1.5;">مقارنة الخيارين على كل معيار</div>';
+
+  var CATS=[
+    {label:'العدالة',        sub:'عدم تغيير القواعد بعد بداية البطولة',     a:3, b:0,
+     aTxt:'النظام الأصلي يبقى كما هو، اللاعبون لعبوا بناءً عليه.',
+     bTxt:'تغيير القيمة بعد ١٠٤ مباراة من بداية البطولة.'},
+    {label:'توازن المهارة',   sub:'هل يعكس الجدول مهارة المباريات الطويلة؟', a:1, b:3,
+     aTxt:'٤٥ نقطة من توقّعَين فقط = ٨٫٧٪ من المجموع الكلي.',
+     bTxt:'٢٢ نقطة فقط = ٤٫٤٪، فيظل الترتيب يعكس المباريات.'},
+    {label:'استقرار الجدول',  sub:'هل ضربة واحدة تقلب الترتيب؟',           a:1, b:3,
+     aTxt:'٤٥ نقطة = ٩ توقّعات نتيجة مضبوطة دفعة وحدة.',
+     bTxt:'٢٢ نقطة = ٤ توقّعات فقط، تأثيرها محدود.'},
+    {label:'مكافأة الجرأة',   sub:'هل النظام يكافئ التوقّع الجريء؟',         a:3, b:1,
+     aTxt:'٣٠ نقطة لمن يخمّن بطلًا غير متوقّع كمكافأة على الجرأة.',
+     bTxt:'١٢ نقطة فقط، تختفي حافز التوقّع الجريء.'},
+    {label:'الإثارة في النهاية',sub:'هل البطولة تنتهي بإثارة؟',              a:3, b:2,
+     aTxt:'النهاية مفتوحة، أي لاعب من الـ٤ الأوائل يقدر يكسب.',
+     bTxt:'الفجوة بين المتصدّرين تبقى صعبة على الإغلاق.'}
+  ];
+  var totalA=0, totalB=0;
+  CATS.forEach(function(c){totalA+=c.a;totalB+=c.b;});
+  var maxTotal = CATS.length*3;
+  var aIsLeader = totalA > totalB;
+
+  function optHead(opts){
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px 14px;background:linear-gradient(150deg,'+opts.bg1+','+opts.bg2+');border:1.5px solid '+opts.border+';border-radius:14px;">'
+      +'<div style="width:50px;height:50px;border-radius:50%;background:'+opts.chip+';display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;color:'+opts.chipText+';">'+esc(opts.tag)+'</div>'
+      +'<div style="font-weight:800;font-size:14px;color:'+opts.label+';letter-spacing:.5px;">'+esc(opts.eyebrow)+'</div>'
+      +'<div style="font-weight:900;font-size:22px;color:#fff;line-height:1.2;text-align:center;">'+esc(opts.title)+'</div>'
+      +'<div style="display:flex;gap:8px;align-items:baseline;margin-top:4px;">'
+        +'<span style="font-weight:900;font-size:30px;color:'+opts.label+';">'+esc(arNum(opts.champ))+'</span>'
+        +'<span style="font-weight:700;font-size:14px;color:var(--mute);">البطل</span>'
+        +'<span style="font-weight:700;font-size:18px;color:var(--mute);">·</span>'
+        +'<span style="font-weight:900;font-size:30px;color:'+opts.label+';">'+esc(arNum(opts.scorer))+'</span>'
+        +'<span style="font-weight:700;font-size:14px;color:var(--mute);">الهدّاف</span>'
+      +'</div>'
+    +'</div>';
+  }
+  var headOptA = optHead({
+    tag:'أ', eyebrow:'الخيار الأول', title:'إبقاء النقاط',
+    champ:30, scorer:15,
+    bg1: aIsLeader ? 'rgba(230,204,120,.20)' : 'rgba(255,255,255,.07)',
+    bg2: aIsLeader ? 'rgba(230,204,120,.04)' : 'rgba(255,255,255,.02)',
+    border: aIsLeader ? 'rgba(230,204,120,.55)' : 'rgba(255,255,255,.22)',
+    chip: aIsLeader ? 'var(--gold)' : 'rgba(255,255,255,.22)',
+    chipText: aIsLeader ? '#0A2C20' : '#fff',
+    label: aIsLeader ? 'var(--gold)' : '#fff'
+  });
+  var headOptB = optHead({
+    tag:'ب', eyebrow:'الخيار الثاني', title:'تقليل النقاط',
+    champ:12, scorer:10,
+    bg1: !aIsLeader ? 'rgba(230,204,120,.20)' : 'rgba(255,255,255,.07)',
+    bg2: !aIsLeader ? 'rgba(230,204,120,.04)' : 'rgba(255,255,255,.02)',
+    border: !aIsLeader ? 'rgba(230,204,120,.55)' : 'rgba(255,255,255,.22)',
+    chip: !aIsLeader ? 'var(--gold)' : 'rgba(255,255,255,.22)',
+    chipText: !aIsLeader ? '#0A2C20' : '#fff',
+    label: !aIsLeader ? 'var(--gold)' : '#fff'
+  });
+
+  var matrixHead = '<div style="display:flex;gap:14px;align-items:stretch;margin-bottom:14px;">'
+    +'<div style="flex:0 0 360px;display:flex;align-items:flex-end;justify-content:flex-start;padding:0 8px 14px;">'
+      +'<div style="font-weight:800;font-size:20px;color:var(--gold);letter-spacing:.5px;">المعيار</div>'
+    +'</div>'
+    +headOptA+headOptB
+  +'</div>';
+
+  function dotsCell(score, highlight, summary){
+    var filled = (highlight ? '#E6CC78' : '#dfeae3');
+    var empty = 'rgba(255,255,255,.18)';
+    var dots='';
+    for(var i=0;i<3;i++){
+      var on = i<score;
+      dots += '<div style="width:18px;height:18px;border-radius:50%;background:'+(on?filled:'transparent')+';border:2px solid '+(on?filled:empty)+';"></div>';
+    }
+    var label='', lcol='var(--mute)';
+    if(score===3){label='قوي';   lcol='#7fd9a6';}
+    else if(score===2){label='جيد'; lcol='#e6cc78';}
+    else if(score===1){label='ضعيف';lcol='#e89b9b';}
+    else {label='سيّئ'; lcol='#e89b9b';}
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;background:'+(highlight?'rgba(230,204,120,.06)':'rgba(255,255,255,.03)')+';border:1px solid '+(highlight?'rgba(230,204,120,.22)':'rgba(255,255,255,.10)')+';border-radius:12px;padding:14px 12px;">'
+      +'<div style="display:flex;gap:6px;direction:ltr;">'+dots+'</div>'
+      +'<div style="font-weight:700;font-size:14px;color:'+lcol+';">'+esc(label)+'</div>'
+      +(summary?'<div style="font-weight:700;font-size:14px;color:#fff;line-height:1.4;text-align:center;border-top:1px solid rgba(255,255,255,.10);padding-top:8px;width:100%;">'+esc(summary)+'</div>':'')
+    +'</div>';
+  }
+
+  var rows='';
+  CATS.forEach(function(c){
+    rows += '<div style="display:flex;gap:14px;align-items:stretch;">'
+      +'<div style="flex:0 0 360px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;justify-content:center;">'
+        +'<div style="font-weight:900;font-size:22px;color:#fff;line-height:1.2;">'+esc(c.label)+'</div>'
+        +'<div style="font-weight:600;font-size:14px;color:var(--mute);margin-top:4px;line-height:1.4;">'+esc(c.sub)+'</div>'
+      +'</div>'
+      +dotsCell(c.a, aIsLeader, c.aTxt)
+      +dotsCell(c.b, !aIsLeader, c.bTxt)
+    +'</div>';
+  });
+  var matrixBody = '<div style="display:flex;flex-direction:column;gap:10px;">'+rows+'</div>';
+
+  function totalCell(n, highlight){
+    var bg = highlight ? 'rgba(230,204,120,.18)' : 'rgba(255,255,255,.07)';
+    var bd = highlight ? 'rgba(230,204,120,.55)' : 'rgba(255,255,255,.22)';
+    var col = highlight ? 'var(--gold)' : '#fff';
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:'+bg+';border:1.5px solid '+bd+';border-radius:14px;padding:18px 14px;">'
+      +'<div style="display:flex;align-items:baseline;gap:6px;color:'+col+';">'
+        +'<span style="font-weight:900;font-size:46px;line-height:1;">'+esc(arNum(n))+'</span>'
+        +'<span style="font-weight:700;font-size:22px;opacity:.7;">/ '+esc(arNum(maxTotal))+'</span>'
+      +'</div>'
+    +'</div>';
+  }
+  var totals = '<div style="display:flex;gap:14px;align-items:stretch;margin-top:14px;">'
+    +'<div style="flex:0 0 360px;display:flex;align-items:center;justify-content:flex-start;padding:0 18px;">'
+      +'<div style="font-weight:900;font-size:24px;color:var(--gold);">المجموع</div>'
+    +'</div>'
+    +totalCell(totalA, aIsLeader)
+    +totalCell(totalB, !aIsLeader)
+  +'</div>';
+
+  var matrix = matrixHead + matrixBody + totals;
+  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+matrix+'</div></div>';
+  var posterRoot=document.getElementById('posterRoot');
+  posterRoot.innerHTML=posterHtml;
+
+  var fname='wc2026-tournament-scoring.png';
+  function shareCanvas(cv){
+    toast('2/3: جاري التحويل…');
+    try{
+      cv.toBlob(function(blob){
+        if(!blob){toast('فشل: blob فاضي');posterRoot.innerHTML='';return;}
+        toast('3/3: جاري المشاركة…');
+        var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
+        if(file && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'نقاط البطل والهدّاف'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
         } else { dl(); }
         function dl(){
           var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');
