@@ -190,6 +190,28 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .pick-bar-wrap{height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;}
 .pick-bar{height:100%;background:linear-gradient(90deg,#fde68a,#f5b301);border-radius:4px;}
 .pick-count{text-align:end;font-weight:800;color:#fde68a;}
+/* Poll banner */
+.poll-card{background:linear-gradient(150deg, rgba(230,204,120,.18), rgba(230,204,120,.05));border:1.5px solid rgba(230,204,120,.55);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px;}
+.poll-head{font-size:.95rem;font-weight:900;color:#fde68a;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.poll-status{font-size:.62rem;font-weight:800;padding:3px 8px;border-radius:999px;letter-spacing:.4px;}
+.poll-status.poll-open{background:rgba(34,197,94,.18);color:#86efac;border:1px solid rgba(34,197,94,.4);}
+.poll-status.poll-soon{background:rgba(255,255,255,.08);color:var(--muted);border:1px solid var(--line);}
+.poll-status.poll-closed{background:rgba(220,38,38,.18);color:#fca5a5;border:1px solid rgba(220,38,38,.4);}
+.poll-sub{font-size:.78rem;color:var(--muted);line-height:1.6;}
+.poll-opts{display:flex;flex-direction:column;gap:8px;}
+.poll-opt{background:rgba(0,0,0,.18);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-family:inherit;color:var(--text);text-align:right;display:flex;flex-direction:column;gap:6px;}
+.poll-opt:hover:not(:disabled){border-color:rgba(230,204,120,.45);}
+.poll-opt:disabled{cursor:default;opacity:.85;}
+.poll-opt.chosen{background:rgba(230,204,120,.16);border-color:rgba(230,204,120,.7);box-shadow:inset 0 0 0 1px rgba(230,204,120,.3);}
+.poll-opt-row{display:flex;align-items:center;gap:10px;font-weight:800;font-size:.88rem;}
+.poll-opt-tag{width:26px;height:26px;border-radius:50%;background:var(--gold);color:#0A2C20;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.poll-opt.chosen .poll-opt-tag{background:#fde68a;}
+.poll-opt-label{flex:1;color:#fff;}
+.poll-opt-pts{font-weight:800;color:#fde68a;font-size:.85rem;}
+.poll-opt-bar-wrap{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+.poll-opt-bar{height:100%;background:linear-gradient(90deg,#fde68a,#f5b301);border-radius:3px;transition:width .3s;}
+.poll-opt-meta{font-size:.72rem;color:var(--muted);font-weight:700;display:flex;justify-content:flex-start;}
+.poll-foot{font-size:.78rem;color:var(--muted);text-align:center;padding-top:4px;border-top:1px solid rgba(255,255,255,.06);}
 .sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
 .sc-rank{font-weight:800;color:var(--muted);min-width:24px;text-align:center;font-size:.95rem;}
 .sc-row:nth-child(1) .sc-rank,.sc-row:nth-child(2) .sc-rank{color:#fde68a;}
@@ -528,6 +550,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
     <button class="icon-btn" id="btnSettings">⚙️</button>
   </div>
   <div class="section-title">⚽ المباريات</div>
+  <div id="pollBanner"></div>
   <div class="chips" id="chips"></div>
   <div id="matchList" style="width:100%;display:flex;flex-direction:column;gap:12px;"></div>
 </div>
@@ -1020,6 +1043,18 @@ if(configReady){
 // ===== STATE (Firebase: only predictions, results, team overrides, users) =====
 var myName='', myKey='', isAdmin=false, authError=null;
 var predsData={}, resultsData={}, teamsData={}, usersData={}, liveData={};
+// ===== Poll: tournament scoring vote =====
+// Opens Saturday 2026-06-27 at 21:00 Mecca (UTC+3 = 18:00 UTC).
+// Closes Sunday 2026-06-28 at 21:00 Mecca (18:00 UTC).
+var POLL_KEY='tournamentScoring2026';
+var POLL_OPENS_MS=Date.UTC(2026,5,27,18,0,0);
+var POLL_CLOSES_MS=Date.UTC(2026,5,28,18,0,0);
+var POLL_OPTIONS=[
+  {key:'A', label:'إبقاء النقاط', champ:30, scorer:15},
+  {key:'B', label:'تقليل بسيط',   champ:15, scorer:10},
+  {key:'C', label:'تقليل أكبر',   champ:12, scorer:6}
+];
+var pollData={};
 // auto-pulled from openfootball (knockout teams + official results)
 var apiResults={}, apiTeams={}, apiLive={};
 var currentFilter='upcoming'; // selected chip: 'upcoming' | 'g:X' | 'r:R'
@@ -1651,6 +1686,7 @@ function enter(){
   document.getElementById('meName5').textContent=myName;
   document.getElementById('tabbar').style.display='flex';
   applyAdminUI();
+  renderPollBanner();
   show('sMatches');
   if(booted){renderMatches();renderLeader();renderGroups();return;}  // re-login: don't re-attach listeners/timers
   booted=true;
@@ -1693,6 +1729,7 @@ document.querySelectorAll('.me-chip').forEach(function(c){
 });
 
 function listen(){
+  ROOT.child('polls/'+POLL_KEY).on('value',function(s){pollData=s.val()||{};renderPollBanner();});
   ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};predsLoaded=true;renderMatches();renderLeader();});
   ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   ROOT.child('live').on('value',function(s){liveData=s.val()||{};renderMatches();});
@@ -3172,8 +3209,8 @@ function genTournamentScoringPoster(){
     +    '<div style="flex:1;font-weight:700;font-size:24px;color:#fff;line-height:1.4;">صوّت من داخل التطبيق</div>'
     +  '</div>'
     +  '<div style="display:flex;align-items:center;gap:16px;background:rgba(0,0,0,.18);border-radius:12px;padding:16px 22px;">'
-    +    '<div style="font-size:30px;line-height:1;flex-shrink:0;">🕛</div>'
-    +    '<div style="flex:1;font-weight:700;font-size:24px;color:#fff;line-height:1.4;">يبدأ <span style="color:var(--gold);">الأحد الساعة ١٢ ظهرًا</span></div>'
+    +    '<div style="font-size:30px;line-height:1;flex-shrink:0;">🕘</div>'
+    +    '<div style="flex:1;font-weight:700;font-size:24px;color:#fff;line-height:1.4;">يبدأ <span style="color:var(--gold);">اليوم الساعة ٩ مساءً</span></div>'
     +  '</div>'
     +  '<div style="display:flex;align-items:center;gap:16px;background:rgba(0,0,0,.18);border-radius:12px;padding:16px 22px;">'
     +    '<div style="font-size:30px;line-height:1;flex-shrink:0;">🕘</div>'
@@ -3405,6 +3442,8 @@ function applyAdminUI(){
   // everyone after the public-release threshold.
   var storyTab=document.querySelector('.sub-tab[data-leadsub="story"]');
   if(storyTab) storyTab.style.display = (isAdmin || storyPublicOpen()) ? '' : 'none';
+  // Refresh the poll banner so the admin preview appears/disappears alongside the role switch.
+  if(typeof renderPollBanner==='function') renderPollBanner();
 }
 function openSettings(){
   if(isAdmin){
@@ -4446,6 +4485,72 @@ function computeAllStats(){
     sorted:sorted, totalPlayers:players.length
   };
 }
+// ===== Poll banner =====
+function pollVisibleForMe(){ return isAdmin || Date.now()>=POLL_OPENS_MS; }
+function pollIsOpen(){ var n=Date.now(); return n>=POLL_OPENS_MS && n<POLL_CLOSES_MS; }
+function _pollFmtAR(ms){
+  var d=new Date(ms);
+  var hh=d.getHours(), suf=(hh>=12?'م':'ص'); var h12=hh%12; if(h12===0) h12=12;
+  return AR_WEEKDAY[d.getDay()]+' '+arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' · '+arNum(h12)+suf;
+}
+function castPollVote(optionKey){
+  if(!myKey){ toast('سجّل دخولك أولًا'); return; }
+  if(!pollIsOpen() && !isAdmin){ toast('التصويت مغلق'); return; }
+  ROOT.child('polls/'+POLL_KEY+'/'+myKey).set(optionKey)
+    .then(function(){toast('تم تسجيل صوتك ✅');})
+    .catch(function(e){toast('فشل التصويت: '+((e&&e.message)||e));});
+}
+function renderPollBanner(){
+  var box=document.getElementById('pollBanner'); if(!box) return;
+  if(!pollVisibleForMe()){ box.innerHTML=''; return; }
+  var now=Date.now();
+  var notYet = now<POLL_OPENS_MS;
+  var closed = now>=POLL_CLOSES_MS;
+  var open   = !notYet && !closed;
+  var myVote = pollData && pollData[myKey] || null;
+  // Tally
+  var counts={A:0,B:0,C:0}, total=0;
+  Object.keys(pollData||{}).forEach(function(k){
+    if(usersData[k] && usersData[k].removed) return;
+    var v=pollData[k]; if(counts[v]!==undefined){counts[v]++; total++;}
+  });
+  // Visibility of counts: always to admin, after close to all
+  var showCounts = isAdmin || closed;
+  var statusBadge = notYet ? '<span class="poll-status poll-soon">معاينة · يفتح '+esc(_pollFmtAR(POLL_OPENS_MS))+'</span>'
+    : closed             ? '<span class="poll-status poll-closed">مغلق</span>'
+                         : '<span class="poll-status poll-open">مفتوح · يُغلق '+esc(_pollFmtAR(POLL_CLOSES_MS))+'</span>';
+  var inner='<div class="poll-card">'
+    +'<div class="poll-head">🗳️ تصويت: نقاط البطل والهدّاف '+statusBadge+'</div>'
+    +'<div class="poll-sub">صوّتك يُعتمد لتحديد نظام نقاط البطل والهدّاف لباقي البطولة.</div>'
+    +'<div class="poll-opts">';
+  POLL_OPTIONS.forEach(function(o){
+    var isMine = myVote===o.key;
+    var pct = total>0 ? Math.round((counts[o.key]/total)*100) : 0;
+    inner+='<button class="poll-opt'+(isMine?' chosen':'')+'" data-vote="'+esc(o.key)+'"'+((notYet||closed)&&!isAdmin?' disabled':'')+'>'
+      +'<div class="poll-opt-row">'
+        +'<span class="poll-opt-tag">'+esc(o.key==='A'?'أ':(o.key==='B'?'ب':'ج'))+'</span>'
+        +'<span class="poll-opt-label">'+esc(o.label)+'</span>'
+        +'<span class="poll-opt-pts">'+arNum(o.champ)+'/'+arNum(o.scorer)+'</span>'
+      +'</div>'
+      +(showCounts?'<div class="poll-opt-bar-wrap"><div class="poll-opt-bar" style="width:'+pct+'%"></div></div>'
+        +'<div class="poll-opt-meta">'+arNum(counts[o.key])+' صوت · '+arNum(pct)+'٪</div>':'')
+    +'</button>';
+  });
+  inner+='</div>';
+  if(myVote && !showCounts){
+    inner+='<div class="poll-foot">صوّتك: <b>'+esc(myVote==='A'?'أ — إبقاء':(myVote==='B'?'ب — تقليل بسيط':'ج — تقليل أكبر'))+'</b> · يمكنك تغييره قبل الإغلاق.</div>';
+  } else if(showCounts){
+    inner+='<div class="poll-foot">إجمالي الأصوات: <b>'+arNum(total)+'</b>'+(myVote?(' · صوّتك: <b>'+esc(myVote==='A'?'أ':(myVote==='B'?'ب':'ج'))+'</b>'):'')+'</div>';
+  }
+  inner+='</div>';
+  box.innerHTML=inner;
+  box.querySelectorAll('.poll-opt[data-vote]').forEach(function(b){
+    b.addEventListener('click',function(){ castPollVote(b.dataset.vote); });
+  });
+}
+// Re-render the banner once per minute so it auto-appears at the open time
+// and auto-flips to 'closed' state without needing a manual refresh.
+setInterval(renderPollBanner, 60*1000);
 function _statCard(icon, title, mainHtml, sub){
   return '<div class="stat-card">'
     +'<div class="stat-head"><span class="stat-ic">'+icon+'</span><span class="stat-title">'+esc(title)+'</span></div>'
