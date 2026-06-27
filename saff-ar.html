@@ -214,6 +214,13 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .poll-opt-bar{height:100%;background:linear-gradient(90deg,#fde68a,#f5b301);border-radius:3px;transition:width .3s;}
 .poll-opt-meta{font-size:.72rem;color:var(--muted);font-weight:700;display:flex;justify-content:flex-start;}
 .poll-foot{font-size:.78rem;color:var(--muted);text-align:center;padding-top:4px;border-top:1px solid rgba(255,255,255,.06);}
+.poll-foot b{color:#fde68a;}
+.poll-opt-lock{margin-inline-start:auto;color:#86efac;font-weight:900;font-size:1rem;}
+.poll-opt-pending{margin-inline-start:auto;color:#fde68a;font-weight:900;font-size:1rem;}
+.poll-opt.locked{cursor:default;}
+.poll-submit{padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#0a5c33,#1e7a4a);color:#fff;font-family:inherit;font-weight:900;font-size:.95rem;cursor:pointer;letter-spacing:.4px;}
+.poll-submit:disabled{background:rgba(255,255,255,.06);color:var(--muted);cursor:default;border:1px solid var(--line);}
+.poll-submit:not(:disabled):hover{filter:brightness(1.1);}
 .sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
 .sc-rank{font-weight:800;color:var(--muted);min-width:24px;text-align:center;font-size:.95rem;}
 .sc-row:nth-child(1) .sc-rank,.sc-row:nth-child(2) .sc-rank{color:#fde68a;}
@@ -4488,6 +4495,7 @@ function computeAllStats(){
   };
 }
 // ===== Poll banner =====
+var pollPendingVote=null; // local-only until "تسليم" is pressed; never edits Firebase
 function pollVisibleForMe(){ return isAdmin || Date.now()>=POLL_OPENS_MS; }
 function pollIsOpen(){ var n=Date.now(); return n>=POLL_OPENS_MS && n<POLL_CLOSES_MS; }
 function _pollFmtAR(ms){
@@ -4495,11 +4503,23 @@ function _pollFmtAR(ms){
   var hh=d.getHours(), suf=(hh>=12?'م':'ص'); var h12=hh%12; if(h12===0) h12=12;
   return AR_WEEKDAY[d.getDay()]+' '+arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' · '+arNum(h12)+suf;
 }
-function castPollVote(optionKey){
+function selectPollOption(key){
+  // Only allowed pre-submit; once Firebase has a vote, the button is disabled.
+  if(pollData && pollData[myKey]) return;
+  pollPendingVote=key;
+  renderPollBanner();
+}
+function submitPollVote(){
   if(!myKey){ toast('سجّل دخولك أولًا'); return; }
+  if(pollData && pollData[myKey]){ toast('سبق وسلّمت صوتك'); return; }
+  if(!pollPendingVote){ toast('اختر خيارًا أولًا'); return; }
   if(!pollIsOpen() && !isAdmin){ toast('التصويت مغلق'); return; }
-  ROOT.child('polls/'+POLL_KEY+'/'+myKey).set(optionKey)
-    .then(function(){toast('تم تسجيل صوتك ✅');})
+  var v=pollPendingVote;
+  ROOT.child('polls/'+POLL_KEY+'/'+myKey).set(v)
+    .then(function(){
+      pollPendingVote=null;
+      toast('تم تسليم صوتك ✅');
+    })
     .catch(function(e){toast('فشل التصويت: '+((e&&e.message)||e));});
 }
 function renderPollBanner(){
@@ -4510,6 +4530,8 @@ function renderPollBanner(){
   var closed = now>=POLL_CLOSES_MS;
   var open   = !notYet && !closed;
   var myVote = pollData && pollData[myKey] || null;
+  var hasVoted = !!myVote;
+  var canVoteNow = (open || isAdmin) && !hasVoted;
   // Tally
   var counts={A:0,B:0,C:0}, total=0;
   Object.keys(pollData||{}).forEach(function(k){
@@ -4523,15 +4545,19 @@ function renderPollBanner(){
                          : '<span class="poll-status poll-open">مفتوح · يُغلق '+esc(_pollFmtAR(POLL_CLOSES_MS))+'</span>';
   var inner='<div class="poll-card">'
     +'<div class="poll-head">🗳️ تصويت: نقاط البطل والهدّاف '+statusBadge+'</div>'
-    +'<div class="poll-sub">صوّتك يُعتمد لتحديد نظام نقاط البطل والهدّاف لباقي البطولة.</div>'
+    +'<div class="poll-sub">صوّتك يُعتمد لتحديد نظام نقاط البطل والهدّاف لباقي البطولة. <b>التصويت نهائي ولا يمكن تغييره بعد التسليم.</b></div>'
     +'<div class="poll-opts">';
   POLL_OPTIONS.forEach(function(o){
-    var isMine = myVote===o.key;
+    var isLocked = myVote===o.key;
+    var isPending = !hasVoted && pollPendingVote===o.key;
+    var isSelected = isLocked || isPending;
+    var canClick = canVoteNow;
     var pct = total>0 ? Math.round((counts[o.key]/total)*100) : 0;
-    inner+='<button class="poll-opt'+(isMine?' chosen':'')+'" data-vote="'+esc(o.key)+'"'+((notYet||closed)&&!isAdmin?' disabled':'')+'>'
+    inner+='<button class="poll-opt'+(isSelected?' chosen':'')+(isLocked?' locked':'')+'" data-vote="'+esc(o.key)+'"'+(canClick?'':' disabled')+'>'
       +'<div class="poll-opt-row">'
         +'<span class="poll-opt-tag">'+esc(o.key==='A'?'أ':(o.key==='B'?'ب':'ج'))+'</span>'
         +'<span class="poll-opt-label">'+esc(o.label)+'</span>'
+        +(isLocked?'<span class="poll-opt-lock">✓</span>':(isPending?'<span class="poll-opt-pending">●</span>':''))
       +'</div>'
       +'<div class="poll-opt-pts-row">'
         +'<span class="poll-opt-pts">🏆 البطل <b>'+arNum(o.champ)+'</b></span>'
@@ -4542,16 +4568,23 @@ function renderPollBanner(){
     +'</button>';
   });
   inner+='</div>';
-  if(myVote && !showCounts){
-    inner+='<div class="poll-foot">صوّتك: <b>'+esc(myVote==='A'?'أ — إبقاء':(myVote==='B'?'ب — تقليل بسيط':'ج — تقليل أكبر'))+'</b> · يمكنك تغييره قبل الإغلاق.</div>';
+  // Submit button — only when user hasn't voted yet and poll is open (or admin preview)
+  if(canVoteNow){
+    var ready = !!pollPendingVote;
+    inner+='<button class="poll-submit" id="pollSubmitBtn"'+(ready?'':' disabled')+'>'+(ready?'تسليم الصوت':'اختر خيارًا للتصويت')+'</button>';
+  }
+  if(hasVoted && !showCounts){
+    inner+='<div class="poll-foot">✓ سُلِّم صوتك: <b>'+esc(myVote==='A'?'أ — إبقاء':(myVote==='B'?'ب — تقليل بسيط':'ج — تقليل أكبر'))+'</b></div>';
   } else if(showCounts){
     inner+='<div class="poll-foot">إجمالي الأصوات: <b>'+arNum(total)+'</b>'+(myVote?(' · صوّتك: <b>'+esc(myVote==='A'?'أ':(myVote==='B'?'ب':'ج'))+'</b>'):'')+'</div>';
   }
   inner+='</div>';
   box.innerHTML=inner;
-  box.querySelectorAll('.poll-opt[data-vote]').forEach(function(b){
-    b.addEventListener('click',function(){ castPollVote(b.dataset.vote); });
+  box.querySelectorAll('.poll-opt[data-vote]:not(:disabled)').forEach(function(b){
+    b.addEventListener('click',function(){ selectPollOption(b.dataset.vote); });
   });
+  var sb=document.getElementById('pollSubmitBtn');
+  if(sb) sb.addEventListener('click',submitPollVote);
 }
 // Re-render the banner once per minute so it auto-appears at the open time
 // and auto-flips to 'closed' state without needing a manual refresh.
