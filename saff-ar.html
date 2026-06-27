@@ -3083,9 +3083,9 @@ function genScoringDilemmaPoster(){
     } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
   });
 }
-// ===== "نقاط البطل والهدّاف" — matrix comparison poster (same SAFF identity) =====
+// ===== "نقاط البطل والهدّاف" — 3-option voting poster (same SAFF identity) =====
 function genTournamentScoringPoster(){
-  toast('جاري تجهيز المقارنة…');
+  toast('جاري تجهيز التصويت…');
   var arcRings=[[1450,140,.12],[1200,120,.10],[950,100,.08],[700,80,.06]];
   var arcsHtml='<svg class="arcs" viewBox="0 0 1080 2180" preserveAspectRatio="xMidYMid slice">';
   arcRings.forEach(function(g){arcsHtml+='<circle cx="-100" cy="-70" r="'+g[0]+'" fill="none" stroke="#E6CC78" stroke-width="'+g[1]+'" stroke-opacity="'+g[2]+'"/>';});
@@ -3102,119 +3102,57 @@ function genTournamentScoringPoster(){
       <div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">'+esc(brand2)+'</div>\
     </div>\
   </div>\
-  <div class="kick" style="font-size:21px;color:var(--mute);">مقارنة</div>\
+  <div class="kick" style="font-size:21px;color:var(--mute);">استفتاء</div>\
 </div>';
 
-  var eyebrow='<div style="font-weight:800;font-size:26px;color:var(--gold);letter-spacing:1px;margin-top:54px;">⚖️ تقييم الخيارين</div>';
+  var eyebrow='<div style="font-weight:800;font-size:26px;color:var(--gold);letter-spacing:1px;margin-top:54px;">🗳️ تصويت اللاعبين</div>';
   var titleHtml='<h1 class="disp" style="font-size:76px;margin-top:14px;margin-bottom:18px;line-height:1.1;">نقاط <span style="color:var(--gold);">البطل والهدّاف</span></h1>';
-  var sub='<div style="font-weight:700;font-size:28px;color:var(--mute);margin-bottom:40px;line-height:1.5;">مقارنة الخيارين على كل معيار</div>';
+  var sub='<div style="font-weight:700;font-size:28px;color:var(--mute);margin-bottom:40px;line-height:1.5;">اختر بين الخيارات الثلاثة، ورأي الأغلبية يُعتمد</div>';
 
-  var CATS=[
-    {label:'العدالة',        sub:'ثبات القواعد منذ بدء البطولة',           a:3, b:2,
-     aTxt:'النظام معتمد منذ بداية البطولة، ولا يطرأ عليه أيّ تعديل.',
-     bTxt:'التخفيض يُطبَّق على جميع اللاعبين بالتساوي، غير أنّه يُعدّل القاعدة بعد انقضاء دور المجموعات.'},
-    {label:'توازن المهارة',   sub:'هيمنة مهارة المباريات الطويلة على الحسم', a:1, b:3,
-     aTxt:'إصابة توقّعَين فقط تُعادل تسع نتائجَ مضبوطة من المباريات.',
-     bTxt:'المهارة المتراكمة عبر ١٠٤ مباريات تتغلّب على أيّ رهان منفرد.'},
-    {label:'حيوية المنافسة',  sub:'اتّساع دائرة المنافسة على اللقب',        a:3, b:2,
-     aTxt:'المنافسة مفتوحة على مراكز عديدة، فاللاعبون من الأوائل والمتوسّطين قادرون على بلوغ الصدارة.',
-     bTxt:'المنافسة تبقى مفتوحة للمتفوّقين القريبين من المتصدّر، أمّا من تأخّروا فيصعب عليهم اللحاق.'}
-  ];
-  var totalA=0, totalB=0;
-  CATS.forEach(function(c){totalA+=c.a;totalB+=c.b;});
-  var maxTotal = CATS.length*3;
-  var aIsLeader = totalA > totalB;
-
-  function optHead(opts){
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px 14px;background:linear-gradient(150deg,'+opts.bg1+','+opts.bg2+');border:1.5px solid '+opts.border+';border-radius:14px;">'
-      +'<div style="width:50px;height:50px;border-radius:50%;background:'+opts.chip+';display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;color:'+opts.chipText+';">'+esc(opts.tag)+'</div>'
-      +'<div style="font-weight:800;font-size:14px;color:'+opts.label+';letter-spacing:.5px;">'+esc(opts.eyebrow)+'</div>'
-      +'<div style="font-weight:900;font-size:22px;color:#fff;line-height:1.2;text-align:center;">'+esc(opts.title)+'</div>'
-      +'<div style="display:flex;gap:8px;align-items:baseline;margin-top:4px;">'
-        +'<span style="font-weight:900;font-size:30px;color:'+opts.label+';">'+esc(arNum(opts.champ))+'</span>'
-        +'<span style="font-weight:700;font-size:14px;color:var(--mute);">البطل</span>'
-        +'<span style="font-weight:700;font-size:18px;color:var(--mute);">·</span>'
-        +'<span style="font-weight:900;font-size:30px;color:'+opts.label+';">'+esc(arNum(opts.scorer))+'</span>'
-        +'<span style="font-weight:700;font-size:14px;color:var(--mute);">الهدّاف</span>'
+  function optionCard(opts){
+    return '<div style="display:flex;align-items:center;gap:24px;padding:30px 34px;border-radius:18px;background:linear-gradient(150deg, rgba(255,255,255,.06), rgba(255,255,255,.02));border:1.5px solid rgba(255,255,255,.18);">'
+      +'<div style="width:74px;height:74px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:40px;color:#0A2C20;flex-shrink:0;">'+esc(opts.tag)+'</div>'
+      +'<div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0;">'
+        +'<div style="font-weight:800;font-size:18px;color:var(--gold);letter-spacing:.5px;">'+esc(opts.eyebrow)+'</div>'
+        +'<div style="font-weight:900;font-size:34px;color:#fff;line-height:1.15;">'+esc(opts.title)+'</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:8px;align-items:center;flex-shrink:0;min-width:200px;">'
+        +'<div style="display:flex;align-items:baseline;gap:8px;">'
+          +'<span style="font-weight:900;font-size:48px;color:var(--gold);line-height:1;">'+esc(arNum(opts.champ))+'</span>'
+          +'<span style="font-weight:700;font-size:18px;color:var(--mute);">🏆 البطل</span>'
+        +'</div>'
+        +'<div style="display:flex;align-items:baseline;gap:8px;">'
+          +'<span style="font-weight:900;font-size:48px;color:var(--gold);line-height:1;">'+esc(arNum(opts.scorer))+'</span>'
+          +'<span style="font-weight:700;font-size:18px;color:var(--mute);">⚽ الهدّاف</span>'
+        +'</div>'
       +'</div>'
     +'</div>';
   }
-  var headOptA = optHead({
-    tag:'أ', eyebrow:'الخيار الأول', title:'إبقاء النقاط',
-    champ:30, scorer:15,
-    bg1: aIsLeader ? 'rgba(230,204,120,.20)' : 'rgba(255,255,255,.07)',
-    bg2: aIsLeader ? 'rgba(230,204,120,.04)' : 'rgba(255,255,255,.02)',
-    border: aIsLeader ? 'rgba(230,204,120,.55)' : 'rgba(255,255,255,.22)',
-    chip: aIsLeader ? 'var(--gold)' : 'rgba(255,255,255,.22)',
-    chipText: aIsLeader ? '#0A2C20' : '#fff',
-    label: aIsLeader ? 'var(--gold)' : '#fff'
-  });
-  var headOptB = optHead({
-    tag:'ب', eyebrow:'الخيار الثاني', title:'تقليل النقاط',
-    champ:12, scorer:10,
-    bg1: !aIsLeader ? 'rgba(230,204,120,.20)' : 'rgba(255,255,255,.07)',
-    bg2: !aIsLeader ? 'rgba(230,204,120,.04)' : 'rgba(255,255,255,.02)',
-    border: !aIsLeader ? 'rgba(230,204,120,.55)' : 'rgba(255,255,255,.22)',
-    chip: !aIsLeader ? 'var(--gold)' : 'rgba(255,255,255,.22)',
-    chipText: !aIsLeader ? '#0A2C20' : '#fff',
-    label: !aIsLeader ? 'var(--gold)' : '#fff'
-  });
+  var optA = optionCard({tag:'أ', eyebrow:'الخيار الأول', title:'إبقاء النقاط الحاليّة',  champ:30, scorer:15});
+  var optB = optionCard({tag:'ب', eyebrow:'الخيار الثاني', title:'تخفيض جزئيّ',           champ:15, scorer:10});
+  var optC = optionCard({tag:'ج', eyebrow:'الخيار الثالث', title:'أولويّة الهدّاف',        champ:6,  scorer:12});
+  var options = '<div style="display:flex;flex-direction:column;gap:18px;">'+optA+optB+optC+'</div>';
 
-  var matrixHead = '<div style="display:flex;gap:14px;align-items:stretch;margin-bottom:14px;">'
-    +'<div style="flex:0 0 360px;display:flex;align-items:flex-end;justify-content:flex-start;padding:0 8px 14px;">'
-      +'<div style="font-weight:800;font-size:20px;color:var(--gold);letter-spacing:.5px;">المعيار</div>'
+  var voting='<div style="margin-top:40px;padding:34px 30px;border-radius:18px;background:linear-gradient(150deg, rgba(230,204,120,.20), rgba(230,204,120,.05));border:1.5px solid rgba(230,204,120,.55);">'
+    +'<div style="font-weight:800;font-size:22px;color:var(--gold);letter-spacing:1px;text-align:center;margin-bottom:18px;">📍 معلومات التصويت</div>'
+    +'<div style="display:flex;flex-direction:column;gap:14px;">'
+    +  '<div style="display:flex;align-items:center;gap:16px;background:rgba(0,0,0,.18);border-radius:12px;padding:16px 22px;">'
+    +    '<div style="font-size:30px;line-height:1;flex-shrink:0;">📱</div>'
+    +    '<div style="flex:1;font-weight:700;font-size:24px;color:#fff;line-height:1.4;">صوّت من داخل التطبيق</div>'
+    +  '</div>'
+    +  '<div style="display:flex;align-items:center;gap:16px;background:rgba(0,0,0,.18);border-radius:12px;padding:16px 22px;">'
+    +    '<div style="font-size:30px;line-height:1;flex-shrink:0;">🕛</div>'
+    +    '<div style="flex:1;font-weight:700;font-size:24px;color:#fff;line-height:1.4;">يبدأ <span style="color:var(--gold);">الأحد الساعة ١٢ ظهرًا</span></div>'
+    +  '</div>'
+    +  '<div style="display:flex;align-items:center;gap:16px;background:rgba(0,0,0,.18);border-radius:12px;padding:16px 22px;">'
+    +    '<div style="font-size:30px;line-height:1;flex-shrink:0;">🕘</div>'
+    +    '<div style="flex:1;font-weight:700;font-size:24px;color:#fff;line-height:1.4;">يُغلق <span style="color:var(--gold);">الأحد الساعة ٩ مساءً</span></div>'
+    +  '</div>'
     +'</div>'
-    +headOptA+headOptB
+    +'<div style="font-weight:600;font-size:18px;color:var(--mute);text-align:center;margin-top:18px;">بتوقيت مكّة المكرّمة</div>'
   +'</div>';
 
-  function dotsCell(score, highlight, summary){
-    var filled = (highlight ? '#E6CC78' : '#dfeae3');
-    var empty = 'rgba(255,255,255,.18)';
-    var dots='';
-    for(var i=0;i<3;i++){
-      var on = i<score;
-      dots += '<div style="width:18px;height:18px;border-radius:50%;background:'+(on?filled:'transparent')+';border:2px solid '+(on?filled:empty)+';"></div>';
-    }
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;background:'+(highlight?'rgba(230,204,120,.06)':'rgba(255,255,255,.03)')+';border:1px solid '+(highlight?'rgba(230,204,120,.22)':'rgba(255,255,255,.10)')+';border-radius:12px;padding:14px 12px;">'
-      +'<div style="display:flex;gap:6px;direction:ltr;">'+dots+'</div>'
-      +(summary?'<div style="font-weight:700;font-size:14px;color:#fff;line-height:1.5;text-align:center;width:100%;">'+esc(summary)+'</div>':'')
-    +'</div>';
-  }
-
-  var rows='';
-  CATS.forEach(function(c){
-    rows += '<div style="display:flex;gap:14px;align-items:stretch;">'
-      +'<div style="flex:0 0 360px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;justify-content:center;">'
-        +'<div style="font-weight:900;font-size:22px;color:#fff;line-height:1.2;">'+esc(c.label)+'</div>'
-        +'<div style="font-weight:600;font-size:14px;color:var(--mute);margin-top:4px;line-height:1.4;">'+esc(c.sub)+'</div>'
-      +'</div>'
-      +dotsCell(c.a, aIsLeader, c.aTxt)
-      +dotsCell(c.b, !aIsLeader, c.bTxt)
-    +'</div>';
-  });
-  var matrixBody = '<div style="display:flex;flex-direction:column;gap:10px;">'+rows+'</div>';
-
-  function totalCell(n, highlight){
-    var bg = highlight ? 'rgba(230,204,120,.18)' : 'rgba(255,255,255,.07)';
-    var bd = highlight ? 'rgba(230,204,120,.55)' : 'rgba(255,255,255,.22)';
-    var col = highlight ? 'var(--gold)' : '#fff';
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:'+bg+';border:1.5px solid '+bd+';border-radius:14px;padding:18px 14px;">'
-      +'<div style="display:flex;align-items:baseline;gap:6px;color:'+col+';">'
-        +'<span style="font-weight:900;font-size:46px;line-height:1;">'+esc(arNum(n))+'</span>'
-        +'<span style="font-weight:700;font-size:22px;opacity:.7;">/ '+esc(arNum(maxTotal))+'</span>'
-      +'</div>'
-    +'</div>';
-  }
-  var totals = '<div style="display:flex;gap:14px;align-items:stretch;margin-top:14px;">'
-    +'<div style="flex:0 0 360px;display:flex;align-items:center;justify-content:flex-start;padding:0 18px;">'
-      +'<div style="font-weight:900;font-size:24px;color:var(--gold);">المجموع</div>'
-    +'</div>'
-    +totalCell(totalA, aIsLeader)
-    +totalCell(totalB, !aIsLeader)
-  +'</div>';
-
-  var matrix = matrixHead + matrixBody + totals;
-  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+matrix+'</div></div>';
+  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+options+voting+'</div></div>';
   var posterRoot=document.getElementById('posterRoot');
   posterRoot.innerHTML=posterHtml;
 
