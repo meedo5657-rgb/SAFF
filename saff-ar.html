@@ -1709,7 +1709,7 @@ document.querySelectorAll('.me-chip').forEach(function(c){
 
 function listen(){
   ROOT.child('polls/'+POLL_KEY).on('value',function(s){pollData=s.val()||{};renderPollBanner();});
-  ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};predsLoaded=true;renderMatches();renderLeader();});
+  ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};predsLoaded=true;renderMatches();renderLeader();renderPollBanner();});
   ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   ROOT.child('live').on('value',function(s){liveData=s.val()||{};renderMatches();});
   ROOT.child('storyResets').on('value',function(s){storyResets=s.val()||{};renderMatches();});
@@ -4263,6 +4263,9 @@ function submitPollVote(){
 function renderPollBanner(){
   var box=document.getElementById('pollBanner'); if(!box) return;
   if(!pollVisibleForMe()){ box.innerHTML=''; return; }
+  // Don't render eligibility while predictions are still loading — otherwise
+  // active users would briefly be flagged as ineligible (predsData empty).
+  if(!predsLoaded){ box.innerHTML=''; return; }
   var now=Date.now();
   var notYet = now<POLL_OPENS_MS;
   var closed = now>=POLL_CLOSES_MS;
