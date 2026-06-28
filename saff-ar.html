@@ -158,16 +158,15 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .br-meta{font-size:.62rem;color:var(--muted);font-weight:700;display:flex;justify-content:space-between;gap:6px;}
 .br-meta .br-no{color:#fde68a;}
 .br-team{display:flex;align-items:center;gap:7px;padding:2px 0;min-width:0;}
-.br-team img.flag{width:20px;height:14px;object-fit:cover;border-radius:2px;flex-shrink:0;}
-.br-team .nm{flex:1;font-weight:700;color:var(--text);font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.br-team img.flag{width:32px;height:22px;object-fit:cover;border-radius:3px;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.35);}
+.br-team .nm{flex:1;font-weight:700;color:var(--text);font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 .br-team .sc{font-weight:800;color:var(--text);min-width:14px;text-align:center;font-size:.85rem;}
-.br-team .ph{width:20px;height:14px;flex-shrink:0;border:1px dashed rgba(255,255,255,.18);border-radius:2px;}
+.br-team .ph{width:32px;height:22px;flex-shrink:0;border:1px dashed rgba(255,255,255,.18);border-radius:3px;}
 .br-team.win .nm,.br-team.win .sc{color:#fde68a;}
 .br-team.lose .nm,.br-team.lose .sc{color:var(--muted);}
 .br-team.tba .nm{color:var(--muted);font-weight:600;font-size:.72rem;}
 .br-team.tent .nm{color:#cfe6d4;}
 .br-team.tent .nm::after{content:" ✻";color:#8fb3a0;font-size:.66rem;font-weight:600;}
-.br-team:not(.tba):not(.tent) .nm::after{content:" ✓";color:#7fd9a6;font-size:.66rem;font-weight:700;}
 .br-team.tent img.flag{opacity:.72;}
 .br-third{margin-top:14px;padding:8px;border-radius:10px;background:rgba(255,255,255,.025);border:1px dashed var(--line);display:flex;flex-direction:column;gap:6px;}
 .br-third-h{font-size:.68rem;font-weight:800;color:var(--muted);text-align:center;letter-spacing:.5px;}
@@ -4149,12 +4148,19 @@ function bracketCard(m, ctx){
     if(hasTeam){
       if(won) c+=' win';
       else if(lost) c+=' lose';
-      if(info.tentative) c+=' tent';
+      // Tentative styling only matters while the group stage is still ongoing.
+      if(info.tentative && !ctx.groupStageDone) c+=' tent';
     } else c+=' tba';
     var flag = hasTeam
-      ? '<img class="flag" src="https://flagcdn.com/w40/'+FLAG_CODE[info.team]+'.png" alt="">'
+      ? '<img class="flag" src="https://flagcdn.com/w80/'+FLAG_CODE[info.team]+'.png" alt="">'
       : '<div class="ph"></div>';
-    var label = hasTeam ? (info.posLabel || arTeam(info.team)) : arSlotLabel(slotOrig||slotCurr);
+    // Once the group stage is decided, show the actual country name.
+    var label;
+    if(hasTeam){
+      label = ctx.groupStageDone ? arTeam(info.team) : (info.posLabel || arTeam(info.team));
+    } else {
+      label = arSlotLabel(slotOrig||slotCurr);
+    }
     var sc = (score!=null) ? ('<span class="sc">'+esc(arNum(score))+'</span>') : '';
     return '<div class="'+c+'">'+flag+'<span class="nm">'+esc(label)+'</span>'+sc+'</div>';
   }
@@ -4185,7 +4191,7 @@ function renderBracket(){
     {code:'SF',   label:'نصف النهائي'},
     {code:'FINAL',label:'النهائي'}
   ];
-  var html='<div class="br-hint">✓ = مقعد مؤكّد · ✻ = مقعد متوقّع · اسحب أفقيًا ↔</div>';
+  var html='<div class="br-hint">اسحب أفقيًا ↔ لرؤية كل الأدوار</div>';
   html+='<div class="br-wrap"><div class="br-grid">';
   stages.forEach(function(s){
     html+='<div class="br-col"><div class="br-col-h">'+esc(s.label)+'</div>';
