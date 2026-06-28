@@ -172,38 +172,6 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .br-third{margin-top:14px;padding:8px;border-radius:10px;background:rgba(255,255,255,.025);border:1px dashed var(--line);display:flex;flex-direction:column;gap:6px;}
 .br-third-h{font-size:.68rem;font-weight:800;color:var(--muted);text-align:center;letter-spacing:.5px;}
 .br-hint{font-size:.72rem;color:var(--muted);text-align:center;padding:4px;}
-/* Poll banner */
-.poll-card{background:linear-gradient(150deg, rgba(230,204,120,.18), rgba(230,204,120,.05));border:1.5px solid rgba(230,204,120,.55);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px;}
-.poll-head{font-size:.95rem;font-weight:900;color:#fde68a;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.poll-status{font-size:.62rem;font-weight:800;padding:3px 8px;border-radius:999px;letter-spacing:.4px;}
-.poll-status.poll-open{background:rgba(34,197,94,.18);color:#86efac;border:1px solid rgba(34,197,94,.4);}
-.poll-status.poll-soon{background:rgba(255,255,255,.08);color:var(--muted);border:1px solid var(--line);}
-.poll-status.poll-closed{background:rgba(220,38,38,.18);color:#fca5a5;border:1px solid rgba(220,38,38,.4);}
-.poll-sub{font-size:.78rem;color:var(--muted);line-height:1.6;}
-.poll-opts{display:flex;flex-direction:column;gap:8px;}
-.poll-opt{background:rgba(0,0,0,.18);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-family:inherit;color:var(--text);text-align:right;display:flex;flex-direction:column;gap:6px;}
-.poll-opt:hover:not(:disabled){border-color:rgba(230,204,120,.45);}
-.poll-opt:disabled{cursor:default;opacity:.85;}
-.poll-opt.chosen{background:rgba(230,204,120,.16);border-color:rgba(230,204,120,.7);box-shadow:inset 0 0 0 1px rgba(230,204,120,.3);}
-.poll-opt-row{display:flex;align-items:center;gap:10px;font-weight:800;font-size:.88rem;}
-.poll-opt-tag{width:26px;height:26px;border-radius:50%;background:var(--gold);color:#0A2C20;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
-.poll-opt.chosen .poll-opt-tag{background:#fde68a;}
-.poll-opt-label{flex:1;color:#fff;}
-.poll-opt-pts-row{display:flex;gap:14px;flex-wrap:wrap;margin-inline-start:36px;font-size:.78rem;color:var(--muted);font-weight:600;}
-.poll-opt-pts{display:inline-flex;align-items:baseline;gap:5px;}
-.poll-opt-pts b{font-weight:900;font-size:1rem;color:#fde68a;}
-.poll-opt-bar-wrap{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
-.poll-opt-bar{height:100%;background:linear-gradient(90deg,#fde68a,#f5b301);border-radius:3px;transition:width .3s;}
-.poll-opt-meta{font-size:.72rem;color:var(--muted);font-weight:700;display:flex;justify-content:flex-start;}
-.poll-foot{font-size:.78rem;color:var(--muted);text-align:center;padding-top:4px;border-top:1px solid rgba(255,255,255,.06);}
-.poll-foot b{color:#fde68a;}
-.poll-opt-lock{margin-inline-start:auto;color:#86efac;font-weight:900;font-size:1rem;}
-.poll-opt-pending{margin-inline-start:auto;color:#fde68a;font-weight:900;font-size:1rem;}
-.poll-opt.locked{cursor:default;}
-.poll-submit{padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#0a5c33,#1e7a4a);color:#fff;font-family:inherit;font-weight:900;font-size:.95rem;cursor:pointer;letter-spacing:.4px;}
-.poll-submit:disabled{background:rgba(255,255,255,.06);color:var(--muted);cursor:default;border:1px solid var(--line);}
-.poll-submit:not(:disabled):hover{filter:brightness(1.1);}
-.poll-foot.poll-ineligible{color:#fca5a5;font-weight:700;background:rgba(220,38,38,.10);border:1px solid rgba(220,38,38,.35);border-top:1px solid rgba(220,38,38,.35);border-radius:8px;padding:10px;}
 .sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
 .sc-rank{font-weight:800;color:var(--muted);min-width:24px;text-align:center;font-size:.95rem;}
 .sc-row:nth-child(1) .sc-rank,.sc-row:nth-child(2) .sc-rank{color:#fde68a;}
@@ -542,7 +510,6 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
     <button class="icon-btn" id="btnSettings">⚙️</button>
   </div>
   <div class="section-title">⚽ المباريات</div>
-  <div id="pollBanner"></div>
   <div class="chips" id="chips"></div>
   <div id="matchList" style="width:100%;display:flex;flex-direction:column;gap:12px;"></div>
 </div>
@@ -1021,20 +988,6 @@ if(configReady){
 // ===== STATE (Firebase: only predictions, results, team overrides, users) =====
 var myName='', myKey='', isAdmin=false, authError=null;
 var predsData={}, resultsData={}, teamsData={}, usersData={}, liveData={};
-// ===== Poll: tournament scoring vote =====
-// Opens Saturday 2026-06-27 at 21:00 Mecca (UTC+3 = 18:00 UTC).
-// Closes Sunday 2026-06-28 at 21:00 Mecca (18:00 UTC).
-var POLL_KEY='tournamentScoring2026';
-var POLL_OPENS_MS=Date.UTC(2026,5,27,18,0,0);
-var POLL_CLOSES_MS=Date.UTC(2026,5,28,18,0,0);
-// Banner stays visible (showing results) until this — Monday 3pm Mecca = 12:00 UTC.
-var POLL_HIDDEN_MS=Date.UTC(2026,5,29,12,0,0);
-var POLL_OPTIONS=[
-  {key:'A', label:'إبقاء النقاط', champ:30, scorer:15},
-  {key:'B', label:'تقليل بسيط',   champ:15, scorer:10},
-  {key:'C', label:'تقليل أكبر',   champ:12, scorer:8}
-];
-var pollData={};
 // auto-pulled from openfootball (knockout teams + official results)
 var apiResults={}, apiTeams={}, apiLive={};
 var currentFilter='upcoming'; // selected chip: 'upcoming' | 'g:X' | 'r:R'
@@ -1705,7 +1658,6 @@ function enter(){
   document.getElementById('meName4').textContent=myName;
   document.getElementById('tabbar').style.display='flex';
   applyAdminUI();
-  renderPollBanner();
   show('sMatches');
   if(booted){renderMatches();renderLeader();renderGroups();return;}  // re-login: don't re-attach listeners/timers
   booted=true;
@@ -1748,8 +1700,7 @@ document.querySelectorAll('.me-chip').forEach(function(c){
 });
 
 function listen(){
-  ROOT.child('polls/'+POLL_KEY).on('value',function(s){pollData=s.val()||{};renderPollBanner();});
-  ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};predsLoaded=true;renderMatches();renderLeader();renderPollBanner();});
+  ROOT.child('predictions').on('value',function(s){predsData=s.val()||{};predsLoaded=true;renderMatches();renderLeader();});
   ROOT.child('results').on('value',function(s){resultsData=s.val()||{};renderMatches();renderLeader();renderGroups();});
   ROOT.child('live').on('value',function(s){liveData=s.val()||{};renderMatches();});
   ROOT.child('storyResets').on('value',function(s){storyResets=s.val()||{};renderMatches();});
@@ -2246,9 +2197,6 @@ function adminBar(){
   var sb=document.createElement('button');sb.className='btn-summary';sb.textContent='📸 ملخّص اليوم';
   sb.addEventListener('click',genDailySummary);
   bar.appendChild(sb);
-  var sbP=document.createElement('button');sbP.className='btn-summary';sbP.style.cssText='background:rgba(230,204,120,.16);border-color:rgba(230,204,120,.55);color:#fde68a;';sbP.textContent='📊 ملخّص نتائج التصويت';
-  sbP.addEventListener('click',genPollResultsPoster);
-  bar.appendChild(sbP);
   bar.appendChild(fdTokenRow());
   var n=Object.keys(resultsData||{}).length;
   var b=document.createElement('button');b.className='btn-clear-all';
@@ -3349,122 +3297,6 @@ function genSaudiUnderachieversPoster(){
     } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
   });
 }
-// ===== "ملخّص التصويت" results poster (same SAFF identity) =====
-function genPollResultsPoster(){
-  toast('جاري تجهيز الملخّص…');
-  var counts={A:0,B:0,C:0}, voters={A:[],B:[],C:[]}, total=0;
-  Object.keys(pollData||{}).forEach(function(k){
-    if(usersData[k] && usersData[k].removed) return;
-    var v=pollData[k];
-    if(counts[v]!==undefined){
-      counts[v]++; total++;
-      voters[v].push((usersData[k]&&usersData[k].name)||k);
-    }
-  });
-  if(total===0){ toast('لا توجد أصوات بعد'); return; }
-  ['A','B','C'].forEach(function(k){voters[k].sort(function(a,b){return (''+a).localeCompare(''+b,'ar');});});
-  var winner='A';
-  if(counts.B>counts[winner]) winner='B';
-  if(counts.C>counts[winner]) winner='C';
-
-  var arcRings=[[1450,140,.12],[1200,120,.10],[950,100,.08],[700,80,.06]];
-  var arcsHtml='<svg class="arcs" viewBox="0 0 1080 2180" preserveAspectRatio="xMidYMid slice">';
-  arcRings.forEach(function(g){arcsHtml+='<circle cx="-100" cy="-70" r="'+g[0]+'" fill="none" stroke="#E6CC78" stroke-width="'+g[1]+'" stroke-opacity="'+g[2]+'"/>';});
-  arcsHtml+='</svg>';
-
-  var brand1='دوري التوقّعات', brand2='كأس العالم 2026';
-  var headerHtml='<div style="display:flex;justify-content:space-between;align-items:center;">'
-    +'<div style="display:flex;align-items:center;gap:20px;">'
-      +'<div role="img" aria-label="" style="width:79px;height:78px;background-image:url('+SAFF_LOGO_DATA+');background-size:contain;background-repeat:no-repeat;background-position:center;flex-shrink:0;"></div>'
-      +'<div style="width:2px;height:56px;background:rgba(255,255,255,.28);"></div>'
-      +'<div style="text-align:right;line-height:1.25;">'
-        +'<div style="font-size:24px;font-weight:900;color:#fff;">'+esc(brand1)+'</div>'
-        +'<div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">'+esc(brand2)+'</div>'
-      +'</div>'
-    +'</div>'
-    +'<div class="kick" style="font-size:21px;color:var(--mute);">نتائج التصويت</div>'
-  +'</div>';
-
-  var eyebrow='<div style="font-weight:800;font-size:26px;color:var(--gold);letter-spacing:1px;margin-top:54px;">📊 الملخّص النهائي</div>';
-  var titleHtml='<h1 class="disp" style="font-size:76px;margin-top:14px;margin-bottom:18px;line-height:1.1;">نقاط <span style="color:var(--gold);">البطل والهدّاف</span></h1>';
-  var sub='<div style="font-weight:700;font-size:26px;color:var(--mute);margin-bottom:38px;line-height:1.5;">إجمالي الأصوات: <span style="color:#fff;">'+esc(votesPhrase(total))+'</span></div>';
-
-  function optBar(opts){
-    var c=counts[opts.key];
-    var pct=Math.round((c/total)*100);
-    var isWinner=opts.key===winner;
-    var names=voters[opts.key];
-    var namesHtml='';
-    if(names.length){
-      namesHtml='<div style="display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:6px;padding-top:12px;border-top:1px solid rgba(255,255,255,.10);">'
-        +names.map(function(n){
-          return '<span style="display:inline-block;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:999px;font-weight:700;font-size:18px;color:#fff;">'+esc(n)+'</span>';
-        }).join('')
-      +'</div>';
-    }
-    return '<div style="display:flex;flex-direction:column;gap:10px;padding:24px 28px;border-radius:18px;background:'+(isWinner?'linear-gradient(150deg, rgba(230,204,120,.22), rgba(230,204,120,.06))':'rgba(255,255,255,.05)')+';border:'+(isWinner?'2px solid var(--gold)':'1px solid rgba(255,255,255,.14)')+';">'
-      +'<div style="display:flex;align-items:center;gap:16px;">'
-        +'<div style="width:54px;height:54px;border-radius:50%;background:'+(isWinner?'var(--gold)':'rgba(255,255,255,.18)')+';color:'+(isWinner?'#0A2C20':'#fff')+';display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;flex-shrink:0;">'+esc(opts.tag)+'</div>'
-        +'<div style="flex:1;">'
-          +'<div style="font-weight:900;font-size:28px;color:#fff;line-height:1.15;">'+esc(opts.title)+(isWinner?' <span style="color:var(--gold);font-size:22px;">🏆 الفائز</span>':'')+'</div>'
-          +'<div style="font-weight:700;font-size:18px;color:var(--mute);margin-top:4px;">🏆 البطل '+arNum(opts.champ)+' · ⚽ الهدّاف '+arNum(opts.scorer)+'</div>'
-        +'</div>'
-        +'<div style="text-align:left;flex-shrink:0;">'
-          +'<div style="font-weight:900;font-size:46px;color:'+(isWinner?'var(--gold)':'#fff')+';line-height:1;">'+arNum(pct)+'٪</div>'
-          +'<div style="font-weight:700;font-size:18px;color:var(--mute);margin-top:4px;text-align:end;">'+esc(votesPhrase(c))+'</div>'
-        +'</div>'
-      +'</div>'
-      +'<div style="height:14px;background:rgba(255,255,255,.06);border-radius:7px;overflow:hidden;">'
-        +'<div style="width:'+pct+'%;height:100%;background:'+(isWinner?'linear-gradient(90deg,#fde68a,#f5b301)':'rgba(255,255,255,.30)')+';border-radius:7px;"></div>'
-      +'</div>'
-      +namesHtml
-    +'</div>';
-  }
-  var optA=optBar({key:'A', tag:'أ', title:'إبقاء النقاط الحاليّة', champ:30, scorer:15});
-  var optB=optBar({key:'B', tag:'ب', title:'تقليل بسيط',              champ:15, scorer:10});
-  var optC=optBar({key:'C', tag:'ج', title:'تقليل أكبر',              champ:12, scorer:8});
-
-  var foot='<div style="margin-top:32px;padding:22px;border-radius:14px;background:rgba(0,0,0,.18);border:1px solid var(--line);text-align:center;font-weight:700;font-size:20px;color:var(--mute);">سيُعتمد رأي الأغلبية لباقي البطولة</div>';
-
-  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+sub+'<div style="display:flex;flex-direction:column;gap:18px;">'+optA+optB+optC+'</div>'+foot+'</div></div>';
-  var posterRoot=document.getElementById('posterRoot');
-  posterRoot.innerHTML=posterHtml;
-
-  var fname='wc2026-poll-results.png';
-  function shareCanvas(cv){
-    toast('2/3: جاري التحويل…');
-    try{
-      cv.toBlob(function(blob){
-        if(!blob){toast('فشل: blob فاضي');posterRoot.innerHTML='';return;}
-        toast('3/3: جاري المشاركة…');
-        var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
-        if(file && navigator.canShare && navigator.canShare({files:[file]})){
-          navigator.share({files:[file],title:'نتائج التصويت'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
-        } else { dl(); }
-        function dl(){
-          var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');
-        }
-        posterRoot.innerHTML='';
-      },'image/png');
-    }catch(e){toast('فشل toBlob: '+(e&&e.message||e));posterRoot.innerHTML='';}
-  }
-  var fontsReady=Promise.race([(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve(),new Promise(function(r){setTimeout(r,1500);})]);
-  fontsReady.then(function(){
-    var target=posterRoot.querySelector('.poster');
-    if(!target){toast('فشل: قالب البوستر غير موجود');posterRoot.innerHTML='';return;}
-    var rect=target.getBoundingClientRect(), h=Math.max(1200,Math.round(rect.height));
-    toast('1/3: جاري الرسم…');
-    var to=setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';},20000);
-    if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
-      htmlToImage.toBlob(target,{backgroundColor:null,cacheBust:true,pixelRatio:Math.min(2,window.devicePixelRatio||1),width:1080,height:h,skipFonts:true}).then(function(blob){
-        clearTimeout(to);if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
-        shareCanvas({toBlob:function(cb){cb(blob);}});
-      }).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html-to-image: '+(e&&e.message||e));});
-    } else if(typeof html2canvas==='function'){
-      html2canvas(target,{backgroundColor:null,scale:1,useCORS:true,allowTaint:false,imageTimeout:5000,logging:false,width:1080,height:h,windowWidth:1080,windowHeight:h}).then(function(cv){clearTimeout(to);shareCanvas(cv);}).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html2canvas: '+(e&&e.message||e));});
-    } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
-  });
-}
 function adminZone(m){
   var z=document.createElement('div');z.className='admin-zone';
   var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='النتيجة الرسمية';z.appendChild(lbl);
@@ -3556,8 +3388,6 @@ function applyAdminUI(){
   // everyone after the public-release threshold.
   var storyTab=document.querySelector('.sub-tab[data-leadsub="story"]');
   if(storyTab) storyTab.style.display = (isAdmin || storyPublicOpen()) ? '' : 'none';
-  // Refresh the poll banner so the admin preview appears/disappears alongside the role switch.
-  if(typeof renderPollBanner==='function') renderPollBanner();
 }
 function openSettings(){
   if(isAdmin){
@@ -4433,136 +4263,6 @@ function renderLeader(){
   });
 }
 
-// ===== Poll banner =====
-var pollPendingVote=null; // local-only until "تسليم" is pressed; never edits Firebase
-var POLL_MIN_PRED_PCT=0.8; // min share of group matches predicted to be eligible to vote
-function pollVisibleForMe(){
-  if(isAdmin) return true;
-  var now=Date.now();
-  return now>=POLL_OPENS_MS && now<POLL_HIDDEN_MS;
-}
-function pollIsOpen(){ var n=Date.now(); return n>=POLL_OPENS_MS && n<POLL_CLOSES_MS; }
-// How many of the 72 group matches did *I* predict? Used to gate voting.
-function myGroupPredictionCount(){
-  if(!myKey) return 0;
-  var n=0;
-  MATCHES.forEach(function(m){
-    if(m.stage!=='group') return;
-    if(predsData[m.id] && predsData[m.id][myKey]) n++;
-  });
-  return n;
-}
-function myPollEligibility(){
-  var total=MATCHES.filter(function(m){return m.stage==='group';}).length;
-  var have=myGroupPredictionCount();
-  var min=Math.ceil(total*POLL_MIN_PRED_PCT);
-  return {have:have, min:min, total:total, eligible:have>=min};
-}
-function _pollFmtAR(ms){
-  var d=new Date(ms);
-  var hh=d.getHours(), suf=(hh>=12?'م':'ص'); var h12=hh%12; if(h12===0) h12=12;
-  return AR_WEEKDAY[d.getDay()]+' '+arNum(d.getDate())+' '+AR_MONTH[d.getMonth()]+' · '+arNum(h12)+suf;
-}
-function selectPollOption(key){
-  // Locked for regular users after submit; admin can keep changing for testing.
-  if(pollData && pollData[myKey] && !isAdmin) return;
-  var elig=myPollEligibility();
-  if(!elig.eligible && !isAdmin) return;
-  pollPendingVote=key;
-  renderPollBanner();
-}
-function submitPollVote(){
-  if(!myKey){ toast('سجّل دخولك أولًا'); return; }
-  if(pollData && pollData[myKey] && !isAdmin){ toast('سبق وسلّمت صوتك'); return; }
-  var elig=myPollEligibility();
-  if(!elig.eligible && !isAdmin){ toast('تحتاج توقّع '+matchesPhrase(elig.min)+' على الأقل للتصويت'); return; }
-  if(!pollPendingVote){ toast('اختر خيارًا أولًا'); return; }
-  if(!pollIsOpen() && !isAdmin){ toast('التصويت مغلق'); return; }
-  var v=pollPendingVote;
-  ROOT.child('polls/'+POLL_KEY+'/'+myKey).set(v)
-    .then(function(){
-      pollPendingVote=null;
-      toast(isAdmin?'تم تحديث صوتك (أدمن) ✅':'تم تسليم صوتك ✅');
-    })
-    .catch(function(e){toast('فشل التصويت: '+((e&&e.message)||e));});
-}
-function renderPollBanner(){
-  var box=document.getElementById('pollBanner'); if(!box) return;
-  if(!pollVisibleForMe()){ box.innerHTML=''; return; }
-  // Don't render eligibility while predictions are still loading — otherwise
-  // active users would briefly be flagged as ineligible (predsData empty).
-  if(!predsLoaded){ box.innerHTML=''; return; }
-  var now=Date.now();
-  var notYet = now<POLL_OPENS_MS;
-  var closed = now>=POLL_CLOSES_MS;
-  var open   = !notYet && !closed;
-  var myVote = pollData && pollData[myKey] || null;
-  var hasVoted = !!myVote;
-  var elig = myPollEligibility();
-  // Admin always can vote/re-vote (testing bypass). Regular users only when
-  // the poll is open AND they haven't submitted yet AND they've predicted
-  // at least POLL_MIN_PRED_PCT of the group matches (active participants).
-  var canVoteNow = isAdmin || (open && !hasVoted && elig.eligible);
-  // Tally
-  var counts={A:0,B:0,C:0}, total=0;
-  Object.keys(pollData||{}).forEach(function(k){
-    if(usersData[k] && usersData[k].removed) return;
-    var v=pollData[k]; if(counts[v]!==undefined){counts[v]++; total++;}
-  });
-  // Visibility of counts: always to admin, after close to all
-  var showCounts = isAdmin || closed;
-  var statusBadge = notYet ? '<span class="poll-status poll-soon">معاينة · يفتح '+esc(_pollFmtAR(POLL_OPENS_MS))+'</span>'
-    : closed             ? '<span class="poll-status poll-closed">مغلق</span>'
-                         : '<span class="poll-status poll-open">مفتوح · يُغلق '+esc(_pollFmtAR(POLL_CLOSES_MS))+'</span>';
-  var inner='<div class="poll-card">'
-    +'<div class="poll-head">🗳️ تصويت: نقاط البطل والهدّاف '+statusBadge+'</div>'
-    +'<div class="poll-sub">صوّتك يُعتمد لتحديد نظام نقاط البطل والهدّاف لباقي البطولة. <b>التصويت نهائي ولا يمكن تغييره بعد التسليم.</b></div>'
-    +'<div class="poll-opts">';
-  POLL_OPTIONS.forEach(function(o){
-    var isLocked = myVote===o.key;
-    var isPending = !hasVoted && pollPendingVote===o.key;
-    var isSelected = isLocked || isPending;
-    var canClick = canVoteNow;
-    var pct = total>0 ? Math.round((counts[o.key]/total)*100) : 0;
-    inner+='<button class="poll-opt'+(isSelected?' chosen':'')+(isLocked?' locked':'')+'" data-vote="'+esc(o.key)+'"'+(canClick?'':' disabled')+'>'
-      +'<div class="poll-opt-row">'
-        +'<span class="poll-opt-tag">'+esc(o.key==='A'?'أ':(o.key==='B'?'ب':'ج'))+'</span>'
-        +'<span class="poll-opt-label">'+esc(o.label)+'</span>'
-        +(isLocked?'<span class="poll-opt-lock">✓</span>':(isPending?'<span class="poll-opt-pending">●</span>':''))
-      +'</div>'
-      +'<div class="poll-opt-pts-row">'
-        +'<span class="poll-opt-pts">🏆 البطل <b>'+arNum(o.champ)+'</b></span>'
-        +'<span class="poll-opt-pts">⚽ الهدّاف <b>'+arNum(o.scorer)+'</b></span>'
-      +'</div>'
-      +(showCounts?'<div class="poll-opt-bar-wrap"><div class="poll-opt-bar" style="width:'+pct+'%"></div></div>'
-        +'<div class="poll-opt-meta">'+esc(votesPhrase(counts[o.key]))+' · '+arNum(pct)+'٪</div>':'')
-    +'</button>';
-  });
-  inner+='</div>';
-  // Submit button — only when user hasn't voted yet and poll is open (or admin can re-submit anytime)
-  if(canVoteNow){
-    var ready = !!pollPendingVote;
-    var label = ready ? (isAdmin && hasVoted ? 'تحديث الصوت (أدمن)' : 'تسليم الصوت') : 'اختر خيارًا للتصويت';
-    inner+='<button class="poll-submit" id="pollSubmitBtn"'+(ready?'':' disabled')+'>'+esc(label)+'</button>';
-  }
-  if(!elig.eligible && !hasVoted && !isAdmin){
-    inner+='<div class="poll-foot poll-ineligible">⛔ لا يحق لك التصويت — توقّعاتك '+arNum(elig.have)+' من '+arNum(elig.total)+' (المطلوب '+arNum(elig.min)+' على الأقل، أي ٨٠٪)</div>';
-  } else if(hasVoted && !showCounts){
-    inner+='<div class="poll-foot">✓ سُلِّم صوتك: <b>'+esc(myVote==='A'?'أ — إبقاء':(myVote==='B'?'ب — تقليل بسيط':'ج — تقليل أكبر'))+'</b></div>';
-  } else if(showCounts){
-    inner+='<div class="poll-foot">إجمالي الأصوات: <b>'+arNum(total)+'</b>'+(myVote?(' · صوّتك: <b>'+esc(myVote==='A'?'أ':(myVote==='B'?'ب':'ج'))+'</b>'):'')+'</div>';
-  }
-  inner+='</div>';
-  box.innerHTML=inner;
-  box.querySelectorAll('.poll-opt[data-vote]:not(:disabled)').forEach(function(b){
-    b.addEventListener('click',function(){ selectPollOption(b.dataset.vote); });
-  });
-  var sb=document.getElementById('pollSubmitBtn');
-  if(sb) sb.addEventListener('click',submitPollVote);
-}
-// Re-render the banner once per minute so it auto-appears at the open time
-// and auto-flips to 'closed' state without needing a manual refresh.
-setInterval(renderPollBanner, 60*1000);
 // ===== USER PREDICTIONS MODAL =====
 function openUserPreds(userKey){
   var ov=document.getElementById('userPredsOverlay');
