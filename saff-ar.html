@@ -3352,12 +3352,17 @@ function genSaudiUnderachieversPoster(){
 // ===== "ملخّص التصويت" results poster (same SAFF identity) =====
 function genPollResultsPoster(){
   toast('جاري تجهيز الملخّص…');
-  var counts={A:0,B:0,C:0}, total=0;
+  var counts={A:0,B:0,C:0}, voters={A:[],B:[],C:[]}, total=0;
   Object.keys(pollData||{}).forEach(function(k){
     if(usersData[k] && usersData[k].removed) return;
-    var v=pollData[k]; if(counts[v]!==undefined){counts[v]++; total++;}
+    var v=pollData[k];
+    if(counts[v]!==undefined){
+      counts[v]++; total++;
+      voters[v].push((usersData[k]&&usersData[k].name)||k);
+    }
   });
   if(total===0){ toast('لا توجد أصوات بعد'); return; }
+  ['A','B','C'].forEach(function(k){voters[k].sort(function(a,b){return (''+a).localeCompare(''+b,'ar');});});
   var winner='A';
   if(counts.B>counts[winner]) winner='B';
   if(counts.C>counts[winner]) winner='C';
@@ -3388,6 +3393,15 @@ function genPollResultsPoster(){
     var c=counts[opts.key];
     var pct=Math.round((c/total)*100);
     var isWinner=opts.key===winner;
+    var names=voters[opts.key];
+    var namesHtml='';
+    if(names.length){
+      namesHtml='<div style="display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:6px;padding-top:12px;border-top:1px solid rgba(255,255,255,.10);">'
+        +names.map(function(n){
+          return '<span style="display:inline-block;padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:999px;font-weight:700;font-size:18px;color:#fff;">'+esc(n)+'</span>';
+        }).join('')
+      +'</div>';
+    }
     return '<div style="display:flex;flex-direction:column;gap:10px;padding:24px 28px;border-radius:18px;background:'+(isWinner?'linear-gradient(150deg, rgba(230,204,120,.22), rgba(230,204,120,.06))':'rgba(255,255,255,.05)')+';border:'+(isWinner?'2px solid var(--gold)':'1px solid rgba(255,255,255,.14)')+';">'
       +'<div style="display:flex;align-items:center;gap:16px;">'
         +'<div style="width:54px;height:54px;border-radius:50%;background:'+(isWinner?'var(--gold)':'rgba(255,255,255,.18)')+';color:'+(isWinner?'#0A2C20':'#fff')+';display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;flex-shrink:0;">'+esc(opts.tag)+'</div>'
@@ -3403,6 +3417,7 @@ function genPollResultsPoster(){
       +'<div style="height:14px;background:rgba(255,255,255,.06);border-radius:7px;overflow:hidden;">'
         +'<div style="width:'+pct+'%;height:100%;background:'+(isWinner?'linear-gradient(90deg,#fde68a,#f5b301)':'rgba(255,255,255,.30)')+';border-radius:7px;"></div>'
       +'</div>'
+      +namesHtml
     +'</div>';
   }
   var optA=optBar({key:'A', tag:'أ', title:'إبقاء النقاط الحاليّة', champ:30, scorer:15});
