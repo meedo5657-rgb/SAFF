@@ -2204,15 +2204,6 @@ function adminBar(){
   var sb=document.createElement('button');sb.className='btn-summary';sb.textContent='📸 ملخّص اليوم';
   sb.addEventListener('click',genDailySummary);
   bar.appendChild(sb);
-  var sb4=document.createElement('button');sb4.className='btn-summary';sb4.style.cssText='background:rgba(230,204,120,.16);border-color:rgba(230,204,120,.55);color:#fde68a;';sb4.textContent='🗳️ استفتاء نظام الإقصائيات';
-  sb4.addEventListener('click',genScoringDilemmaPoster);
-  bar.appendChild(sb4);
-  var sb6=document.createElement('button');sb6.className='btn-summary';sb6.style.cssText='background:rgba(230,204,120,.16);border-color:rgba(230,204,120,.55);color:#fde68a;';sb6.textContent='🏆 نقاط البطل والهدّاف';
-  sb6.addEventListener('click',genTournamentScoringPoster);
-  bar.appendChild(sb6);
-  var sb7=document.createElement('button');sb7.className='btn-summary';sb7.style.cssText='background:rgba(220,55,55,.18);border-color:rgba(220,55,55,.5);color:#ffd9d9;';sb7.textContent='⚠️ قائمة المتخاذلين';
-  sb7.addEventListener('click',genSaudiUnderachieversPoster);
-  bar.appendChild(sb7);
   bar.appendChild(fdTokenRow());
   var n=Object.keys(resultsData||{}).length;
   var b=document.createElement('button');b.className='btn-clear-all';
