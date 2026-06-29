@@ -206,6 +206,13 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .st-match.upset .st-match-h{color:#fca5a5;}
 .st-match-m{font-size:1rem;font-weight:900;color:#fff;}
 .st-match-s{font-size:.72rem;font-weight:700;color:var(--muted);}
+.st-achv{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:8px;}
+.st-achv:first-of-type{margin-top:0;}
+.st-achv-ic{font-size:1.6rem;flex-shrink:0;}
+.st-achv-b{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;}
+.st-achv-ttl{font-size:.72rem;font-weight:800;color:#fde68a;letter-spacing:.3px;}
+.st-achv-nm{font-size:1.05rem;font-weight:900;color:#fff;line-height:1.2;}
+.st-achv-sub{font-size:.75rem;color:var(--muted);font-weight:600;}
 .sc-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
 .sc-rank{font-weight:800;color:var(--muted);min-width:24px;text-align:center;font-size:.95rem;}
 .sc-row:nth-child(1) .sc-rank,.sc-row:nth-child(2) .sc-rank{color:#fde68a;}
@@ -3366,11 +3373,11 @@ function genStatsSummaryPoster(){
         +'<div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">كأس العالم 2026</div>'
       +'</div>'
     +'</div>'
-    +'<div class="kick" style="font-size:21px;color:var(--mute);">إحصائيات الموسم</div>'
+    +'<div class="kick" style="font-size:21px;color:var(--mute);">إحصائيات</div>'
   +'</div>';
 
-  var eyebrow='<div style="font-weight:800;font-size:26px;color:var(--gold);letter-spacing:1px;margin-top:54px;">📈 خلاصة دور المجموعات</div>';
-  var titleHtml='<h1 class="disp" style="font-size:84px;margin-top:14px;margin-bottom:18px;line-height:1.05;">الأرقام <span style="color:var(--gold);">الحقيقيّة</span></h1>';
+  var eyebrow='';
+  var titleHtml='<h1 class="disp" style="font-size:78px;margin-top:54px;margin-bottom:18px;line-height:1.1;">إحصائيات <span style="color:var(--gold);">دور المجموعات</span></h1>';
 
   // Hero metrics
   var hero='<div style="display:flex;gap:14px;margin-bottom:32px;">'
@@ -3514,7 +3521,41 @@ function genStatsSummaryPoster(){
     +'</div>';
   }
 
-  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+hero+journey+donuts+topBars+matches+'</div></div>';
+  // Achievements section
+  var achv='';
+  function _pAchv(icon, ttl, name, sub){
+    return '<div style="display:flex;align-items:center;gap:18px;padding:20px 24px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);">'
+      +'<div style="font-size:42px;line-height:1;flex-shrink:0;">'+icon+'</div>'
+      +'<div style="flex:1;display:flex;flex-direction:column;gap:4px;">'
+        +'<div style="font-weight:800;font-size:18px;color:var(--gold);letter-spacing:.5px;">'+esc(ttl)+'</div>'
+        +'<div style="font-weight:900;font-size:26px;color:#fff;line-height:1.2;">'+esc(name)+'</div>'
+        +'<div style="font-weight:700;font-size:18px;color:var(--mute);">'+esc(sub)+'</div>'
+      +'</div>'
+    +'</div>';
+  }
+  var aBlocks=[];
+  if(s.bestDay){
+    var bd=new Date(s.bestDay.date);
+    var bw=AR_WEEKDAY[bd.getDay()]+' '+arNum(bd.getDate())+' '+AR_MONTH[bd.getMonth()];
+    aBlocks.push(_pAchv('🔥','أعلى نقاط في يوم واحد', s.bestDay.name, arNum(s.bestDay.pts)+' نقطة في '+bw));
+  }
+  if(s.topBooster && s.topBooster.boosts>0){
+    aBlocks.push(_pAchv('⚡','أفضل مستخدم للدبلات', s.topBooster.name, arNum(s.topBooster.boostsHit)+' إصابة من '+arNum(s.topBooster.boosts)+' دبل'));
+  }
+  if(s.worstBooster && s.worstBooster.boosts>0){
+    aBlocks.push(_pAchv('💔','أسوأ مستخدم للدبلات', s.worstBooster.name, arNum(s.worstBooster.boostsHit)+' إصابة من '+arNum(s.worstBooster.boosts)+' دبل'));
+  }
+  if(s.leastAccurate){
+    aBlocks.push(_pAchv('🎯','أقل نسبة توقّعات دقيقة', s.leastAccurate.name, arNum(Math.round(s.leastAccurate.pct*100))+'٪ · '+arNum(s.leastAccurate.exact)+' من '+arNum(s.leastAccurate.total)));
+  }
+  if(aBlocks.length){
+    achv='<div style="margin-top:32px;">'
+      +'<div style="display:flex;align-items:center;gap:18px;margin-bottom:18px;"><div style="font-weight:800;font-size:24px;color:var(--gold);">🌟 إنجازات اللاعبين</div><div style="flex:1;height:1px;background:var(--line);"></div></div>'
+      +'<div style="display:flex;flex-direction:column;gap:12px;">'+aBlocks.join('')+'</div>'
+    +'</div>';
+  }
+
+  var posterHtml='<div class="poster">'+arcsHtml+'<div class="pad">'+headerHtml+eyebrow+titleHtml+hero+journey+donuts+topBars+matches+achv+'</div></div>';
   var posterRoot=document.getElementById('posterRoot');
   posterRoot.innerHTML=posterHtml;
 
@@ -4620,13 +4661,45 @@ function computeStatsBundle(){
   });
   var biggestUpset=matchAcc.slice().sort(function(a,b){return b.wrongPct-a.wrongPct;})[0];
   var mostAgreed=matchAcc.slice().sort(function(a,b){return a.wrongPct-b.wrongPct;})[0];
+  // ×2 boost effectiveness
+  var topBooster=players.filter(function(p){return p.boosts>0;})
+    .sort(function(a,b){return b.boostsHit-a.boostsHit || b.boosts-a.boosts;})[0];
+  var worstBooster=players.filter(function(p){return p.boosts>=2;})
+    .sort(function(a,b){
+      var wasteA=a.boosts-a.boostsHit, wasteB=b.boosts-b.boostsHit;
+      if(wasteB!==wasteA) return wasteB-wasteA;
+      return a.boostsHit-b.boostsHit;
+    })[0];
+  // Least accurate (lowest exact-score %)
+  var leastAccurate=players.filter(function(p){return p.predPlayed>=5;})
+    .map(function(p){return {name:p.name, pct:p.exact/p.predPlayed, exact:p.exact, total:p.predPlayed};})
+    .sort(function(a,b){return a.pct-b.pct;})[0];
+  // Highest single-day points
+  var bestDay=null;
+  players.forEach(function(p){
+    var byDay={};
+    MATCHES.forEach(function(m){
+      if(m.stage!=='group') return;
+      var pred=predsData[m.id]&&predsData[m.id][p.key]; if(!pred) return;
+      var r=result(m); if(!r) return;
+      var pts=pointsFor(pred,r)*(pred.x2?2:1);
+      if(!pts) return;
+      var d=m.date;
+      byDay[d]=(byDay[d]||0)+pts;
+    });
+    Object.keys(byDay).forEach(function(d){
+      if(!bestDay || byDay[d]>bestDay.pts){ bestDay={name:p.name, date:d, pts:byDay[d]}; }
+    });
+  });
   return {
     players:players, sorted:sorted, leader:leader,
     totalPlayers:players.length, totalPreds:totalPreds, accuracyPct:accuracyPct,
     top5:top5,
     champPicks:champPicks, scorerPicks:scorerPicks,
     topScores:topScores,
-    biggestUpset:biggestUpset, mostAgreed:mostAgreed
+    biggestUpset:biggestUpset, mostAgreed:mostAgreed,
+    topBooster:topBooster, worstBooster:worstBooster,
+    leastAccurate:leastAccurate, bestDay:bestDay
   };
 }
 
@@ -4766,6 +4839,29 @@ function renderStats(){
       +'</div>';
     }
     html+='<div class="st-sec"><div class="st-sec-h">⚡ المباريات الأبرز</div>'+inner+'</div>';
+  }
+
+  // Achievements section: best/worst ×2 user, least accurate, best single day
+  function _achv(icon, ttl, name, sub){
+    return '<div class="st-achv"><div class="st-achv-ic">'+icon+'</div><div class="st-achv-b"><div class="st-achv-ttl">'+esc(ttl)+'</div><div class="st-achv-nm">'+esc(name)+'</div><div class="st-achv-sub">'+esc(sub)+'</div></div></div>';
+  }
+  var achv='';
+  if(s.bestDay){
+    var d=new Date(s.bestDay.date);
+    var when=AR_WEEKDAY[d.getDay()]+' '+arNum(d.getDate())+' '+AR_MONTH[d.getMonth()];
+    achv+=_achv('🔥','أعلى نقاط في يوم واحد', s.bestDay.name, arNum(s.bestDay.pts)+' نقطة في '+when);
+  }
+  if(s.topBooster && s.topBooster.boosts>0){
+    achv+=_achv('⚡','أفضل مستخدم للدبلات', s.topBooster.name, arNum(s.topBooster.boostsHit)+' إصابة من '+arNum(s.topBooster.boosts)+' دبل');
+  }
+  if(s.worstBooster && s.worstBooster.boosts>0){
+    achv+=_achv('💔','أسوأ مستخدم للدبلات', s.worstBooster.name, arNum(s.worstBooster.boostsHit)+' إصابة من '+arNum(s.worstBooster.boosts)+' دبل');
+  }
+  if(s.leastAccurate){
+    achv+=_achv('🎯','أقل نسبة توقّعات دقيقة', s.leastAccurate.name, arNum(Math.round(s.leastAccurate.pct*100))+'٪ · '+arNum(s.leastAccurate.exact)+' من '+arNum(s.leastAccurate.total));
+  }
+  if(achv){
+    html+='<div class="st-sec"><div class="st-sec-h">🌟 إنجازات اللاعبين</div>'+achv+'</div>';
   }
 
   v.innerHTML=html;
