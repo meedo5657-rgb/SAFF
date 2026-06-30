@@ -912,7 +912,13 @@ function loadFootballData(verbose){
         if(isLive)liveCount++;
         var hn=m.homeTeam&&m.homeTeam.name, an=m.awayTeam&&m.awayTeam.name;
         if(st.stage!=='group' && (isRealTeam(hn)||isRealTeam(an))){
-          nt[st.id]={home:isRealTeam(hn)?canon(hn):null, away:isRealTeam(an)?canon(an):null};
+          // Don't overwrite an order that already has both real teams set —
+          // flipping home/away after users predict would silently invert
+          // their picks. First writer (openfootball or first FD poll) wins.
+          var _ex=apiTeams[st.id];
+          if(!_ex || !isRealTeam(_ex.home) || !isRealTeam(_ex.away)){
+            nt[st.id]={home:isRealTeam(hn)?canon(hn):null, away:isRealTeam(an)?canon(an):null};
+          }
         }
         var sc=m.score||{};
         // Walk every field that might hold the current in-play score.
@@ -930,7 +936,17 @@ function loadFootballData(verbose){
               || (typeof m.homeGoals==='number' && typeof m.awayGoals==='number' ? {home:m.homeGoals, away:m.awayGoals} : null)
               || (isLive ? {home:0, away:0} : null);
         if(fin && typeof fin.home==='number' && typeof fin.away==='number'){
-          var swapped = (st.stage==='group') && (canon(hn)!==st.home);
+          // Align FD's home/away to whatever order our app already shows.
+          // Group matches use the static fixture; KO matches use the
+          // resolved teams (admin override or earlier API write) so a
+          // late-flipped FD payload still maps onto the same prediction.
+          var swapped;
+          if(st.stage==='group'){
+            swapped = canon(hn)!==st.home;
+          } else {
+            var _ts=teamsOf(st);
+            swapped = isRealTeam(_ts.home) && canon(hn)!==canon(_ts.home);
+          }
           var res = swapped ? {h:fin.away, a:fin.home} : {h:fin.home, a:fin.away};
           var p=sc.penalties;
           if(p && p.home!=null && p.away!=null && p.home!==p.away){
@@ -987,15 +1003,32 @@ function matchFD(m){
   if(t1 && t2){
     var byPair=GROUP_BY_PAIR[pairKey(t1,t2)];
     if(byPair) return byPair;
+    // Knockout: pair-match against teams already resolved on our side
+    // (openfootball feed + admin overrides). Without this, Germany vs
+    // Paraguay would only match via the time fallback below, which can
+    // pick the wrong KO fixture when several R32 games share a slot.
+    var want=pairKey(t1,t2);
+    for(var i=0;i<MATCHES.length;i++){
+      var x=MATCHES[i]; if(x.stage==='group')continue;
+      var ts=teamsOf(x);
+      if(!isRealTeam(ts.home) || !isRealTeam(ts.away)) continue;
+      if(pairKey(canon(ts.home),canon(ts.away))===want) return x;
+    }
   }
   if(m.utcDate){
     var fd=Date.parse(m.utcDate);
     if(isNaN(fd))return null;
     var best=null, bestDelta=Infinity;
-    for(var i=0;i<MATCHES.length;i++){
-      var x=MATCHES[i]; if(x.stage==='group')continue;
-      var d=Math.abs(kickoffMs(x)-fd);
-      if(d<bestDelta && d<24*60*60*1000){bestDelta=d; best=x;}
+    for(var j=0;j<MATCHES.length;j++){
+      var y=MATCHES[j]; if(y.stage==='group')continue;
+      // Skip KO matches whose teams are already fully resolved — if FD's
+      // payload had matched them we'd have caught it via the pair lookup
+      // above. Falling through here would let an unrelated FD entry hijack
+      // a real fixture just because the kickoff times are close.
+      var ys=teamsOf(y);
+      if(isRealTeam(ys.home) && isRealTeam(ys.away)) continue;
+      var d=Math.abs(kickoffMs(y)-fd);
+      if(d<bestDelta && d<24*60*60*1000){bestDelta=d; best=y;}
     }
     return best;
   }
