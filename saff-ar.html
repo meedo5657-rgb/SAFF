@@ -873,7 +873,19 @@ function loadOpenfootball(){
         nr[st.id]=res;
       }
     });
-    apiResults=nr; apiTeams=nt;
+    // Merge rather than wholesale-replace: when FD lands a finished match
+    // before openfootball commits it (FD updates within minutes, openfootball
+    // within hours), an older OF snapshot would otherwise wipe the FD entry.
+    // For keys present in both, OF wins (canonical) but inherits FD's pw if
+    // it has one we don't.
+    Object.keys(nr).forEach(function(id){
+      var existing=apiResults[id];
+      if(existing && existing.pw && !nr[id].pw){
+        nr[id].pw=existing.pw;
+      }
+      apiResults[id]=nr[id];
+    });
+    Object.keys(nt).forEach(function(id){apiTeams[id]=nt[id];});
     renderMatches(); renderLeader(); renderGroups();
   }).catch(function(){ /* offline or not yet updated -> admin entries still work */ });
 }
@@ -971,7 +983,17 @@ function loadFootballData(verbose){
           }
         }
       });
-      Object.keys(nr).forEach(function(id){apiResults[id]=nr[id];});
+      Object.keys(nr).forEach(function(id){
+        // Preserve the penalty-shootout winner from a prior source (usually
+        // openfootball) if FD's payload doesn't expose .penalties — otherwise
+        // a 1-1 draw with the pw stripped looks like "no winner" to the
+        // bracket resolver and "Winner Match X" stops propagating.
+        var existing=apiResults[id];
+        if(existing && existing.pw && !nr[id].pw){
+          nr[id].pw=existing.pw;
+        }
+        apiResults[id]=nr[id];
+      });
       Object.keys(nt).forEach(function(id){apiTeams[id]=nt[id];});
       // overwrite apiLive wholesale so finished matches drop out of the live set
       apiLive=nl;
