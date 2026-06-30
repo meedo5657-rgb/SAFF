@@ -153,7 +153,9 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .br-col-h{text-align:center;padding:7px 0;font-weight:800;color:#fde68a;font-size:.78rem;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:8px;}
 .br-col-body{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:8px;min-height:1280px;}
 .br-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;}
-.br-card.done{border-color:rgba(10,92,51,.45);background:rgba(10,92,51,.06);}
+.br-card.done{border-color:rgba(255,255,255,.06);background:rgba(255,255,255,.015);opacity:.55;}
+.br-card.done img.flag{filter:grayscale(.4);}
+.br-card.done .br-team.win .nm,.br-card.done .br-team.win .sc{color:#fde68a;}
 .br-card.live{border-color:#dc2626;box-shadow:0 0 0 1px rgba(220,38,38,.30);}
 .br-meta{font-size:.62rem;color:var(--muted);font-weight:700;display:flex;justify-content:space-between;gap:6px;}
 .br-meta .br-no{color:#fde68a;}
@@ -4441,11 +4443,14 @@ function predictedSlot(name, ctx){
     var r=result(src); if(!r) return null;
     var t=teamsOf(src);
     var hN=Number(r.h), aN=Number(r.a);
-    var winSide=hN>aN?'h':(aN>hN?'a':(r.pw==='h'?'h':(r.pw==='a'?'a':null)));
+    // 'home'/'away' (full words) so the recursive ctx.side matches the
+    // thirdAssign key format ('m74/away'), not 'h'/'a'. Otherwise a 3rd-
+    // placed team that wins its R32 match never propagates to the R16 slot.
+    var winSide=hN>aN?'home':(aN>hN?'away':(r.pw==='h'?'home':(r.pw==='a'?'away':null)));
     if(!winSide) return null;
-    var winSlot=winSide==='h'?src.home:src.away;
-    var winTeam=winSide==='h'?t.home:t.away;
-    var origin=predictedSlot(winSlot,{matchId:srcId, side:winSide, standings:st, thirdAssign:ta});
+    var winSlot=winSide==='home'?src.home:src.away;
+    var winTeam=winSide==='home'?t.home:t.away;
+    var origin=predictedSlot(winSlot,{matchId:srcId, side:winSide, standings:st, thirdAssign:ta, groupLocks:gl, groupStageDone:gsDone});
     if(!origin) return null;
     var resolved=_isResolved(winTeam);
     return {team:resolved?winTeam:origin.team, group:origin.group, pos:origin.pos, posLabel:origin.posLabel, tentative:!resolved||origin.tentative};
@@ -4455,11 +4460,11 @@ function predictedSlot(name, ctx){
     var r2=result(src2); if(!r2) return null;
     var t2=teamsOf(src2);
     var hN2=Number(r2.h), aN2=Number(r2.a);
-    var loseSide=hN2>aN2?'a':(aN2>hN2?'h':(r2.pw==='h'?'a':(r2.pw==='a'?'h':null)));
+    var loseSide=hN2>aN2?'away':(aN2>hN2?'home':(r2.pw==='h'?'away':(r2.pw==='a'?'home':null)));
     if(!loseSide) return null;
-    var loseSlot=loseSide==='h'?src2.home:src2.away;
-    var loseTeam=loseSide==='h'?t2.home:t2.away;
-    var origin2=predictedSlot(loseSlot,{matchId:srcId2, side:loseSide, standings:st, thirdAssign:ta});
+    var loseSlot=loseSide==='home'?src2.home:src2.away;
+    var loseTeam=loseSide==='home'?t2.home:t2.away;
+    var origin2=predictedSlot(loseSlot,{matchId:srcId2, side:loseSide, standings:st, thirdAssign:ta, groupLocks:gl, groupStageDone:gsDone});
     if(!origin2) return null;
     var resolved2=_isResolved(loseTeam);
     return {team:resolved2?loseTeam:origin2.team, group:origin2.group, pos:origin2.pos, posLabel:origin2.posLabel, tentative:!resolved2||origin2.tentative};
