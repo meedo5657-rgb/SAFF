@@ -938,14 +938,18 @@ function loadFootballData(verbose){
         // Walk every field that might hold the current in-play score.
         // Different FD mirrors / tiers expose it under different keys.
         function _pair(o){ return (o && typeof o.home==='number' && typeof o.away==='number') ? o : null; }
-        // fullTime is the canonical final score (already cumulative including
-        // ET if played) — prefer it. Only fall back to extraTime when full
-        // time is missing, because in FD v4 extraTime can be the *delta*
-        // (e.g. {home:0, away:0} for a 1-1 match that went straight to pens
-        // without ET goals) and picking that would display the match as 0-0.
-        var fin = _pair(sc.fullTime)
-              || _pair(sc.regularTime)
-              || _pair(sc.extraTime)
+        // Score-source order depends on whether the match went to penalties.
+        // Some FD feeds put the shootout-winner-adjusted score (e.g. 4-3) in
+        // fullTime for PENALTY_SHOOTOUT matches instead of the actual match
+        // result (1-1) — so when sc.penalties is present we prefer
+        // regularTime (90-min final, always set for ET/pen matches) and
+        // demote fullTime to a last resort. For non-pen matches fullTime
+        // is canonical.
+        var pen=(sc.penalties && typeof sc.penalties.home==='number' && typeof sc.penalties.away==='number')?sc.penalties:null;
+        var fin = pen
+          ? (_pair(sc.regularTime) || _pair(sc.extraTime) || _pair(sc.fullTime))
+          : (_pair(sc.fullTime) || _pair(sc.regularTime) || _pair(sc.extraTime));
+        fin = fin
               || _pair(sc.halfTime)
               || _pair(sc.current)
               || _pair(sc.live)
@@ -954,6 +958,16 @@ function loadFootballData(verbose){
               || (typeof m.homeScore==='number' && typeof m.awayScore==='number' ? {home:m.homeScore, away:m.awayScore} : null)
               || (typeof m.homeGoals==='number' && typeof m.awayGoals==='number' ? {home:m.homeGoals, away:m.awayGoals} : null)
               || (isLive ? {home:0, away:0} : null);
+        // Extra guard: if fin still happens to match the penalty score
+        // (sum of digits or exact order), prefer openfootball's stored
+        // value when we already had one — better stale-correct than
+        // freshly-wrong.
+        if(pen && fin && fin.home===pen.home && fin.away===pen.away){
+          var _ex=apiResults[st.id];
+          if(_ex && typeof _ex.h==='number' && typeof _ex.a==='number'){
+            fin={home:_ex.h, away:_ex.a};
+          }
+        }
         if(fin && typeof fin.home==='number' && typeof fin.away==='number'){
           // Align FD's home/away to whatever order our app already shows.
           // Group matches use the static fixture; KO matches use the
