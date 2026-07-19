@@ -584,7 +584,10 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
     <button class="sub-tab active" data-leadsub="predict">التوقعات</button>
     <button class="sub-tab" data-leadsub="story">قصة منتخب</button>
   </div>
-  <button id="btnScenarios" style="display:none;width:100%;padding:12px 14px;background:linear-gradient(135deg,rgba(253,230,138,.18),rgba(253,230,138,.06));border:1.5px solid rgba(253,230,138,.5);color:#fde68a;font-weight:800;font-size:.9rem;border-radius:12px;cursor:pointer;margin-bottom:8px;">🧮 سيناريوهات الفوز</button>
+  <div style="display:flex;gap:8px;margin-bottom:8px;">
+    <button id="btnScenarios" style="display:none;flex:1;padding:12px 14px;background:linear-gradient(135deg,rgba(253,230,138,.18),rgba(253,230,138,.06));border:1.5px solid rgba(253,230,138,.5);color:#fde68a;font-weight:800;font-size:.9rem;border-radius:12px;cursor:pointer;">🧮 سيناريوهات الفوز</button>
+    <button id="btnSeasonPoster" style="flex:1;padding:12px 14px;background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(34,197,94,.06));border:1.5px solid rgba(34,197,94,.5);color:#86efac;font-weight:800;font-size:.9rem;border-radius:12px;cursor:pointer;">📊 ملخّص الموسم</button>
+  </div>
   <div id="leaderList" style="width:100%;display:flex;flex-direction:column;gap:10px;"></div>
   <div id="storyLeader" style="width:100%;display:none;flex-direction:column;gap:10px;"></div>
 </div>
@@ -5020,6 +5023,183 @@ function renderScenarios(){
   body.innerHTML=html;
 }
 
+// ===== ملخّص الموسم (لأعلى نقاط، أفضل توقّع بدون بونص، إحصائيات عامة) =====
+function computeSeasonSummary(){
+  var keys=Object.keys(usersData).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
+  if(!keys.length) return null;
+  var truth=tournamentTruth();
+  var players=keys.map(function(k){
+    var u=usersData[k]||{};
+    var matchPts=0, exact=0, signCorrect=0, predicted=0;
+    MATCHES.forEach(function(m){
+      var pred=predsData[m.id] && predsData[m.id][k];
+      if(!pred) return;
+      predicted++;
+      var r=result(m); if(!r) return;
+      var pts=scoreOf(pred, r) || 0;
+      matchPts += pts;
+      if(Number(pred.h)===Number(r.h) && Number(pred.a)===Number(r.a)) exact++;
+      else if(sign(pred.h-pred.a)===sign(r.h-r.a)) signCorrect++;
+    });
+    var picks=tournamentPicksOf(k);
+    var bonus=tournamentPointsFor(picks,truth);
+    return {key:k, name:u.name||k, matchPts:matchPts, total:matchPts+bonus,
+            predicted:predicted, exact:exact, signCorrect:signCorrect,
+            pickChamp:picks.champion||null, pickScorer:picks.scorer||null};
+  }).filter(function(p){return p.predicted>0;});
+  if(!players.length) return null;
+  var topByTotal=players.slice().sort(function(a,b){return b.total-a.total || b.exact-a.exact;})[0];
+  var topByMatch=players.slice().sort(function(a,b){return b.matchPts-a.matchPts || b.exact-a.exact;})[0];
+  var totalPreds=0, totalExact=0, totalSign=0;
+  players.forEach(function(p){totalPreds+=p.predicted; totalExact+=p.exact; totalSign+=p.signCorrect;});
+  return {
+    totalPlayers: players.length,
+    totalPreds: totalPreds,
+    totalExact: totalExact,
+    totalCorrect: totalExact+totalSign,   // مطابقة + اتجاه صحيح
+    topByTotal: topByTotal,
+    topByMatch: topByMatch
+  };
+}
+function genSeasonPoster(){
+  toast('جاري تجهيز الملخّص…');
+  var s=computeSeasonSummary();
+  if(!s){ toast('لا توجد بيانات بعد'); return; }
+  var accPct = s.totalPreds>0 ? Math.round(s.totalCorrect/s.totalPreds*100) : 0;
+  var exPct  = s.totalPreds>0 ? Math.round(s.totalExact/s.totalPreds*100) : 0;
+
+  var arcsHtml='<svg class="arcs" viewBox="0 0 1080 1560" preserveAspectRatio="xMidYMid slice">'
+    +'<circle cx="-100" cy="-90" r="1500" fill="none" stroke="#E6CC78" stroke-width="140" stroke-opacity="0.10"/>'
+    +'<circle cx="-100" cy="-90" r="1230" fill="none" stroke="#E6CC78" stroke-width="120" stroke-opacity="0.08"/>'
+    +'<circle cx="-100" cy="-90" r="960" fill="none" stroke="#E6CC78" stroke-width="100" stroke-opacity="0.07"/>'
+    +'<circle cx="-100" cy="-90" r="700" fill="none" stroke="#E6CC78" stroke-width="80" stroke-opacity="0.05"/>'
+  +'</svg>';
+
+  var headerHtml='<div style="display:flex;justify-content:space-between;align-items:center;">'
+    +'<div style="display:flex;align-items:center;gap:20px;">'
+      +'<div role="img" aria-label="" style="width:79px;height:78px;background-image:url('+SAFF_LOGO_DATA+');background-size:contain;background-repeat:no-repeat;background-position:center;flex-shrink:0;"></div>'
+      +'<div style="width:2px;height:56px;background:rgba(255,255,255,.28);"></div>'
+      +'<div style="text-align:right;line-height:1.25;">'
+        +'<div style="font-size:24px;font-weight:900;color:#fff;">دوري التوقّعات</div>'
+        +'<div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">كأس العالم 2026</div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="kick" style="font-size:21px;color:var(--mute);">ملخّص الموسم</div>'
+  +'</div>';
+
+  var titleHtml='<h1 class="disp" style="font-size:100px;margin-top:44px;margin-bottom:8px;line-height:1.03;">ملخّص <span style="color:var(--gold);">الموسم</span></h1>'
+    +'<div style="font-size:24px;color:#fde68a;font-weight:800;margin-bottom:32px;">أعلى نقاط · أفضل توقّع · أرقام البطولة</div>';
+
+  // Podium cards for the two top performers
+  function podiumCard(opts){
+    var picks='';
+    if(opts.champ){
+      var iso=COUNTRY_ISO[opts.champ];
+      var f=iso?'<img src="https://flagcdn.com/w80/'+iso+'.png" alt="" crossorigin="anonymous" style="width:26px;height:18px;object-fit:cover;border-radius:3px;">':'';
+      picks+='<span style="display:inline-flex;align-items:center;gap:7px;padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;font-size:16px;font-weight:800;color:#fff;">'+f+' '+esc(arTeam(opts.champ))+'</span>';
+    }
+    if(opts.scorer){
+      picks+='<span style="display:inline-flex;align-items:center;gap:7px;padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;font-size:16px;font-weight:800;color:#fff;">⚽ '+esc(opts.scorer)+'</span>';
+    }
+    return '<div style="padding:30px 28px;border-radius:20px;background:'+opts.bg+';border:2px solid '+opts.border+';display:flex;flex-direction:column;gap:12px;">'
+      +'<div style="display:flex;align-items:center;gap:12px;">'
+        +'<div style="width:64px;height:64px;border-radius:50%;background:'+opts.medalBg+';color:'+opts.medalFg+';font-size:36px;font-weight:900;display:flex;align-items:center;justify-content:center;">'+opts.medal+'</div>'
+        +'<div>'
+          +'<div style="font-size:15px;color:var(--gold);font-weight:800;letter-spacing:.4px;">'+esc(opts.label)+'</div>'
+          +'<div style="font-size:34px;font-weight:900;color:#fff;line-height:1.1;margin-top:2px;">'+esc(opts.name)+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="display:flex;align-items:baseline;gap:10px;">'
+        +'<div style="font-size:70px;font-weight:900;color:var(--gold);line-height:1;">'+arNum(opts.pts)+'</div>'
+        +'<div style="font-size:20px;color:#fff;font-weight:700;">'+esc(opts.ptsLabel)+'</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:15px;color:#cbd5e1;font-weight:700;">'
+        +'<span>🎯 '+arNum(opts.exact)+' مطابقة</span>'
+        +'<span>✓ '+arNum(opts.correct)+' اتجاه صحيح</span>'
+        +'<span>📝 '+arNum(opts.predicted)+' توقّع</span>'
+      +'</div>'
+      +(picks?'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">'+picks+'</div>':'')
+    +'</div>';
+  }
+  var podA=podiumCard({
+    label:'👑 أعلى نقاط الموسم',
+    name:s.topByTotal.name, pts:s.topByTotal.total, ptsLabel:'نقطة إجمالية',
+    exact:s.topByTotal.exact, correct:s.topByTotal.signCorrect, predicted:s.topByTotal.predicted,
+    champ:s.topByTotal.pickChamp, scorer:s.topByTotal.pickScorer,
+    medal:'🏆', medalBg:'#E6CC78', medalFg:'#1a1a1a',
+    bg:'linear-gradient(150deg,rgba(230,204,120,.20),rgba(230,204,120,.04))', border:'rgba(230,204,120,.55)'
+  });
+  var podB=podiumCard({
+    label:'🎯 أفضل توقّع (بدون بونص البطل/الهدّاف)',
+    name:s.topByMatch.name, pts:s.topByMatch.matchPts, ptsLabel:'نقطة توقّعات',
+    exact:s.topByMatch.exact, correct:s.topByMatch.signCorrect, predicted:s.topByMatch.predicted,
+    champ:null, scorer:null,
+    medal:'🎯', medalBg:'rgba(34,197,94,.20)', medalFg:'#86efac',
+    bg:'linear-gradient(150deg,rgba(34,197,94,.13),rgba(34,197,94,.02))', border:'rgba(34,197,94,.48)'
+  });
+  var podium='<div style="display:flex;flex-direction:column;gap:16px;margin-bottom:32px;">'+podA+podB+'</div>';
+
+  // General stats grid
+  function statCell(icon, num, sub, label, color){
+    return '<div style="padding:24px 20px;border-radius:16px;background:rgba(255,255,255,.04);border:1.5px solid var(--line);text-align:center;display:flex;flex-direction:column;gap:6px;">'
+      +'<div style="font-size:34px;line-height:1;">'+icon+'</div>'
+      +'<div style="font-size:52px;font-weight:900;color:'+color+';line-height:1;">'+arNum(num)+'</div>'
+      +(sub?'<div style="font-size:15px;color:'+color+';font-weight:800;">'+sub+'</div>':'')
+      +'<div style="font-size:15px;color:#fff;font-weight:700;">'+label+'</div>'
+    +'</div>';
+  }
+  var stats='<div style="margin-bottom:24px;">'
+    +'<div style="display:flex;align-items:center;gap:18px;margin-bottom:18px;"><div style="font-weight:800;font-size:26px;color:var(--gold);">📈 أرقام البطولة</div><div style="flex:1;height:1px;background:var(--line);"></div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'
+      +statCell('👥', s.totalPlayers, '', 'لاعب مشارك', 'var(--gold)')
+      +statCell('📝', s.totalPreds, '', 'توقّع محفوظ', 'var(--gold)')
+      +statCell('✅', s.totalCorrect, arNum(accPct)+'٪', 'توقّع اتجاهه صحيح', '#86efac')
+      +statCell('🎯', s.totalExact, arNum(exPct)+'٪', 'نتيجة مطابقة تمامًا', '#fde68a')
+    +'</div>'
+  +'</div>';
+
+  var footer='<div style="padding:16px 20px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--line);font-size:15px;color:var(--mute);line-height:1.65;font-weight:600;text-align:center;">'
+    +'التوقّع اتجاهه صحيح = ٣ نقاط · المطابقة الكاملة = ٥ نقاط · +١ لتخمين فائز الركلات · ×٢ عند استخدام البوست.'
+  +'</div>';
+
+  var posterHtml='<div class="poster" style="width:1080px;min-height:1560px;">'+arcsHtml
+    +'<div class="pad" style="padding:64px 60px 60px;">'+headerHtml+titleHtml+podium+stats+footer+'</div></div>';
+
+  var posterRoot=document.getElementById('posterRoot');
+  posterRoot.innerHTML=posterHtml;
+
+  var fname='wc2026-season-summary.png';
+  function shareCanvas(cv){
+    toast('2/3: جاري التحويل…');
+    try{
+      cv.toBlob(function(blob){
+        if(!blob){toast('فشل: blob فاضي');posterRoot.innerHTML='';return;}
+        toast('3/3: جاري المشاركة…');
+        var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
+        if(file && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'ملخّص الموسم'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
+        } else { dl(); }
+        function dl(){var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');}
+        posterRoot.innerHTML='';
+      },'image/png');
+    }catch(e){toast('فشل toBlob: '+(e&&e.message||e));posterRoot.innerHTML='';}
+  }
+  var fontsReady=Promise.race([(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve(),new Promise(function(r){setTimeout(r,1500);})]);
+  fontsReady.then(function(){
+    var target=posterRoot.querySelector('.poster');
+    if(!target){toast('فشل: قالب البوستر غير موجود');posterRoot.innerHTML='';return;}
+    var rect=target.getBoundingClientRect(), h=Math.max(1200,Math.round(rect.height));
+    toast('1/3: جاري الرسم…');
+    var to=setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';},20000);
+    if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
+      htmlToImage.toBlob(target,{backgroundColor:null,cacheBust:true,pixelRatio:Math.min(2,window.devicePixelRatio||1),width:1080,height:h,skipFonts:true}).then(function(blob){
+        clearTimeout(to);if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
+        shareCanvas({toBlob:function(cb){cb(blob);}});
+      }).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html-to-image: '+(e&&e.message||e));});
+    } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
+  });
+}
+
 // ===== STATS PAGE (admin preview) =====
 function _activeStatsPlayers(){
   var keys=Object.keys(usersData||{}).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
@@ -5448,6 +5628,8 @@ function closeUserPreds(){
   if(open) open.addEventListener('click', openScenarios);
   var sh=document.getElementById('scenShare');
   if(sh) sh.addEventListener('click', genScenariosPoster);
+  var sp=document.getElementById('btnSeasonPoster');
+  if(sp) sp.addEventListener('click', genSeasonPoster);
 })();
 
 // Admin: remove a player and all their predictions
