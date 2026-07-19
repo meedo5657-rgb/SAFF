@@ -1526,6 +1526,12 @@ function renderStoryLeader(){
   }).filter(function(u){return u.plays>0;})
     .sort(function(a,b){return b.pts-a.pts||b.wins-a.wins;});
   if(!rows.length){var em=document.createElement('div');em.className='empty';em.textContent='ما حد لعب بعد. كن أول واحد 🏟️';v.appendChild(em);return;}
+  // Share the story champion — only shown when there's a clear leader
+  var shareBtn=document.createElement('button');
+  shareBtn.textContent='📤 مشاركة بطل قصة منتخب';
+  shareBtn.style.cssText='width:100%;padding:12px 14px;background:linear-gradient(135deg,#fde68a,#f5b301);border:none;color:#1a1a1a;font-weight:900;font-size:.95rem;border-radius:12px;cursor:pointer;margin-bottom:10px;';
+  shareBtn.addEventListener('click',genStoryChampionPoster);
+  v.appendChild(shareBtn);
   rows.forEach(function(r,i){
     var rank=i+1;
     var el=document.createElement('div');
@@ -1537,6 +1543,75 @@ function renderStoryLeader(){
       '<div class="lb-pts">'+arNum(r.pts)+' <span>'+ptsWord(r.pts)+'</span></div>';
     v.appendChild(el);
   });
+}
+// Poster celebrating the current leader of the قصة منتخب game
+function computeStoryChampion(){
+  var keys=Object.keys(usersData||{}).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
+  var rows=keys.map(function(k){
+    var rec=storyScores[k]||{};
+    var total=0, plays=0, wins=0, firstHintWins=0;
+    Object.keys(rec).forEach(function(d){
+      var r=rec[d]; if(!r||typeof r.pts!=='number') return;
+      total+=r.pts; plays++;
+      if(r.won) wins++;
+      // 3 points = solved from first hint
+      if(r.pts===3) firstHintWins++;
+    });
+    return {key:k,name:(usersData[k]&&usersData[k].name)||k,pts:total,plays:plays,wins:wins,firstHintWins:firstHintWins};
+  }).filter(function(u){return u.plays>0;})
+    .sort(function(a,b){return b.pts-a.pts||b.wins-a.wins||b.firstHintWins-a.firstHintWins;});
+  if(!rows.length) return null;
+  return {leader:rows[0], top:rows.slice(0,5), totalPlayers:rows.length};
+}
+function genStoryChampionPoster(){
+  toast('جاري تجهيز البوستر…');
+  var s=computeStoryChampion();
+  if(!s){ toast('ما حد لعب بعد'); return; }
+  var winRate = s.leader.plays>0 ? Math.round(s.leader.wins/s.leader.plays*100) : 0;
+
+  var podium='<div style="padding:52px 40px;border-radius:26px;background:linear-gradient(150deg,rgba(230,204,120,.22),rgba(230,204,120,.04));border:2.5px solid rgba(230,204,120,.6);display:flex;flex-direction:column;gap:22px;text-align:center;align-items:center;">'
+    +'<div style="width:120px;height:120px;border-radius:50%;background:#E6CC78;color:#1a1a1a;font-size:64px;font-weight:900;display:flex;align-items:center;justify-content:center;">🧠</div>'
+    +'<div>'
+      +'<div style="font-size:22px;color:var(--gold);font-weight:800;letter-spacing:.6px;margin-bottom:6px;">بطل قصة منتخب</div>'
+      +'<div style="font-size:60px;font-weight:900;color:#fff;line-height:1.1;">'+esc(s.leader.name)+'</div>'
+    +'</div>'
+    +'<div style="display:flex;align-items:baseline;gap:14px;justify-content:center;">'
+      +'<div style="font-size:140px;font-weight:900;color:var(--gold);line-height:.95;">'+arNum(s.leader.pts)+'</div>'
+      +'<div style="font-size:24px;color:#fff;font-weight:700;">'+esc(ptsWord(s.leader.pts))+'</div>'
+    +'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:22px;justify-content:center;font-size:20px;color:#cbd5e1;font-weight:700;">'
+      +'<span>🎯 '+arNum(s.leader.wins)+' إصابة</span>'
+      +'<span>🎲 '+arNum(s.leader.plays)+' محاولة</span>'
+      +'<span>⚡ '+arNum(s.leader.firstHintWins)+' من أول معلومة</span>'
+      +'<span>📈 نسبة النجاح '+arNum(winRate)+'٪</span>'
+    +'</div>'
+  +'</div>';
+
+  // Runners-up strip (top 2-5, if they exist)
+  var runners='';
+  if(s.top.length>1){
+    var rowsHtml=s.top.slice(1).map(function(u,i){
+      var rank=i+2;
+      var medal=rank===2?'🥈':(rank===3?'🥉':arNum(rank));
+      return '<div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);">'
+        +'<div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);color:#fff;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center;">'+medal+'</div>'
+        +'<div style="flex:1;font-size:22px;font-weight:800;color:#fff;">'+esc(u.name)+'</div>'
+        +'<div style="font-size:24px;font-weight:900;color:#fde68a;">'+arNum(u.pts)+'</div>'
+      +'</div>';
+    }).join('');
+    runners='<div style="margin-top:26px;">'
+      +'<div style="display:flex;align-items:center;gap:18px;margin-bottom:14px;"><div style="font-weight:800;font-size:22px;color:var(--gold);">🏅 أقرب المنافسين</div><div style="flex:1;height:1px;background:var(--line);"></div></div>'
+      +'<div style="display:flex;flex-direction:column;gap:8px;">'+rowsHtml+'</div>'
+    +'</div>';
+  }
+
+  var title='<h1 class="disp" style="font-size:96px;margin-top:44px;margin-bottom:8px;line-height:1.03;">بطل <span style="color:var(--gold);">قصة منتخب</span></h1>'
+    +'<div style="font-size:22px;color:#fde68a;font-weight:800;margin-bottom:32px;">اللي عرف أكثر المنتخبات من إشارات خاطفة</div>';
+
+  var html='<div class="poster" style="width:1080px;min-height:1200px;">'+_seasonPosterArcs(1400)
+    +'<div class="pad" style="padding:64px 60px 60px;">'+_seasonPosterHeader('🧠 قصة منتخب')+title+podium+runners+'</div></div>';
+  document.getElementById('posterRoot').innerHTML=html;
+  _seasonRenderShare('wc2026-story-champion.png','بطل قصة منتخب');
 }
 
 // ===== HELPERS =====
