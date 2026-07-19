@@ -771,6 +771,9 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
       <button class="up-close" id="scenClose" aria-label="إغلاق">×</button>
     </div>
     <div class="up-summary" id="scenSummary" style="font-size:.82rem;color:#cbd5e1;line-height:1.55;"></div>
+    <div style="padding:10px 18px 0;">
+      <button id="scenShare" style="width:100%;padding:12px 14px;background:linear-gradient(135deg,#fde68a,#f5b301);border:none;color:#1a1a1a;font-weight:900;font-size:.95rem;border-radius:12px;cursor:pointer;">📤 مشاركة كصورة</button>
+    </div>
     <div class="up-list" id="scenBody"></div>
   </div>
 </div>
@@ -4819,6 +4822,148 @@ function closeScenarios(){
   var ov=document.getElementById('scenariosOverlay');
   if(ov) ov.classList.remove('show');
 }
+function genScenariosPoster(){
+  toast('جاري تجهيز التصميم…');
+  var d=computeWinScenarios();
+  if(!d || d.overflow){ toast('لا يمكن حساب السيناريوهات الآن'); return; }
+  if(d.done){ toast('انتهت البطولة — لا توجد سيناريوهات'); return; }
+  var sorted=d.keys.map(function(k){return {k:k, pts:d.base[k]};}).sort(function(a,b){return b.pts-a.pts;});
+  var topN=Math.min(sorted.length, 8);
+  var leaderPts=sorted[0]?sorted[0].pts:0;
+
+  var arcsHtml='<svg class="arcs" viewBox="0 0 1080 1720" preserveAspectRatio="xMidYMid slice">'
+    +'<circle cx="-100" cy="-90" r="1500" fill="none" stroke="#E6CC78" stroke-width="140" stroke-opacity="0.10"/>'
+    +'<circle cx="-100" cy="-90" r="1230" fill="none" stroke="#E6CC78" stroke-width="120" stroke-opacity="0.08"/>'
+    +'<circle cx="-100" cy="-90" r="960" fill="none" stroke="#E6CC78" stroke-width="100" stroke-opacity="0.07"/>'
+    +'<circle cx="-100" cy="-90" r="700" fill="none" stroke="#E6CC78" stroke-width="80" stroke-opacity="0.05"/>'
+  +'</svg>';
+
+  var headerHtml='<div style="display:flex;justify-content:space-between;align-items:center;">'
+    +'<div style="display:flex;align-items:center;gap:20px;">'
+      +'<div role="img" aria-label="" style="width:79px;height:78px;background-image:url('+SAFF_LOGO_DATA+');background-size:contain;background-repeat:no-repeat;background-position:center;flex-shrink:0;"></div>'
+      +'<div style="width:2px;height:56px;background:rgba(255,255,255,.28);"></div>'
+      +'<div style="text-align:right;line-height:1.25;">'
+        +'<div style="font-size:24px;font-weight:900;color:#fff;">دوري التوقّعات</div>'
+        +'<div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:3px;">كأس العالم 2026</div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="kick" style="font-size:21px;color:var(--mute);">'+arNum(d.remaining.length)+' مباراة متبقية</div>'
+  +'</div>';
+
+  var titleHtml='<h1 class="disp" style="font-size:96px;margin-top:44px;margin-bottom:8px;line-height:1.05;">سيناريوهات <span style="color:var(--gold);">الفوز</span></h1>'
+    +'<div style="font-size:24px;color:#fde68a;font-weight:800;margin-bottom:24px;">مين يقدر يخطف اللقب؟ ومتى؟</div>';
+
+  var remLine=d.remaining.map(function(m){var t=teamsOf(m); return arTeam(t.home)+' × '+arTeam(t.away);}).join(' · ');
+  var subHead='<div style="padding:18px 22px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;margin-bottom:28px;font-size:18px;color:#cbd5e1;font-weight:700;">'
+    +'<span style="color:var(--gold);">المتبقي:</span> '+esc(remLine)
+    +' <span style="color:var(--mute);"> · إجمالي السيناريوهات '+arNum(d.total)+'</span>'
+  +'</div>';
+
+  var rows='';
+  for(var i=0;i<topN;i++){
+    var u=sorted[i], k=u.k, r=d.res[k];
+    var name=(usersData[k]&&usersData[k].name)||k;
+    var picks=tournamentPicksOf(k);
+    var winPct=d.total>0 ? Math.round(r.win/d.total*100) : 0;
+    var canWin=r.win>0, mightTie=r.win===0 && r.ties>0;
+    var rowBg, rowBorder, tagBg, tagFg, tagBorder, tagTxt;
+    if(i===0 && canWin){
+      rowBg='linear-gradient(140deg,rgba(230,204,120,.15),rgba(230,204,120,.02))'; rowBorder='rgba(230,204,120,.55)';
+      tagBg='rgba(230,204,120,.22)'; tagFg='#fde68a'; tagBorder='rgba(230,204,120,.6)'; tagTxt='مرشّح أول 🏆';
+    } else if(canWin){
+      rowBg='linear-gradient(140deg,rgba(34,197,94,.10),rgba(34,197,94,.02))'; rowBorder='rgba(34,197,94,.42)';
+      tagBg='rgba(34,197,94,.20)'; tagFg='#86efac'; tagBorder='rgba(34,197,94,.5)'; tagTxt='يقدر يفوز';
+    } else if(mightTie){
+      rowBg='linear-gradient(140deg,rgba(245,158,11,.10),rgba(245,158,11,.02))'; rowBorder='rgba(245,158,11,.40)';
+      tagBg='rgba(245,158,11,.20)'; tagFg='#fcd34d'; tagBorder='rgba(245,158,11,.5)'; tagTxt='تعادل محتمل';
+    } else {
+      rowBg='rgba(255,255,255,.02)'; rowBorder='rgba(163,42,42,.35)';
+      tagBg='rgba(163,42,42,.22)'; tagFg='#fca5a5'; tagBorder='rgba(163,42,42,.5)'; tagTxt='خارج السباق';
+    }
+    var rankBg=(i===0 && canWin)?'#E6CC78':'rgba(255,255,255,.06)';
+    var rankFg=(i===0 && canWin)?'#1a1a1a':'#fff';
+    var pickChip;
+    if(picks.champion){
+      var iso=COUNTRY_ISO[picks.champion];
+      var flagImgP=iso?'<img src="https://flagcdn.com/w80/'+iso+'.png" alt="" crossorigin="anonymous" style="width:28px;height:20px;object-fit:cover;border-radius:3px;">':'';
+      pickChip='<span style="display:inline-flex;align-items:center;gap:8px;padding:5px 14px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;font-size:18px;font-weight:800;color:#fff;">'+flagImgP+' '+esc(arTeam(picks.champion))+'</span>';
+    } else {
+      pickChip='<span style="display:inline-flex;align-items:center;padding:5px 14px;background:rgba(255,255,255,.03);border:1px dashed var(--line);border-radius:999px;font-size:16px;font-weight:700;color:var(--mute);">ما اختار بطل</span>';
+    }
+    var cond='';
+    if(canWin){
+      cond='<div style="font-size:17px;color:#cbd5e1;font-weight:600;margin-top:10px;line-height:1.55;"><b style="color:#86efac;font-weight:900;">'+arNum(r.win)+'</b> سيناريو فائز ('+arNum(winPct)+'٪) من ' +arNum(d.total)+' — مسار مثال:</div>';
+      if(r.sample){
+        var lines=d.remaining.map(function(m,ii){
+          var t=teamsOf(m), o=r.sample[ii];
+          var s=arTeam(t.home)+' '+arNum(o.h)+'—'+arNum(o.a)+' '+arTeam(t.away);
+          if(o.pw){ s+=' <span style="color:var(--gold);">(ركلات '+arTeam(o.pw==='h'?t.home:t.away)+')</span>'; }
+          return '<div style="font-size:17px;color:#fff;font-weight:700;margin-top:6px;">م'+arNum(m.n)+': '+s+'</div>';
+        }).join('');
+        cond+='<div style="padding:10px 14px;background:rgba(255,255,255,.03);border-radius:10px;margin-top:8px;">'+lines+'</div>';
+      }
+    } else if(mightTie){
+      cond='<div style="font-size:17px;color:#cbd5e1;font-weight:600;margin-top:10px;line-height:1.55;"><b style="color:#fcd34d;font-weight:900;">'+arNum(r.ties)+'</b> سيناريو تعادل في الصدارة — قد يلزم فاصل تعادل.</div>';
+    } else {
+      var gap=leaderPts - u.pts;
+      cond='<div style="font-size:17px;color:#cbd5e1;font-weight:600;margin-top:10px;line-height:1.55;">الفارق مع الأول <b style="color:#fca5a5;font-weight:900;">'+arNum(gap)+'</b> نقطة، والحد الأقصى للربح لا يكفي.</div>';
+    }
+    rows+='<div style="display:grid;grid-template-columns:60px 1fr 200px;align-items:start;gap:18px;padding:20px 22px;border-radius:16px;background:'+rowBg+';border:1.5px solid '+rowBorder+';margin-bottom:12px;">'
+      +'<div style="width:52px;height:52px;border-radius:50%;background:'+rankBg+';color:'+rankFg+';font-weight:900;font-size:'+((i===0&&canWin)?'30px':'24px')+';display:flex;align-items:center;justify-content:center;">'+arNum(i+1)+'</div>'
+      +'<div style="min-width:0;">'
+        +'<div style="font-weight:900;font-size:28px;color:#fff;line-height:1.15;">'+esc(name)+(k===myKey?' <span style="font-size:16px;color:var(--mute);font-weight:700;">(أنت)</span>':'')+'</div>'
+        +'<div style="margin-top:8px;">'+pickChip+'</div>'
+        +cond
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:left;">'
+        +'<div style="font-size:32px;font-weight:900;color:#fff;line-height:1;">'+arNum(u.pts)+' <span style="font-size:14px;color:var(--mute);font-weight:600;">نقطة</span></div>'
+        +'<div style="font-size:15px;color:var(--mute);font-weight:700;">حد أقصى <b style="color:#fde68a;font-weight:900;">'+arNum(r.best)+'</b></div>'
+        +'<div style="margin-top:6px;padding:6px 14px;border-radius:999px;font-size:14px;font-weight:900;letter-spacing:.4px;background:'+tagBg+';color:'+tagFg+';border:1px solid '+tagBorder+';white-space:nowrap;">'+tagTxt+'</div>'
+      +'</div>'
+    +'</div>';
+  }
+
+  var footer='<div style="margin-top:8px;padding:18px 22px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line);font-size:15px;color:#cbd5e1;line-height:1.7;font-weight:600;">'
+    +'الحسابات تعتمد على توقّعات كل لاعب المحفوظة + بطله المتوقّع. المسار المعروض هو أحد الأمثلة على الفوز؛ قد تكون هناك مسارات أخرى.'
+  +'</div>';
+
+  var posterHtml='<div class="poster" style="width:1080px;min-height:1620px;">'+arcsHtml
+    +'<div class="pad" style="padding:64px 60px 60px;">'+headerHtml+titleHtml+subHead+rows+footer+'</div></div>';
+
+  var posterRoot=document.getElementById('posterRoot');
+  posterRoot.innerHTML=posterHtml;
+
+  var fname='wc2026-scenarios.png';
+  function shareCanvas(cv){
+    toast('2/3: جاري التحويل…');
+    try{
+      cv.toBlob(function(blob){
+        if(!blob){toast('فشل: blob فاضي');posterRoot.innerHTML='';return;}
+        toast('3/3: جاري المشاركة…');
+        var file=(typeof File!=='undefined')?new File([blob],fname,{type:'image/png'}):null;
+        if(file && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'سيناريوهات الفوز'}).then(function(){toast('تمت المشاركة 📸');}).catch(function(e){if(!(e&&e.name==='AbortError'))dl();else toast('ألغيت المشاركة');});
+        } else { dl(); }
+        function dl(){var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);toast('تم التحميل 📸');}
+        posterRoot.innerHTML='';
+      },'image/png');
+    }catch(e){toast('فشل toBlob: '+(e&&e.message||e));posterRoot.innerHTML='';}
+  }
+  var fontsReady=Promise.race([(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve(),new Promise(function(r){setTimeout(r,1500);})]);
+  fontsReady.then(function(){
+    var target=posterRoot.querySelector('.poster');
+    if(!target){toast('فشل: قالب البوستر غير موجود');posterRoot.innerHTML='';return;}
+    var rect=target.getBoundingClientRect(), h=Math.max(1200,Math.round(rect.height));
+    toast('1/3: جاري الرسم…');
+    var to=setTimeout(function(){toast('التحويل تأخّر · جرب ثاني');posterRoot.innerHTML='';},20000);
+    if(typeof htmlToImage!=='undefined' && htmlToImage.toBlob){
+      htmlToImage.toBlob(target,{backgroundColor:null,cacheBust:true,pixelRatio:Math.min(2,window.devicePixelRatio||1),width:1080,height:h,skipFonts:true}).then(function(blob){
+        clearTimeout(to);if(!blob){toast('فشل: لم تُولَّد الصورة');posterRoot.innerHTML='';return;}
+        shareCanvas({toBlob:function(cb){cb(blob);}});
+      }).catch(function(e){clearTimeout(to);posterRoot.innerHTML='';toast('فشل html-to-image: '+(e&&e.message||e));});
+    } else { clearTimeout(to); posterRoot.innerHTML=''; toast('فشل: مكتبة التحويل غير محمّلة'); }
+  });
+}
 function renderScenarios(){
   var sm=document.getElementById('scenSummary'), body=document.getElementById('scenBody');
   if(!sm||!body) return;
@@ -5301,6 +5446,8 @@ function closeUserPreds(){
   });
   var open=document.getElementById('btnScenarios');
   if(open) open.addEventListener('click', openScenarios);
+  var sh=document.getElementById('scenShare');
+  if(sh) sh.addEventListener('click', genScenariosPoster);
 })();
 
 // Admin: remove a player and all their predictions
