@@ -1072,6 +1072,26 @@ function loadFootballData(verbose){
         }
       }catch(e){}
       if(verbose){var baseMsg='FD ✓ '+d.matches.length+' مباراة, '+liveCount+' مباشر, '+Object.keys(nr).length+' بنتيجة';if(/^https?:\/\//i.test(FD_TOKEN)){fetch(FD_TOKEN.replace(/\/+$/,'')+'/scorers',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(sd){var n=sd&&sd.scorers?sd.scorers.length:0;toast(baseMsg+' · الهدافين '+n);}).catch(function(){toast(baseMsg+' · الهدافين ✗');});}else{toast(baseMsg);}}
+      // Also fetch /scorers so tournamentTruth() can auto-award the top-scorer
+      // bonus once the tournament ends. Runs quietly on every FD poll — cheap
+      // for the free-tier and lets the leaderboard update without an admin
+      // manually entering the truth.
+      if(/^https?:\/\//i.test(FD_TOKEN)){
+        fetch(FD_TOKEN.replace(/\/+$/,'')+'/scorers',{cache:'no-store'})
+          .then(function(r){return r.ok?r.json():null;})
+          .then(function(sd){
+            if(!sd || !sd.scorers || !sd.scorers.length) return;
+            // FD sorts descending by goals; the top entry is the tournament leader
+            var top=sd.scorers[0];
+            var nm=top && top.player && top.player.name;
+            var matched=_matchScorerName(nm);
+            if(matched && matched!==apiTopScorer){
+              apiTopScorer=matched;
+              renderLeader();
+            }
+          })
+          .catch(function(){});
+      }
       renderMatches(); renderLeader(); renderGroups();
     })
     .catch(function(e){if(verbose)toast('فشل الاتصال: '+(e&&e.message||e));window.__fdLast={ok:false,err:String(e),ts:Date.now()};});
@@ -1624,7 +1644,50 @@ function scoreOf(pred,r){var p=pointsFor(pred,r);return p==null?null:p*((pred&&p
 // ===== مساعدات توقعات البطولة =====
 function tournamentLockMs(){var ms=MATCHES.map(kickoffMs).filter(isFinite);return ms.length?Math.min.apply(null,ms):Infinity;}
 function tournamentLocked(){return Date.now()>=tournamentLockMs();}
-function tournamentTruth(){return (teamsData&&teamsData.__truth__)||null;}
+// Runtime-derived scorer name (matched to WC_PLAYERS from FD /scorers)
+var apiTopScorer=null;
+// Loose match FD player name → the WC_PLAYERS entry the app's picks use
+function _matchScorerName(fdName){
+  if(!fdName) return null;
+  var n=String(fdName).toLowerCase().trim().replace(/\s+/g,' ');
+  for(var i=0;i<WC_PLAYERS.length;i++){
+    var pn=WC_PLAYERS[i].n; if(!pn) continue;
+    if(pn.toLowerCase().trim().replace(/\s+/g,' ')===n) return pn;
+  }
+  // fallback: match on last name only
+  var fdLast=n.split(' ').pop();
+  for(var j=0;j<WC_PLAYERS.length;j++){
+    var pn2=WC_PLAYERS[j].n; if(!pn2) continue;
+    var pnLast=pn2.toLowerCase().split(' ').pop();
+    if(pnLast===fdLast) return pn2;
+  }
+  return null;
+}
+// Admin can still lock the truth manually via __truth__; if not set, derive
+// the champion from the FINAL match's result and the top scorer from the
+// latest FD /scorers snapshot so the bonus points land automatically once
+// the tournament ends.
+function tournamentTruth(){
+  var manual=(teamsData&&teamsData.__truth__)||{};
+  var out={champion:manual.champion||null, scorer:manual.scorer||null};
+  if(!out.champion){
+    var fm=null;
+    for(var i=0;i<MATCHES.length;i++){ if(MATCHES[i].stage==='FINAL'){fm=MATCHES[i];break;} }
+    if(fm){
+      var r=result(fm);
+      if(r){
+        var t=teamsOf(fm), hN=Number(r.h), aN=Number(r.a), w=null;
+        if(hN>aN) w=t.home;
+        else if(aN>hN) w=t.away;
+        else if(r.pw==='h') w=t.home;
+        else if(r.pw==='a') w=t.away;
+        if(w && isRealTeam(w)) out.champion=w;
+      }
+    }
+  }
+  if(!out.scorer && apiTopScorer) out.scorer=apiTopScorer;
+  return out;
+}
 function tournamentPicksOf(key){var u=usersData[key]||{};return {scorer:u.scorer||null,champion:u.champion||null};}
 function resolveTeamPick(id){
   var h=document.getElementById(id);if(!h)return null;
