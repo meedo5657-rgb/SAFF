@@ -341,6 +341,21 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 .lb-del{margin-inline-start:8px;background:rgba(10,92,51,.15);border:1px solid rgba(10,92,51,.4);color:#fff;border-radius:9px;padding:6px 9px;font-size:.85rem;cursor:pointer;flex-shrink:0;}
 .lb-pts span{font-size:.68rem;color:var(--muted);font-weight:400;}
 .lb-picks{margin-top:4px;color:#cbd5e1;font-weight:600;}.lb-picks img.flag{width:1.35em;height:.9em;object-fit:cover;vertical-align:-2px;}
+.scen-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;flex-direction:column;gap:6px;}
+.scen-card.ok{border-color:rgba(253,230,138,.42);background:linear-gradient(150deg,rgba(253,230,138,.09),rgba(253,230,138,.02));}
+.scen-card.no{opacity:.75;}
+.scen-card.me{border-color:rgba(10,92,51,.65);box-shadow:0 0 0 1px rgba(10,92,51,.3);}
+.scen-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.scen-name{font-size:1rem;font-weight:800;color:#fff;flex:1;}
+.scen-pts{font-size:.88rem;font-weight:900;color:#fde68a;white-space:nowrap;}
+.scen-tag{font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px;white-space:nowrap;}
+.scen-tag.ok{background:rgba(34,197,94,.18);color:#86efac;border:1px solid rgba(34,197,94,.4);}
+.scen-tag.no{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--line);}
+.scen-tag.mid{background:rgba(253,230,138,.15);color:#fde68a;border:1px solid rgba(253,230,138,.4);}
+.scen-meta{font-size:.76rem;color:#cbd5e1;font-weight:600;display:flex;flex-wrap:wrap;gap:12px;}
+.scen-meta img.flag{width:1.3em;height:.9em;object-fit:cover;vertical-align:-2px;margin-inline-end:3px;}
+.scen-eg{font-size:.74rem;color:var(--muted);font-weight:600;padding:6px 8px;background:rgba(255,255,255,.03);border-radius:8px;line-height:1.6;}
+.scen-eg b{color:#fde68a;font-weight:800;}
 .empty{color:var(--muted);font-size:.88rem;text-align:center;padding:30px 10px;line-height:1.8;}
 
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(5px);z-index:100;align-items:flex-end;justify-content:center;}
@@ -569,6 +584,7 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
     <button class="sub-tab active" data-leadsub="predict">التوقعات</button>
     <button class="sub-tab" data-leadsub="story">قصة منتخب</button>
   </div>
+  <button id="btnScenarios" style="display:none;width:100%;padding:12px 14px;background:linear-gradient(135deg,rgba(253,230,138,.18),rgba(253,230,138,.06));border:1.5px solid rgba(253,230,138,.5);color:#fde68a;font-weight:800;font-size:.9rem;border-radius:12px;cursor:pointer;margin-bottom:8px;">🧮 سيناريوهات الفوز</button>
   <div id="leaderList" style="width:100%;display:flex;flex-direction:column;gap:10px;"></div>
   <div id="storyLeader" style="width:100%;display:none;flex-direction:column;gap:10px;"></div>
 </div>
@@ -748,6 +764,17 @@ img.flag{display:inline-block;width:1.45em;height:.95em;vertical-align:-2px;bord
 </div>
 
 <!-- USER PREDICTIONS MODAL -->
+<div class="overlay" id="scenariosOverlay">
+  <div class="up-modal">
+    <div class="up-head">
+      <div class="up-title">🧮 سيناريوهات الفوز</div>
+      <button class="up-close" id="scenClose" aria-label="إغلاق">×</button>
+    </div>
+    <div class="up-summary" id="scenSummary" style="font-size:.82rem;color:#cbd5e1;line-height:1.55;"></div>
+    <div class="up-list" id="scenBody"></div>
+  </div>
+</div>
+
 <div class="overlay" id="userPredsOverlay">
   <div class="up-modal">
     <div class="up-head">
@@ -4605,6 +4632,19 @@ function renderLeader(){
   if(ovOpen && ovOpen.classList.contains('show')) return;
   var _sy=window.scrollY;
   setTimeout(function(){window.scrollTo(0,_sy);},0);
+  // Show the win-scenarios button once the group stage is done and a few
+  // KO matches are still open — enough to make the exercise meaningful,
+  // small enough that the enumeration finishes fast.
+  var scenBtn=document.getElementById('btnScenarios');
+  if(scenBtn){
+    var koPending=0;
+    for(var _i=0;_i<MATCHES.length;_i++){
+      var _m=MATCHES[_i];
+      if(_m.stage==='group') continue;
+      if(!result(_m)) koPending++;
+    }
+    scenBtn.style.display=(groupStageComplete() && koPending>0 && koPending<=3)?'block':'none';
+  }
   list.innerHTML='';
   var hint=document.createElement('div');hint.style.cssText='font-size:.72rem;color:var(--muted);text-align:center;padding:4px 0 10px;';hint.textContent='👆 اضغط على أي لاعب لعرض توقّعاته';list.appendChild(hint);
   var keys=Object.keys(usersData).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
@@ -4656,6 +4696,183 @@ function renderLeader(){
     }
     list.appendChild(el);
   });
+}
+
+// ===== سيناريوهات الفوز =====
+// Enumerate outcomes for each unfinished KO match and figure out which of
+// the top players can still finish #1, plus a sample winning path.
+function _scenOutcomes(m){
+  var arr=[];
+  for(var h=0;h<=4;h++){
+    for(var a=0;a<=4;a++){
+      if(h!==a){ arr.push({h:h,a:a}); }
+      else if(m.stage==='group'){ arr.push({h:h,a:a}); }
+      else { arr.push({h:h,a:a,pw:'h'}); arr.push({h:h,a:a,pw:'a'}); }
+    }
+  }
+  return arr;
+}
+function _scenWinnerTeam(m, r){
+  var t=teamsOf(m);
+  if(r.h>r.a) return t.home;
+  if(r.a>r.h) return t.away;
+  if(r.pw==='h') return t.home;
+  if(r.pw==='a') return t.away;
+  return null;
+}
+function _scenDescribeOne(m, r){
+  var t=teamsOf(m);
+  var hN=arNum(r.h), aN=arNum(r.a);
+  var line=arTeam(t.home)+' '+hN+' — '+aN+' '+arTeam(t.away);
+  if(r.pw){
+    var w=r.pw==='h'?arTeam(t.home):arTeam(t.away);
+    line+=' (فوز '+w+' بالركلات)';
+  }
+  return line;
+}
+function computeWinScenarios(){
+  var remaining=MATCHES.filter(function(m){return !result(m);});
+  // Cap combinations so we don't lock up the phone on huge search spaces
+  var totalOutcomes=1;
+  var outSets=remaining.map(function(m){var os=_scenOutcomes(m); totalOutcomes*=os.length; return os;});
+  if(totalOutcomes>50000) return {overflow:true, remaining:remaining, total:totalOutcomes};
+  if(remaining.length===0) return {done:true, remaining:remaining};
+
+  var keys=Object.keys(usersData).filter(function(k){return !(usersData[k]&&usersData[k].removed);});
+  var truth=tournamentTruth();
+
+  // Base points from matches already decided (+ scorer bonus if the truth
+  // is already set). Champion bonus is scenario-dependent and added later.
+  var base={};
+  keys.forEach(function(k){
+    var s=0;
+    MATCHES.forEach(function(m){
+      var r=result(m); if(!r) return;
+      var p=predsData[m.id] && predsData[m.id][k];
+      if(!p) return;
+      s += scoreOf(p, r) || 0;
+    });
+    if(truth && truth.scorer){
+      var picks=tournamentPicksOf(k);
+      if(picks.scorer===truth.scorer) s += TOURNAMENT_SCORER_PTS;
+    }
+    base[k]=s;
+  });
+
+  var res={};
+  keys.forEach(function(k){ res[k]={win:0, ties:0, best:base[k], worst:base[k], sample:null}; });
+
+  var finalM=null;
+  for(var i=0;i<remaining.length;i++){ if(remaining[i].stage==='FINAL'){ finalM=remaining[i]; break; } }
+  var finalIdx=finalM?remaining.indexOf(finalM):-1;
+
+  var chosen=new Array(remaining.length);
+  function walk(idx){
+    if(idx===remaining.length){
+      var scores={};
+      keys.forEach(function(k){ scores[k]=base[k]; });
+      for(var i=0;i<remaining.length;i++){
+        var m=remaining[i], o=chosen[i];
+        keys.forEach(function(k){
+          var p=predsData[m.id] && predsData[m.id][k];
+          if(!p) return;
+          scores[k] += scoreOf(p, o) || 0;
+        });
+      }
+      var champion = (finalIdx>=0) ? _scenWinnerTeam(finalM, chosen[finalIdx]) : (truth&&truth.champion)||null;
+      if(champion){
+        keys.forEach(function(k){
+          var picks=tournamentPicksOf(k);
+          if(picks.champion===champion) scores[k] += TOURNAMENT_CHAMPION_PTS;
+        });
+      }
+      var top=-Infinity;
+      keys.forEach(function(k){ if(scores[k]>top) top=scores[k]; });
+      var leaders=keys.filter(function(k){return scores[k]===top;});
+      keys.forEach(function(k){
+        if(scores[k]>res[k].best) res[k].best=scores[k];
+        if(scores[k]<res[k].worst) res[k].worst=scores[k];
+        if(scores[k]===top){
+          if(leaders.length===1){
+            res[k].win++;
+            if(!res[k].sample) res[k].sample=chosen.slice();
+          } else {
+            res[k].ties++;
+          }
+        }
+      });
+      return;
+    }
+    var os=outSets[idx];
+    for(var j=0;j<os.length;j++){ chosen[idx]=os[j]; walk(idx+1); }
+  }
+  walk(0);
+  return {remaining:remaining, base:base, res:res, keys:keys, total:totalOutcomes};
+}
+function openScenarios(){
+  var ov=document.getElementById('scenariosOverlay');
+  if(!ov) return;
+  ov.classList.add('show');
+  renderScenarios();
+}
+function closeScenarios(){
+  var ov=document.getElementById('scenariosOverlay');
+  if(ov) ov.classList.remove('show');
+}
+function renderScenarios(){
+  var sm=document.getElementById('scenSummary'), body=document.getElementById('scenBody');
+  if(!sm||!body) return;
+  var d=computeWinScenarios();
+  if(d.done){
+    sm.textContent='انتهت البطولة — ما فيه مباريات باقية.';
+    body.innerHTML='';
+    return;
+  }
+  if(d.overflow){
+    sm.innerHTML='المباريات المتبقية كثيرة جدًا ('+arNum(d.remaining.length)+') — عدد الاحتمالات '+arNum(d.total)+' فوق حدّ الحساب. تعال بعد ما تخلص بعض المباريات.';
+    body.innerHTML='';
+    return;
+  }
+  var remLine=d.remaining.map(function(m){var t=teamsOf(m); return arTeam(t.home)+' × '+arTeam(t.away);}).join(' · ');
+  sm.innerHTML='<b style="color:#fff;">'+arNum(d.remaining.length)+' مباراة متبقية</b> · '+esc(remLine)+'<br>'+
+               '<span style="color:var(--muted);">إجمالي السيناريوهات: '+arNum(d.total)+'</span>';
+
+  var sorted=d.keys.map(function(k){return {k:k, pts:d.base[k]};}).sort(function(a,b){return b.pts-a.pts;});
+  var topN=Math.min(sorted.length, 8);
+  var html='';
+  for(var i=0;i<topN;i++){
+    var u=sorted[i], k=u.k, r=d.res[k];
+    var name=(usersData[k]&&usersData[k].name)||k;
+    var picks=tournamentPicksOf(k);
+    var winPct=d.total>0 ? Math.round(r.win/d.total*100) : 0;
+    var canWin=r.win>0;
+    var mightTie=r.win===0 && r.ties>0;
+    var tag = canWin?'<span class="scen-tag ok">يقدر يفوز 🏆</span>'
+             : mightTie?'<span class="scen-tag mid">تعادل محتمل</span>'
+             : '<span class="scen-tag no">خارج السباق</span>';
+    var meCls = (k===myKey)?' me':'';
+    var kindCls = canWin?' ok':(mightTie?'':' no');
+    html+='<div class="scen-card'+kindCls+meCls+'">';
+    html+='<div class="scen-head"><div class="scen-name">'+arNum(i+1)+'. '+esc(name)+(k===myKey?' <span style="color:var(--muted);font-size:.72rem;font-weight:600;">(أنت)</span>':'')+'</div>'+tag+'</div>';
+    html+='<div class="scen-meta"><span>الآن: <b style="color:#fff;">'+arNum(u.pts)+'</b></span>'+
+          '<span>المدى: '+arNum(r.worst)+' — <b style="color:#fde68a;">'+arNum(r.best)+'</b></span>'+
+          (picks.champion?'<span>🏆 '+(COUNTRY_FLAG[picks.champion]?flagImg(picks.champion,14):'')+esc(picks.champion)+'</span>':'')+
+          '</div>';
+    if(canWin){
+      html+='<div class="scen-meta"><span><b style="color:#86efac;">'+arNum(r.win)+'</b> سيناريو فائز ('+arNum(winPct)+'٪) من '+arNum(d.total)+'</span></div>';
+      if(r.sample){
+        var lines=d.remaining.map(function(m,ii){return '<b>م'+arNum(m.n)+':</b> '+_scenDescribeOne(m,r.sample[ii]);}).join('<br>');
+        html+='<div class="scen-eg">مثال مسار فوز:<br>'+lines+'</div>';
+      }
+    } else if(mightTie){
+      html+='<div class="scen-meta"><span><b style="color:#fde68a;">'+arNum(r.ties)+'</b> سيناريو تعادل في الصدارة</span></div>';
+    } else {
+      var gap=sorted[0].pts - u.pts;
+      html+='<div class="scen-meta"><span>الفارق مع الأول: <b style="color:#fca5a5;">'+arNum(gap)+'</b> نقطة — أكبر من أقصى ما يمكن كسبه.</span></div>';
+    }
+    html+='</div>';
+  }
+  body.innerHTML=html;
 }
 
 // ===== STATS PAGE (admin preview) =====
@@ -5072,6 +5289,18 @@ function closeUserPreds(){
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape' && ov.classList.contains('show')) closeUserPreds();
   });
+})();
+(function(){
+  var ov=document.getElementById('scenariosOverlay');
+  if(!ov) return;
+  var btn=document.getElementById('scenClose');
+  if(btn) btn.addEventListener('click', closeScenarios);
+  ov.addEventListener('click',function(e){ if(e.target===ov) closeScenarios(); });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape' && ov.classList.contains('show')) closeScenarios();
+  });
+  var open=document.getElementById('btnScenarios');
+  if(open) open.addEventListener('click', openScenarios);
 })();
 
 // Admin: remove a player and all their predictions
