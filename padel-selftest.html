@@ -79,14 +79,14 @@ if(typeof firebase==='undefined'){
     auth.onAuthStateChanged(function(u){
       if(!u)return;
       set('auth','ok','✅','ناجح — UID: <code>'+u.uid.slice(0,10)+'…</code>');
-      var ROOT=db.ref('padel');
+      var ROOT=db.ref('wc2026/rooms/padelLeague2026');
       // READ
       ROOT.child('settings').once('value').then(function(){
         set('read','ok','✅','مسموح — القواعد تعمل صح.');
       }).catch(function(e){
         var c=codeOf(e);
         set('read','bad','❌','مرفوض — <code>'+c+'</code>');
-        if(/permission|denied/i.test(c))showHint('⚠️ القراءة مرفوضة رغم نجاح الدخول → معناه بلوك <code>padel</code> غير موجود في القواعد المنشورة على قاعدة البيانات <b>الصحيحة</b>. تأكد أنك نشرت القواعد على نفس الـ instance: <code>world-cup-predictions-6c61b-default-rtdb</code>.');
+        if(/permission|denied/i.test(c))showHint('⚠️ القراءة مرفوضة رغم نجاح الدخول. التطبيق يخزّن تحت <code>wc2026/rooms/…</code> وهو مسموح في قواعدك الحالية — لو استمر الرفض فتأكد أن قواعد <code>wc2026</code> المنشورة تسمح بالقراءة للمسجّلين.');
       });
       // WRITE
       ROOT.child('__selftest/'+u.uid).set({t:Date.now()}).then(function(){

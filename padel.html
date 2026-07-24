@@ -284,7 +284,10 @@ if(configReady){
   try{
     firebase.initializeApp(firebaseConfig);
     db=firebase.database();
-    ROOT=db.ref('padel');
+    // Data lives under an already-permitted path (wc2026/rooms/$rid allows any
+    // authenticated read/write), so the app works with the CURRENTLY published
+    // rules — no custom `padel` rules block needs to be deployed.
+    ROOT=db.ref('wc2026/rooms/padelLeague2026');
     auth=firebase.auth();
   }catch(e){configReady=false;}
 }
