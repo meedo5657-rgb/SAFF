@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>فحص بادل — Padel self-test</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<style>
+  body{font-family:Tahoma,system-ui,sans-serif;background:#0b1512;color:#eaf5ef;margin:0;padding:16px;line-height:1.6}
+  h1{font-size:19px;margin:0 0 4px}
+  .sub{color:#9fb8ae;font-size:13px;margin-bottom:14px}
+  .row{display:flex;gap:10px;align-items:flex-start;background:#13241e;border:1px solid #1f3a30;border-radius:12px;padding:12px 14px;margin:8px 0}
+  .ic{font-size:22px;flex:0 0 auto;width:26px;text-align:center}
+  .t b{display:block;font-size:15px}
+  .t small{color:#9fb8ae;font-size:12.5px;word-break:break-all}
+  .ok b{color:#25d366}.bad b{color:#ff5c6c}.wait b{color:#ffb03a}
+  code{background:#0c1a15;padding:1px 6px;border-radius:6px;border:1px solid #1f3a30;font-size:12px}
+  .hint{background:rgba(255,176,58,.1);border:1px solid rgba(255,176,58,.35);color:#ffb03a;border-radius:12px;padding:12px 14px;margin-top:14px;font-size:13.5px}
+</style>
+</head>
+<body>
+<h1>🔧 فحص اتصال بادل</h1>
+<div class="sub">هذي الصفحة تفحص المصادقة والقراءة والكتابة على قاعدة البيانات وتعرض الخطأ الحقيقي.</div>
+
+<div class="row" id="r_loc"><div class="ic">🌐</div><div class="t"><b>الرابط الحالي</b><small id="loc">—</small></div></div>
+<div class="row wait" id="r_sdk"><div class="ic">⏳</div><div class="t"><b>تحميل مكتبة Firebase</b><small id="sdk">…</small></div></div>
+<div class="row wait" id="r_auth"><div class="ic">⏳</div><div class="t"><b>تسجيل الدخول المجهول (Anonymous)</b><small id="auth">…</small></div></div>
+<div class="row wait" id="r_read"><div class="ic">⏳</div><div class="t"><b>قراءة padel</b><small id="read">…</small></div></div>
+<div class="row wait" id="r_write"><div class="ic">⏳</div><div class="t"><b>كتابة تجريبية على padel</b><small id="write">…</small></div></div>
+
+<div class="hint" id="hint" style="display:none"></div>
+
+<script>
+function set(id,state,ic,txt){
+  var row=document.getElementById('r_'+id);
+  row.className='row '+state;
+  row.querySelector('.ic').textContent=ic;
+  document.getElementById(id).innerHTML=txt;
+}
+function showHint(h){var el=document.getElementById('hint');el.style.display='block';el.innerHTML=h;}
+function codeOf(e){return (e&&(e.code||e.message))?(''+(e.code||e.message)):(''+e);}
+
+document.getElementById('loc').textContent=location.href;
+if(location.protocol==='file:'){
+  showHint('⚠️ أنت تفتح الملف محلياً (<code>file://</code>). تسجيل الدخول المجهول غالباً يفشل من الملف المحلي — لازم تفتح التطبيق من رابط <code>https://</code> (استضافة). هذا على الأغلب سبب المشكلة.');
+}
+
+var firebaseConfig={
+  apiKey:"AIzaSyDW2eFnZbAJkwbcuYCwme2fs8SK6oTZnHI",
+  authDomain:"world-cup-predictions-6c61b.firebaseapp.com",
+  databaseURL:"https://world-cup-predictions-6c61b-default-rtdb.firebaseio.com",
+  projectId:"world-cup-predictions-6c61b",
+  storageBucket:"world-cup-predictions-6c61b.firebasestorage.app",
+  messagingSenderId:"927763370478",
+  appId:"1:927763370478:web:711b8383f4d8ef4887feff"
+};
+
+if(typeof firebase==='undefined'){
+  set('sdk','bad','❌','تعذّر تحميل المكتبة — تأكد من الإنترنت.');
+}else{
+  set('sdk','ok','✅','تم التحميل.');
+  var db,auth;
+  try{firebase.initializeApp(firebaseConfig);db=firebase.database();auth=firebase.auth();}
+  catch(e){set('auth','bad','❌','خطأ في التهيئة: <code>'+codeOf(e)+'</code>');}
+
+  if(auth){
+    auth.signInAnonymously().then(function(){
+      // onAuthStateChanged will report the uid
+    }).catch(function(e){
+      var c=codeOf(e);
+      set('auth','bad','❌','فشل: <code>'+c+'</code>');
+      if(/operation-not-allowed/.test(c))showHint('⚠️ تسجيل الدخول المجهول <b>غير مفعّل</b>. Firebase Console → Authentication → Sign-in method → Anonymous → Enable.');
+      else if(/unauthorized-domain/.test(c))showHint('⚠️ هذا الدومين غير مسموح. Firebase Console → Authentication → Settings → Authorized domains → أضف: <code>'+location.hostname+'</code>');
+      else if(/api-key|invalid/.test(c))showHint('⚠️ مشكلة في مفتاح الـ API أو قيود المصادر (referrer) عليه.');
+    });
+
+    auth.onAuthStateChanged(function(u){
+      if(!u)return;
+      set('auth','ok','✅','ناجح — UID: <code>'+u.uid.slice(0,10)+'…</code>');
+      var ROOT=db.ref('padel');
+      // READ
+      ROOT.child('settings').once('value').then(function(){
+        set('read','ok','✅','مسموح — القواعد تعمل صح.');
+      }).catch(function(e){
+        var c=codeOf(e);
+        set('read','bad','❌','مرفوض — <code>'+c+'</code>');
+        if(/permission|denied/i.test(c))showHint('⚠️ القراءة مرفوضة رغم نجاح الدخول → معناه بلوك <code>padel</code> غير موجود في القواعد المنشورة على قاعدة البيانات <b>الصحيحة</b>. تأكد أنك نشرت القواعد على نفس الـ instance: <code>world-cup-predictions-6c61b-default-rtdb</code>.');
+      });
+      // WRITE
+      ROOT.child('__selftest/'+u.uid).set({t:Date.now()}).then(function(){
+        set('write','ok','✅','مسموح — كل شي تمام! التطبيق جاهز.');
+        ROOT.child('__selftest/'+u.uid).remove();
+      }).catch(function(e){
+        var c=codeOf(e);
+        set('write','bad','❌','مرفوض — <code>'+c+'</code>');
+      });
+    });
+  }
+}
+</script>
+</body>
+</html>
