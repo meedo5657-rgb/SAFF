@@ -266,11 +266,10 @@ var ADMIN_CODE = "Champs";
 
 // Default league settings (admin can change them live; stored in DB).
 var DEFAULTS = {
-  startPts: 1000,   // points a new account starts with (lands in Tier 2)
-  t1min:    1250,   // points >= this  -> Tier 1
-  t2min:     850,   // points >= this  -> Tier 2  (below -> Tier 3)
-  winPts:     30,   // points gained on a win
-  lossPts:    18,   // points lost on a loss
+  startPts: 1000,   // Elo rating a new account starts with (lands in Tier 2)
+  t1min:    1150,   // rating >= this  -> Tier 1
+  t2min:     900,   // rating >= this  -> Tier 2  (below -> Tier 3)
+  kFactor:    32,   // Elo K-factor: bigger = ratings move faster per match
   slots:       8,   // default players per match (must be even)
   earlyH:     72,   // Tier-1 early registration opens X hours before start (3 days)
   openH:      48    // general registration opens X hours before start (2 days)
@@ -632,11 +631,11 @@ function renderRank(){
   }).join('');
   // rules text
   $('tierRules').innerHTML=
-    '• كل لاعب جديد يبدأ بـ <b>'+S('startPts')+'</b> نقطة ويدخل <b>Tier 2</b>.<br>'+
-    '• <b>Tier 1</b>: '+S('t1min')+' نقطة فأكثر — لهم أولوية التسجيل المبكر.<br>'+
-    '• <b>Tier 2</b>: من '+S('t2min')+' إلى '+(S('t1min')-1)+' نقطة.<br>'+
-    '• <b>Tier 3</b>: أقل من '+S('t2min')+' نقطة — يدخلون قائمة الاحتياط حتى يُفتح مقعد.<br>'+
-    '• الفوز <b>+'+S('winPts')+'</b> والخسارة <b>−'+S('lossPts')+'</b>. يتغيّر تصنيفك تلقائياً حسب نقاطك.';
+    '• التقييم بنظام <b>Elo</b>: كل لاعب جديد يبدأ بـ <b>'+S('startPts')+'</b> ويدخل <b>Tier 2</b>.<br>'+
+    '• <b>Tier 1</b>: '+S('t1min')+' فأكثر — لهم أولوية التسجيل المبكر.<br>'+
+    '• <b>Tier 2</b>: من '+S('t2min')+' إلى '+(S('t1min')-1)+'.<br>'+
+    '• <b>Tier 3</b>: أقل من '+S('t2min')+' — يدخلون الاحتياط حتى يُفتح مقعد.<br>'+
+    '• النقاط تُحسب حسب <b>قوة الخصم</b>: الفوز على فريق أقوى = نقاط أكثر، والخسارة أمام أضعف = خصم أكبر (معامل K = '+S('kFactor')+').';
 }
 
 /* ---- PROFILE ---- */
@@ -851,6 +850,7 @@ function autoTeams(mid){
 function applyResults(mid){
   var res=RESULTS[mid]||{};var keys=Object.keys(res);
   if(!keys.length){toast('حدّد النتائج أولاً');return;}
+  if(!keys.some(function(k){return res[k]==='win';})||!keys.some(function(k){return res[k]==='loss';})){toast('لازم تحدّد فائزين وخاسرين معاً لاحتساب Elo');return;}
   var m=MATCHES[mid];
   // If previously applied, revert first using stored deltas
   var prev=m.deltas||{};
@@ -868,10 +868,26 @@ function applyResults(mid){
   var base={};
   Object.keys(PLAYERS).forEach(function(k){base[k]={points:(PLAYERS[k].points!=null?PLAYERS[k].points:S('startPts')),w:PLAYERS[k].w||0,l:PLAYERS[k].l||0,played:PLAYERS[k].played||0};});
   Object.keys(prev).forEach(function(k){if(base[k]){base[k].points-=prev[k].pts;base[k].w-=(prev[k].w||0);base[k].l-=(prev[k].l||0);base[k].played-=(prev[k].played||0);}});
+  // ===== Elo rating (doubles): winners pool vs losers pool =====
+  // Team rating = average of its players' current ratings. Expected score
+  // from the logistic curve; each player moves by K*(actual - expected).
+  // Beating a stronger side earns more; losing to a weaker side costs more.
+  var winners=keys.filter(function(k){return res[k]==='win'&&PLAYERS[k];});
+  var losers =keys.filter(function(k){return res[k]==='loss'&&PLAYERS[k];});
+  var avg=function(arr){if(!arr.length)return S('startPts');var s=0;arr.forEach(function(k){s+=(base[k]?base[k].points:S('startPts'));});return s/arr.length;};
+  var K=S('kFactor');
+  var winnerDelta=0, loserDelta=0;
+  if(winners.length && losers.length){
+    var Rw=avg(winners), Rl=avg(losers);
+    var Ew=1/(1+Math.pow(10,(Rl-Rw)/400)); // winners' expected score
+    winnerDelta=Math.round(K*(1-Ew));       // gain for each winner
+    loserDelta =-Math.round(K*(1-Ew));      // symmetric loss for each loser
+  }
   var deltas={};
   keys.forEach(function(k){
     if(!PLAYERS[k])return;
-    var r=res[k];var dpts=r==='win'?S('winPts'):(r==='loss'?-S('lossPts'):0);
+    var r=res[k];
+    var dpts=r==='win'?winnerDelta:(r==='loss'?loserDelta:0);
     var dw=r==='win'?1:0, dl=r==='loss'?1:0, dp=(r==='win'||r==='loss')?1:0;
     deltas[k]={pts:dpts,w:dw,l:dl,played:dp};
     var b=base[k]||{points:S('startPts'),w:0,l:0,played:0};
@@ -895,15 +911,15 @@ function sheetSettings(){
     '<div><label class="fl">عدد اللاعبين الافتراضي</label><input id="s_slots" type="tel" value="'+S('slots')+'"></div></div>'+
     '<div class="grid2"><div><label class="fl">حد Tier 1</label><input id="s_t1" type="tel" value="'+S('t1min')+'"></div>'+
     '<div><label class="fl">حد Tier 2</label><input id="s_t2" type="tel" value="'+S('t2min')+'"></div></div>'+
-    '<div class="grid2"><div><label class="fl">نقاط الفوز</label><input id="s_win" type="tel" value="'+S('winPts')+'"></div>'+
-    '<div><label class="fl">نقاط الخسارة</label><input id="s_loss" type="tel" value="'+S('lossPts')+'"></div></div>'+
+    '<div class="grid2"><div><label class="fl">معامل Elo (K)</label><input id="s_k" type="tel" value="'+S('kFactor')+'"></div>'+
+    '<div><label class="fl" style="color:var(--muted)">أكبر = تغيّر أسرع</label><input value="نظام Elo" disabled style="opacity:.6"></div></div>'+
     '<div class="grid2"><div><label class="fl">تسجيل Tier1 (ساعة قبل)</label><input id="s_early" type="tel" value="'+S('earlyH')+'"></div>'+
     '<div><label class="fl">تسجيل عام (ساعة قبل)</label><input id="s_open" type="tel" value="'+S('openH')+'"></div></div>'+
     '<button class="btn block" style="margin-top:14px" onclick="doSaveSettings()">حفظ الإعدادات</button>'+
     '<button class="btn ghost block sm" style="margin-top:8px" onclick="closeOv()">إلغاء</button>');
 }
 function doSaveSettings(){
-  var s={startPts:num('s_start',DEFAULTS.startPts),slots:num('s_slots',DEFAULTS.slots),t1min:num('s_t1',DEFAULTS.t1min),t2min:num('s_t2',DEFAULTS.t2min),winPts:num('s_win',DEFAULTS.winPts),lossPts:num('s_loss',DEFAULTS.lossPts),earlyH:num('s_early',DEFAULTS.earlyH),openH:num('s_open',DEFAULTS.openH)};
+  var s={startPts:num('s_start',DEFAULTS.startPts),slots:num('s_slots',DEFAULTS.slots),t1min:num('s_t1',DEFAULTS.t1min),t2min:num('s_t2',DEFAULTS.t2min),kFactor:num('s_k',DEFAULTS.kFactor),earlyH:num('s_early',DEFAULTS.earlyH),openH:num('s_open',DEFAULTS.openH)};
   ROOT.child('settings').set(s).then(function(){closeOv();toast('حُفظت الإعدادات');}).catch(function(e){toast(writeErr(e));});
 }
 function num(id,d){var v=parseInt($(id).value,10);return isNaN(v)?d:v;}
