@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b3d2e">
+<title>دوري بادل الجبيل</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎾</text></svg>">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<style>
+  :root{
+    --bg:#0b1512; --panel:#11201b; --panel2:#16302704; --card:#13241e;
+    --line:#1f3a30; --ink:#eaf5ef; --sub:#9fb8ae; --muted:#6f8a80;
+    --green:#1db954; --green2:#0f6b39; --court:#0b3d2e;
+    --t1:#ffd23f; --t1b:#8a6d00; --t2:#4cc9f0; --t2b:#0a4a63; --t3:#c77dff; --t3b:#4a1f66;
+    --danger:#ff5c6c; --warn:#ffb03a; --ok:#25d366;
+    --radius:16px; --shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",Tahoma,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 100% -10%, #123a2b 0%, transparent 55%),
+      radial-gradient(900px 500px at -10% 110%, #0f3324 0%, transparent 50%),
+      var(--bg);
+    color:var(--ink);min-height:100vh;font-size:15px;line-height:1.5;
+    padding-bottom:88px;
+  }
+  a{color:var(--green)}
+  .wrap{max-width:640px;margin:0 auto;padding:0 14px}
+  /* Header */
+  header{position:sticky;top:0;z-index:40;backdrop-filter:blur(10px);
+    background:linear-gradient(180deg,rgba(11,21,18,.96),rgba(11,21,18,.82));
+    border-bottom:1px solid var(--line)}
+  .hbar{display:flex;align-items:center;gap:10px;padding:12px 14px;max-width:640px;margin:0 auto}
+  .logo{width:40px;height:40px;border-radius:12px;flex:0 0 auto;
+    background:linear-gradient(135deg,#1db954,#0b3d2e);display:grid;place-items:center;
+    font-size:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+  .htxt b{display:block;font-size:16px;letter-spacing:.2px}
+  .htxt span{font-size:11px;color:var(--sub)}
+  .hspace{flex:1}
+  .whoami{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:6px}
+  .iconbtn{background:var(--card);border:1px solid var(--line);color:var(--ink);
+    width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:16px;cursor:pointer}
+  .iconbtn:active{transform:scale(.94)}
+  /* Cards & general */
+  .card{background:linear-gradient(180deg,var(--card),#0f1e18);border:1px solid var(--line);
+    border-radius:var(--radius);padding:14px;margin:12px 0;box-shadow:var(--shadow)}
+  h2.sec{font-size:13px;color:var(--sub);text-transform:uppercase;letter-spacing:1.4px;margin:20px 4px 6px;font-weight:700}
+  .muted{color:var(--muted)}.sub{color:var(--sub)}
+  .row{display:flex;align-items:center;gap:10px}
+  .btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-size:15px;font-weight:700;
+    cursor:pointer;background:var(--green);color:#03150c;display:inline-flex;align-items:center;gap:7px;justify-content:center}
+  .btn:active{transform:translateY(1px)}
+  .btn.block{width:100%}
+  .btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+  .btn.warn{background:var(--warn);color:#241300}
+  .btn.danger{background:transparent;color:var(--danger);border:1px solid #4a2027}
+  .btn.sm{padding:8px 12px;font-size:13px;border-radius:10px}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  input,select{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);
+    background:#0c1a15;color:var(--ink);font-size:15px;font-family:inherit}
+  input:focus,select:focus{outline:none;border-color:var(--green)}
+  label.fl{display:block;font-size:12px;color:var(--sub);margin:10px 2px 5px;font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;
+    font-size:11px;font-weight:800;letter-spacing:.3px;border:1px solid transparent}
+  .t1{background:rgba(255,210,63,.14);color:var(--t1);border-color:rgba(255,210,63,.35)}
+  .t2{background:rgba(76,201,240,.14);color:var(--t2);border-color:rgba(76,201,240,.35)}
+  .t3{background:rgba(199,125,255,.14);color:var(--t3);border-color:rgba(199,125,255,.35)}
+  .tag{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px}
+  .tag.open{background:rgba(37,211,102,.16);color:var(--ok)}
+  .tag.soon{background:rgba(255,176,58,.16);color:var(--warn)}
+  .tag.lock{background:rgba(255,92,108,.14);color:var(--danger)}
+  .tag.done{background:rgba(159,184,174,.14);color:var(--sub)}
+  /* Tabs */
+  nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:45;
+    background:linear-gradient(0deg,rgba(9,18,15,.99),rgba(9,18,15,.9));
+    border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  nav.tabs button{flex:1;background:none;border:0;color:var(--muted);font-size:11px;font-weight:700;
+    padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-family:inherit}
+  nav.tabs button .ic{font-size:20px;line-height:1}
+  nav.tabs button.on{color:var(--green)}
+  nav.tabs button .badge{position:absolute;transform:translate(14px,-6px);background:var(--danger);
+    color:#fff;font-size:9px;min-width:15px;height:15px;border-radius:999px;display:grid;place-items:center;padding:0 3px}
+  .tabinner{position:relative}
+  /* Match card */
+  .match{position:relative;overflow:hidden}
+  .match .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .match h3{margin:0;font-size:17px}
+  .match .when{font-size:12.5px;color:var(--sub);margin-top:3px}
+  .capbar{height:8px;background:#0a1712;border-radius:999px;overflow:hidden;margin:10px 0 6px;border:1px solid var(--line)}
+  .capbar>i{display:block;height:100%;background:linear-gradient(90deg,#1db954,#7bed9f)}
+  .slots{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .slot{display:flex;align-items:center;gap:6px;background:#0c1a15;border:1px solid var(--line);
+    border-radius:10px;padding:6px 9px;font-size:12.5px}
+  .slot.me{border-color:var(--green);background:rgba(29,185,84,.1)}
+  .slot .n{font-weight:700}
+  .avatar{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;color:#03150c;flex:0 0 auto}
+  .reserve .avatar{background:#6f8a80}
+  .countdown{font-variant-numeric:tabular-nums;font-weight:800;color:var(--warn)}
+  /* leaderboard */
+  .lbrow{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line)}
+  .lbrow:last-child{border-bottom:0}
+  .rank{width:26px;text-align:center;font-weight:800;color:var(--sub);font-size:14px}
+  .lbrow .who{flex:1;min-width:0}
+  .lbrow .who b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lbrow .who small{color:var(--muted);font-size:11.5px}
+  .pts{text-align:center;font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
+  .pts small{display:block;font-size:10px;color:var(--muted);font-weight:600}
+  /* modal / toast */
+  .overlay{position:fixed;inset:0;background:rgba(3,8,6,.7);backdrop-filter:blur(3px);z-index:60;
+    display:none;align-items:flex-end;justify-content:center}
+  .overlay.show{display:flex}
+  .sheet{background:var(--panel);border:1px solid var(--line);border-bottom:0;
+    border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:88vh;overflow:auto;
+    padding:16px 16px calc(20px + env(safe-area-inset-bottom));animation:up .25s ease}
+  @keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+  .sheet h3{margin:2px 0 12px;font-size:18px}
+  .grab{width:42px;height:5px;border-radius:999px;background:#2a463b;margin:2px auto 12px}
+  .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#12241d;border:1px solid var(--line);color:var(--ink);padding:11px 18px;border-radius:999px;
+    font-size:14px;font-weight:600;z-index:80;opacity:0;transition:.25s;pointer-events:none;box-shadow:var(--shadow);max-width:92vw}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .empty{text-align:center;color:var(--muted);padding:34px 10px}
+  .empty .ic{font-size:44px;opacity:.5;display:block;margin-bottom:8px}
+  /* login */
+  .center{min-height:calc(100vh - 60px);display:flex;flex-direction:column;justify-content:center}
+  .brandbig{text-align:center;margin-bottom:8px}
+  .brandbig .l{width:76px;height:76px;border-radius:22px;margin:0 auto 12px;font-size:40px;
+    background:linear-gradient(135deg,#1db954,#0b3d2e);display:grid;place-items:center;box-shadow:var(--shadow)}
+  .brandbig h1{margin:0;font-size:24px}.brandbig p{margin:4px 0 0;color:var(--sub);font-size:13px}
+  .hide{display:none!important}
+  .banner{background:rgba(255,176,58,.1);border:1px solid rgba(255,176,58,.3);color:var(--warn);
+    border-radius:12px;padding:10px 12px;font-size:12.5px;margin:10px 0}
+  .divider{height:1px;background:var(--line);margin:14px 0}
+  .kv{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 0;border-bottom:1px dashed var(--line)}
+  .kv:last-child{border:0}
+  .miniplayers{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:#0c1a15;border:1px solid var(--line);
+    padding:6px 10px;border-radius:999px;font-size:13px}
+  .chip button{background:none;border:0;color:var(--danger);cursor:pointer;font-size:15px;line-height:1;padding:0}
+  .seg{display:flex;background:#0c1a15;border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+  .seg button{flex:1;background:none;border:0;color:var(--sub);font-weight:700;padding:8px;border-radius:9px;cursor:pointer;font-size:13px;font-family:inherit}
+  .seg button.on{background:var(--green);color:#03150c}
+  .team{display:flex;align-items:center;gap:8px;background:#0c1a15;border:1px solid var(--line);border-radius:12px;padding:9px 11px;margin:7px 0}
+  .team .vs{color:var(--muted);font-weight:800;font-size:12px}
+  .resbtns{display:flex;gap:6px}
+  .resbtns button{flex:1}
+  .btn.on-win{background:var(--ok);color:#03150c}
+  .btn.on-loss{background:var(--danger);color:#fff}
+</style>
+</head>
+<body>
+
+<!-- ================= APP ROOT ================= -->
+<header id="hdr" class="hide">
+  <div class="hbar">
+    <div class="logo">🎾</div>
+    <div class="htxt"><b>دوري بادل الجبيل</b><span>Padel League • Jubail</span></div>
+    <div class="hspace"></div>
+    <div class="whoami" id="whoami"></div>
+    <button class="iconbtn" id="btnProfileTop" title="حسابي">👤</button>
+  </div>
+</header>
+
+<div id="app" class="hide">
+  <div class="wrap">
+    <!-- MATCHES TAB -->
+    <section id="tabMatches" class="tabpage">
+      <h2 class="sec">المباريات القادمة</h2>
+      <div id="matchList"></div>
+    </section>
+
+    <!-- LEADERBOARD TAB -->
+    <section id="tabRank" class="tabpage hide">
+      <h2 class="sec">التصنيف والنقاط</h2>
+      <div class="card" style="padding:6px 12px">
+        <div class="seg" id="tierFilter" style="margin:8px 0">
+          <button class="on" data-f="all">الكل</button>
+          <button data-f="1">Tier 1</button>
+          <button data-f="2">Tier 2</button>
+          <button data-f="3">Tier 3</button>
+        </div>
+        <div id="lbList"></div>
+      </div>
+      <div class="card">
+        <h2 class="sec" style="margin-top:0">كيف يعمل التصنيف؟</h2>
+        <div id="tierRules" class="sub" style="font-size:13px"></div>
+      </div>
+    </section>
+
+    <!-- PROFILE TAB -->
+    <section id="tabMe" class="tabpage hide">
+      <h2 class="sec">حسابي</h2>
+      <div id="meCard"></div>
+    </section>
+
+    <!-- ADMIN TAB -->
+    <section id="tabAdmin" class="tabpage hide">
+      <h2 class="sec">لوحة الإدارة</h2>
+      <div id="adminBody"></div>
+    </section>
+  </div>
+</div>
+
+<!-- TABS -->
+<nav class="tabs hide" id="tabs">
+  <button data-tab="Matches" class="on"><span class="ic">🎾</span>المباريات</button>
+  <button data-tab="Rank"><span class="ic">🏆</span>التصنيف</button>
+  <button data-tab="Me"><span class="ic">👤</span>حسابي</button>
+  <button data-tab="Admin" id="tabAdminBtn" class="hide"><span class="tabinner"><span class="ic">🛠️</span></span>الإدارة</button>
+</nav>
+
+<!-- ================= LOGIN ================= -->
+<div id="login" class="wrap hide">
+  <div class="center">
+    <div class="brandbig">
+      <div class="l">🎾</div>
+      <h1>دوري بادل الجبيل</h1>
+      <p>سجّل دخولك للمشاركة في البطولة المستمرة</p>
+    </div>
+    <div class="card">
+      <div id="setupBanner" class="banner hide">⚙️ لم يتم ضبط إعدادات Firebase — حرّر <code>firebaseConfig</code> أعلى السكربت.</div>
+      <label class="fl">الاسم</label>
+      <input id="nameInput" placeholder="اكتب اسمك كما سجّله المشرف" autocomplete="off">
+      <label class="fl">الرمز السري (PIN)</label>
+      <input id="pinInput" type="tel" inputmode="numeric" maxlength="6" placeholder="٤ إلى ٦ أرقام">
+      <div id="loginErr" style="color:var(--danger);font-size:13px;min-height:18px;margin:8px 2px 0"></div>
+      <button class="btn block" id="btnLogin" style="margin-top:6px">دخول</button>
+      <div class="sub" style="font-size:12px;text-align:center;margin-top:12px">
+        الحسابات يُنشئها المشرف. أول دخول لك يثبّت رمزك السري.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- generic sheet -->
+<div class="overlay" id="ov"><div class="sheet" id="ovSheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   دوري بادل الجبيل — Padel League (single-file app)
+   Firebase Realtime DB • anonymous auth • name + PIN identity
+   ============================================================ */
+
+// ---- Firebase config (shared project; data lives under /padel) ----
+var firebaseConfig = {
+  apiKey:"AIzaSyDW2eFnZbAJkwbcuYCwme2fs8SK6oTZnHI",
+  authDomain:"world-cup-predictions-6c61b.firebaseapp.com",
+  databaseURL:"https://world-cup-predictions-6c61b-default-rtdb.firebaseio.com",
+  projectId:"world-cup-predictions-6c61b",
+  storageBucket:"world-cup-predictions-6c61b.firebasestorage.app",
+  messagingSenderId:"927763370478",
+  appId:"1:927763370478:web:711b8383f4d8ef4887feff"
+};
+
+// Admin: whoever logs in with this exact name is the league admin.
+var ADMIN_NAME = "Sultan";
+// …or unlock admin tools on any device with this code (from the brief).
+var ADMIN_CODE = "Champs";
+
+// Default league settings (admin can change them live; stored in DB).
+var DEFAULTS = {
+  startPts: 1000,   // points a new account starts with (lands in Tier 2)
+  t1min:    1250,   // points >= this  -> Tier 1
+  t2min:     850,   // points >= this  -> Tier 2  (below -> Tier 3)
+  winPts:     30,   // points gained on a win
+  lossPts:    18,   // points lost on a loss
+  slots:       8,   // default players per match (must be even)
+  earlyH:     72,   // Tier-1 early registration opens X hours before start (3 days)
+  openH:      48    // general registration opens X hours before start (2 days)
+};
+
+/* ---------------- Firebase init ---------------- */
+var sdkReady = (typeof firebase!=='undefined');
+var configReady = sdkReady && firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('YOUR_')!==0;
+var db=null, ROOT=null, auth=null, myUid=null;
+if(configReady){
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db=firebase.database();
+    ROOT=db.ref('padel');
+    auth=firebase.auth();
+  }catch(e){configReady=false;}
+}
+if(!configReady){
+  var sb=document.getElementById('setupBanner');
+  if(sb){sb.classList.remove('hide');if(!sdkReady)sb.textContent='⚠️ تعذّر تحميل مكتبة Firebase — تأكد من اتصال الإنترنت ثم أعد تحميل الصفحة.';}
+}
+
+/* ---------------- State ---------------- */
+var myName='', myKey='', isAdmin=false;
+var PLAYERS={}, MATCHES={}, SIGNUPS={}, RESULTS={}, TEAMS={}, SETTINGS={};
+var curTab='Matches', tierFilter='all', tickTimer=null;
+
+/* ---------------- Helpers ---------------- */
+function $(id){return document.getElementById(id);}
+function esc(s){return (s==null?'':(''+s)).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function sanitize(s){return (s||'').trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_؀-ۿ]/g,'').slice(0,40);}
+function hashPin(s){var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h)+s.charCodeAt(i);h|=0;}return 'p'+(h>>>0).toString(36);}
+function now(){return Date.now();}
+function initials(n){n=(n||'').trim();if(!n)return '?';var p=n.split(/\s+/);return (p[0][0]+(p[1]?p[1][0]:'')).toUpperCase();}
+function colorFor(n){var h=0;for(var i=0;i<(n||'').length;i++)h=(h*31+n.charCodeAt(i))%360;return 'hsl('+h+' 62% 62%)';}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},2200);}
+function S(k){return (SETTINGS && SETTINGS[k]!=null)?SETTINGS[k]:DEFAULTS[k];}
+
+function fmtDate(ts){
+  if(!ts)return '';
+  var d=new Date(ts);
+  var days=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  var mo=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  var h=d.getHours(), am=h<12, h12=(h%12)||12;
+  var mm=(''+d.getMinutes()).padStart(2,'0');
+  return days[d.getDay()]+' '+d.getDate()+' '+mo[d.getMonth()]+' • '+h12+':'+mm+' '+(am?'ص':'م');
+}
+function humanLeft(ms){
+  if(ms<=0)return '';
+  var s=Math.floor(ms/1000), d=Math.floor(s/86400); s-=d*86400;
+  var h=Math.floor(s/3600); s-=h*3600; var m=Math.floor(s/60); s-=m*60;
+  if(d>0)return d+' يوم '+h+' س';
+  if(h>0)return h+' س '+m+' د';
+  if(m>0)return m+' د '+s+' ث';
+  return s+' ث';
+}
+
+/* ---------------- Tier logic ---------------- */
+function tierForPoints(p){
+  if(p>=S('t1min'))return 1;
+  if(p>=S('t2min'))return 2;
+  return 3;
+}
+function tierPill(t){return '<span class="pill t'+t+'">Tier '+t+'</span>';}
+
+/* Compute who is IN vs RESERVE for a match, honoring the rules:
+   - Tier 3 players are always reserve (until a spot frees).
+   - Tier 1/2 fill slots by registration time (first come first served).
+   - Tier snapshot is taken at signup time and stored on the signup. */
+function computeRoster(mid){
+  var m=MATCHES[mid]||{}; var slots=m.slots||S('slots');
+  var su=SIGNUPS[mid]||{};
+  var arr=Object.keys(su).map(function(k){var s=su[k]||{};return {key:k,name:s.name||playerName(k),tier:s.tier||2,ts:s.ts||0};});
+  var nonT3=arr.filter(function(s){return s.tier!==3;}).sort(function(a,b){return a.ts-b.ts;});
+  var t3=arr.filter(function(s){return s.tier===3;}).sort(function(a,b){return a.ts-b.ts;});
+  var inList=nonT3.slice(0,slots);
+  var reserve=nonT3.slice(slots).concat(t3);
+  return {inList:inList,reserve:reserve,slots:slots,count:arr.length};
+}
+function playerName(k){return (PLAYERS[k]&&PLAYERS[k].name)||k;}
+
+/* Registration state for a match relative to now + my tier */
+function regState(mid){
+  var m=MATCHES[mid]||{}; var t=now();
+  var start=m.at||0;
+  var earlyOpen=start-(m.earlyH!=null?m.earlyH:S('earlyH'))*3600000;
+  var genOpen  =start-(m.openH !=null?m.openH :S('openH'))*3600000;
+  if(m.status==='done')return {phase:'done'};
+  if(m.status==='locked')return {phase:'locked'};
+  if(t>=start)return {phase:'locked'};
+  if(t< earlyOpen)return {phase:'soon',opensAt:earlyOpen,genOpen:genOpen,start:start};
+  if(t< genOpen)  return {phase:'early',opensAt:earlyOpen,genOpen:genOpen,start:start}; // Tier1 only
+  return {phase:'open',genOpen:genOpen,start:start};
+}
+/* Can the current player register right now? */
+function canRegister(mid){
+  var rs=regState(mid); var me=PLAYERS[myKey]||{}; var myTier=me.tier||2;
+  if(rs.phase==='open')return {ok:true};
+  if(rs.phase==='early')return myTier===1?{ok:true}:{ok:false,reason:'التسجيل المبكر لأصحاب Tier 1 فقط الآن'};
+  if(rs.phase==='soon')return {ok:false,reason:'لم يُفتح التسجيل بعد'};
+  return {ok:false,reason:'التسجيل مُقفل'};
+}
+
+/* ============================================================
+   AUTH + LOGIN
+   ============================================================ */
+if(configReady){
+  auth.onAuthStateChanged(function(u){
+    if(!u)return; myUid=u.uid;
+    if(!myKey){try{var sv=localStorage.getItem('pd_name'),sp=localStorage.getItem('pd_pin');if(sv&&sp)attemptLogin(sv,sp,true);}catch(e){}}
+  });
+  auth.signInAnonymously().catch(function(e){
+    var msg='تعذّر الاتصال بالخادم.';
+    if(e&&e.code==='auth/operation-not-allowed')msg='الدخول المجهول مُعطّل في Firebase (Authentication → Sign-in method → Anonymous).';
+    $('loginErr').textContent=msg;
+  });
+}
+
+function attemptLogin(name,pin,fromAuto){
+  name=(name||'').trim(); pin=(pin||'').trim();
+  if(!name){loginFail('اكتب اسمك',fromAuto);return;}
+  var key=sanitize(name);
+  myName=name; myKey=key;
+  ROOT.child('players/'+key).once('value').then(function(snap){
+    var p=snap.val();
+    if(p){ // existing account created by admin (or previously)
+      if(p.ph && p.ph!==hashPin(pin)){loginFail('الرمز السري غير صحيح',fromAuto);return;}
+      var upd={}; if(!p.ph){ if(!/^[0-9]{4,6}$/.test(pin)){loginFail('اختر رمزاً من ٤ إلى ٦ أرقام لحماية حسابك',fromAuto);return;} upd.ph=hashPin(pin);}
+      upd.name=name;
+      ROOT.child('players/'+key).update(upd).then(function(){loginOk(name,pin);}).catch(function(e){loginFail(writeErr(e),fromAuto);});
+    } else {
+      // No account. Only the admin name can bootstrap itself; others must be added by admin.
+      if(key===sanitize(ADMIN_NAME)){
+        if(!/^[0-9]{4,6}$/.test(pin)){loginFail('اختر رمزاً من ٤ إلى ٦ أرقام',fromAuto);return;}
+        ROOT.child('players/'+key).set({name:name,ph:hashPin(pin),tier:2,points:S('startPts'),w:0,l:0,played:0,active:true,createdAt:now()})
+          .then(function(){loginOk(name,pin);}).catch(function(e){loginFail(writeErr(e),fromAuto);});
+      }else{
+        loginFail('لا يوجد حساب بهذا الاسم. تواصل مع المشرف لإضافتك.',fromAuto);
+      }
+    }
+  }).catch(function(e){loginFail('تعذّر القراءة: '+writeErr(e),fromAuto);});
+}
+function writeErr(e){var m=(e&&(e.code||e.message))?(''+(e.code||e.message)):'';if(/permission|denied/i.test(m))return 'مرفوض بواسطة قواعد قاعدة البيانات — انشر database.rules.json.';return 'خطأ في الاتصال.';}
+function loginOk(name,pin){try{localStorage.setItem('pd_name',name);localStorage.setItem('pd_pin',pin);}catch(e){}$('loginErr').textContent='';enterApp();}
+function loginFail(msg,fromAuto){myName='';myKey='';if(fromAuto){try{localStorage.removeItem('pd_name');localStorage.removeItem('pd_pin');}catch(e){}}$('loginErr').textContent=msg;showLogin();}
+
+$('btnLogin').addEventListener('click',function(){attemptLogin($('nameInput').value,$('pinInput').value,false);});
+$('pinInput').addEventListener('keydown',function(e){if(e.key==='Enter')attemptLogin($('nameInput').value,$('pinInput').value,false);});
+
+function showLogin(){$('login').classList.remove('hide');$('app').classList.add('hide');$('tabs').classList.add('hide');$('hdr').classList.add('hide');}
+
+/* ============================================================
+   ENTER APP + LIVE DATA
+   ============================================================ */
+function enterApp(){
+  $('login').classList.add('hide');
+  $('app').classList.remove('hide');$('tabs').classList.remove('hide');$('hdr').classList.remove('hide');
+  isAdmin = (sanitize(myName)===sanitize(ADMIN_NAME)) || localStorage.getItem('pd_admin')==='1';
+  applyAdminUI();
+  bindData();
+  if(!tickTimer)tickTimer=setInterval(tick,1000);
+}
+function applyAdminUI(){
+  $('tabAdminBtn').classList.toggle('hide',!isAdmin);
+  var me=PLAYERS[myKey]||{};
+  $('whoami').innerHTML=esc(myName)+' '+(me.tier?tierPill(me.tier):'');
+}
+
+var bound=false;
+function bindData(){
+  if(bound||!ROOT)return; bound=true;
+  ROOT.child('settings').on('value',function(s){SETTINGS=s.val()||{};renderAll();});
+  ROOT.child('players').on('value',function(s){PLAYERS=s.val()||{};applyAdminUI();renderAll();});
+  ROOT.child('matches').on('value',function(s){MATCHES=s.val()||{};renderAll();});
+  ROOT.child('signups').on('value',function(s){SIGNUPS=s.val()||{};renderAll();});
+  ROOT.child('results').on('value',function(s){RESULTS=s.val()||{};renderAll();});
+  ROOT.child('teams').on('value',function(s){TEAMS=s.val()||{};renderAll();});
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(b){
+  b.addEventListener('click',function(){switchTab(b.getAttribute('data-tab'));});
+});
+$('btnProfileTop').addEventListener('click',function(){switchTab('Me');});
+function switchTab(t){
+  curTab=t;
+  ['Matches','Rank','Me','Admin'].forEach(function(x){
+    $('tab'+x).classList.toggle('hide',x!==t);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(b){
+    b.classList.toggle('on',b.getAttribute('data-tab')===t);
+  });
+  window.scrollTo(0,0);
+  renderAll();
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderAll(){
+  if($('app').classList.contains('hide'))return;
+  if(curTab==='Matches')renderMatches();
+  else if(curTab==='Rank')renderRank();
+  else if(curTab==='Me')renderMe();
+  else if(curTab==='Admin')renderAdmin();
+}
+
+/* ---- MATCHES ---- */
+function sortedMatchIds(){
+  return Object.keys(MATCHES).sort(function(a,b){
+    var da=MATCHES[a].done?1:0, dbb=MATCHES[b].done?1:0;
+    // upcoming first (by date asc), done last (by date desc)
+    var sa=MATCHES[a].at||0, sb=MATCHES[b].at||0;
+    var pa=MATCHES[a].status==='done', pb=MATCHES[b].status==='done';
+    if(pa!==pb)return pa?1:-1;
+    return pa?sb-sa:sa-sb;
+  });
+}
+function renderMatches(){
+  var host=$('matchList');
+  var ids=sortedMatchIds();
+  if(!ids.length){host.innerHTML='<div class="empty"><span class="ic">🎾</span>لا توجد مباريات بعد.<br><span class="sub">'+(isAdmin?'أضف مباراة من لوحة الإدارة':'انتظر المشرف حتى يضيف المباريات')+'</span></div>';return;}
+  host.innerHTML=ids.map(matchCard).join('');
+  // wire buttons
+  ids.forEach(function(mid){
+    var reg=$('reg_'+mid), un=$('un_'+mid), det=$('det_'+mid);
+    if(reg)reg.onclick=function(){register(mid);};
+    if(un)un.onclick=function(){unregister(mid);};
+    if(det)det.onclick=function(){openMatchSheet(mid);};
+  });
+}
+function matchCard(mid){
+  var m=MATCHES[mid]; var r=computeRoster(mid); var rs=regState(mid);
+  var iAmIn=r.inList.some(function(s){return s.key===myKey;});
+  var iAmRes=r.reserve.some(function(s){return s.key===myKey;});
+  var filled=r.inList.length, slots=r.slots;
+  var pct=Math.min(100,Math.round(filled/slots*100));
+  var tag='';
+  if(rs.phase==='done')tag='<span class="tag done">انتهت</span>';
+  else if(rs.phase==='locked')tag='<span class="tag lock">مُقفلة</span>';
+  else if(rs.phase==='open')tag='<span class="tag open">التسجيل مفتوح</span>';
+  else if(rs.phase==='early')tag='<span class="tag soon">تسجيل مبكر • Tier 1</span>';
+  else tag='<span class="tag soon">قريباً</span>';
+
+  var slotChips=r.inList.map(function(s){return slotChip(s,false);}).join('');
+  var emptyN=Math.max(0,slots-filled);
+  var emptyChips='';
+  for(var j=0;j<emptyN;j++)emptyChips+='<div class="slot"><span class="avatar" style="background:#22362e">•</span><span class="muted">مقعد شاغر</span></div>';
+  var resChips=r.reserve.length?('<div class="sub" style="font-size:11.5px;margin:10px 2px 3px">قائمة الاحتياط ('+r.reserve.length+')</div><div class="slots">'+r.reserve.map(function(s){return slotChip(s,true);}).join('')+'</div>'):'';
+
+  // action button
+  var action='';
+  if(rs.phase==='done'){
+    action='<button class="btn ghost block sm" id="det_'+mid+'">عرض النتيجة</button>';
+  }else if(iAmIn||iAmRes){
+    var badge=iAmIn?'<span class="tag open">أنت مسجّل ✓</span>':'<span class="tag soon">أنت في الاحتياط</span>';
+    action='<div class="row" style="gap:8px"><button class="btn danger sm" id="un_'+mid+'">إلغاء تسجيلي</button>'+
+           '<button class="btn ghost sm" id="det_'+mid+'">التفاصيل</button><div class="hspace"></div>'+badge+'</div>';
+  }else{
+    var cr=canRegister(mid);
+    if(cr.ok){
+      var willReserve=(PLAYERS[myKey]&&PLAYERS[myKey].tier===3)||filled>=slots;
+      action='<button class="btn block" id="reg_'+mid+'">'+(willReserve?'سجّلني في الاحتياط':'سجّلني الآن')+'</button>';
+    }else{
+      action='<button class="btn ghost block" disabled>'+esc(cr.reason)+'</button>';
+    }
+  }
+
+  // countdown line
+  var cd='';
+  if(rs.phase==='soon')cd='<div class="when">يفتح التسجيل المبكر خلال <span class="countdown" data-cd="'+rs.opensAt+'">'+humanLeft(rs.opensAt-now())+'</span></div>';
+  else if(rs.phase==='early')cd='<div class="when">التسجيل العام يفتح خلال <span class="countdown" data-cd="'+rs.genOpen+'">'+humanLeft(rs.genOpen-now())+'</span></div>';
+  else if(rs.phase==='open')cd='<div class="when">يُقفل التسجيل خلال <span class="countdown" data-cd="'+m.at+'">'+humanLeft(m.at-now())+'</span></div>';
+
+  return '<div class="card match">'+
+    '<div class="top"><div><h3>'+esc(m.title||'مباراة')+'</h3><div class="when">📅 '+fmtDate(m.at)+'</div>'+
+      (m.note?'<div class="when">📍 '+esc(m.note)+'</div>':'')+cd+'</div>'+tag+'</div>'+
+    '<div class="capbar"><i style="width:'+pct+'%"></i></div>'+
+    '<div class="sub" style="font-size:12px">'+filled+' / '+slots+' لاعب • '+(slots/2)+' فرق</div>'+
+    '<div class="slots">'+slotChips+emptyChips+'</div>'+
+    resChips+
+    '<div style="margin-top:12px">'+action+'</div>'+
+  '</div>';
+}
+function slotChip(s,reserve){
+  var me=s.key===myKey;
+  return '<div class="slot '+(me?'me':'')+' '+(reserve?'reserve':'')+'">'+
+    '<span class="avatar" style="background:'+(reserve?'#6f8a80':colorFor(s.name))+'">'+esc(initials(s.name))+'</span>'+
+    '<span class="n">'+esc(s.name)+(me?' (أنت)':'')+'</span>'+
+    '<span class="pill t'+s.tier+'" style="padding:1px 6px">T'+s.tier+'</span></div>';
+}
+
+/* register / unregister */
+function register(mid){
+  var cr=canRegister(mid); if(!cr.ok){toast(cr.reason);return;}
+  var me=PLAYERS[myKey]||{};
+  ROOT.child('signups/'+mid+'/'+myKey).set({name:myName,tier:me.tier||2,ts:now()})
+    .then(function(){
+      var r=computeRoster(mid); var inNow=r.inList.some(function(s){return s.key===myKey;});
+      toast(inNow?'تم تسجيلك ✅':'أُضفت لقائمة الاحتياط ⏳');
+    }).catch(function(e){toast(writeErr(e));});
+}
+function unregister(mid){
+  ROOT.child('signups/'+mid+'/'+myKey).remove().then(function(){toast('أُلغي تسجيلك');}).catch(function(e){toast(writeErr(e));});
+}
+
+/* match detail sheet */
+function openMatchSheet(mid){
+  var m=MATCHES[mid]; var r=computeRoster(mid);
+  var teams=TEAMS[mid]; var res=RESULTS[mid]||{};
+  var html='<div class="grab"></div><h3>'+esc(m.title||'مباراة')+'</h3>';
+  html+='<div class="when sub">📅 '+fmtDate(m.at)+(m.note?' • 📍 '+esc(m.note):'')+'</div>';
+  // teams / pairings if set
+  if(teams){
+    html+='<h2 class="sec">الفرق</h2>';
+    Object.keys(teams).forEach(function(ci){
+      var pair=teams[ci]||[];
+      html+='<div class="team">'+pair.map(function(k){return '<span class="chip"><span class="avatar" style="background:'+colorFor(playerName(k))+'">'+esc(initials(playerName(k)))+'</span>'+esc(playerName(k))+'</span>';}).join('<span class="vs">و</span>')+'</div>';
+    });
+  }
+  html+='<h2 class="sec">المسجّلون ('+r.inList.length+')</h2><div class="slots">'+r.inList.map(function(s){
+    var rr=res[s.key];
+    var mark=rr==='win'?' 🏆':(rr==='loss'?' •':'');
+    return slotChip(s,false).replace('</div>',(mark?'<b style="margin-inline-start:4px">'+mark+'</b>':'')+'</div>');
+  }).join('')+'</div>';
+  if(r.reserve.length)html+='<h2 class="sec">الاحتياط ('+r.reserve.length+')</h2><div class="slots">'+r.reserve.map(function(s){return slotChip(s,true);}).join('')+'</div>';
+  html+='<button class="btn ghost block" style="margin-top:16px" onclick="closeOv()">إغلاق</button>';
+  openOv(html);
+}
+
+/* ---- LEADERBOARD ---- */
+Array.prototype.forEach.call(document.querySelectorAll('#tierFilter button'),function(b){
+  b.addEventListener('click',function(){
+    tierFilter=b.getAttribute('data-f');
+    Array.prototype.forEach.call(document.querySelectorAll('#tierFilter button'),function(x){x.classList.toggle('on',x===b);});
+    renderRank();
+  });
+});
+function renderRank(){
+  var arr=Object.keys(PLAYERS).map(function(k){var p=PLAYERS[k]||{};return {key:k,name:p.name||k,points:p.points!=null?p.points:S('startPts'),tier:p.tier||tierForPoints(p.points!=null?p.points:S('startPts')),w:p.w||0,l:p.l||0,played:p.played||0,active:p.active!==false};});
+  arr=arr.filter(function(p){return p.active;});
+  if(tierFilter!=='all')arr=arr.filter(function(p){return p.tier===parseInt(tierFilter,10);});
+  arr.sort(function(a,b){return b.points-a.points||b.w-a.w;});
+  var host=$('lbList');
+  if(!arr.length){host.innerHTML='<div class="empty"><span class="ic">🏆</span>لا يوجد لاعبون في هذا التصنيف</div>';}
+  else host.innerHTML=arr.map(function(p,i){
+    var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+    return '<div class="lbrow'+(p.key===myKey?'" style="background:rgba(29,185,84,.06);border-radius:10px':'')+'">'+
+      '<div class="rank">'+medal+'</div>'+
+      '<span class="avatar" style="width:34px;height:34px;font-size:13px;background:'+colorFor(p.name)+'">'+esc(initials(p.name))+'</span>'+
+      '<div class="who"><b>'+esc(p.name)+(p.key===myKey?' <span class="sub" style="font-weight:400">(أنت)</span>':'')+'</b>'+
+      '<small>'+tierPill(p.tier)+' • '+p.w+' فوز - '+p.l+' خسارة</small></div>'+
+      '<div class="pts">'+p.points+'<small>نقطة</small></div></div>';
+  }).join('');
+  // rules text
+  $('tierRules').innerHTML=
+    '• كل لاعب جديد يبدأ بـ <b>'+S('startPts')+'</b> نقطة ويدخل <b>Tier 2</b>.<br>'+
+    '• <b>Tier 1</b>: '+S('t1min')+' نقطة فأكثر — لهم أولوية التسجيل المبكر.<br>'+
+    '• <b>Tier 2</b>: من '+S('t2min')+' إلى '+(S('t1min')-1)+' نقطة.<br>'+
+    '• <b>Tier 3</b>: أقل من '+S('t2min')+' نقطة — يدخلون قائمة الاحتياط حتى يُفتح مقعد.<br>'+
+    '• الفوز <b>+'+S('winPts')+'</b> والخسارة <b>−'+S('lossPts')+'</b>. يتغيّر تصنيفك تلقائياً حسب نقاطك.';
+}
+
+/* ---- PROFILE ---- */
+function renderMe(){
+  var p=PLAYERS[myKey]||{}; var pts=p.points!=null?p.points:S('startPts'); var tier=p.tier||tierForPoints(pts);
+  // rank
+  var all=Object.keys(PLAYERS).map(function(k){return {key:k,points:PLAYERS[k].points!=null?PLAYERS[k].points:S('startPts'),active:PLAYERS[k].active!==false};}).filter(function(x){return x.active;}).sort(function(a,b){return b.points-a.points;});
+  var rank=all.findIndex(function(x){return x.key===myKey;})+1;
+  // next tier progress
+  var toNext='';
+  if(tier===3)toNext='تحتاج <b>'+(S('t2min')-pts)+'</b> نقطة للوصول إلى Tier 2';
+  else if(tier===2)toNext='تحتاج <b>'+(S('t1min')-pts)+'</b> نقطة للوصول إلى Tier 1';
+  else toNext='أنت في أعلى تصنيف 🏆';
+  // my upcoming registrations
+  var mine=Object.keys(MATCHES).filter(function(mid){return SIGNUPS[mid]&&SIGNUPS[mid][myKey]&&MATCHES[mid].status!=='done';}).sort(function(a,b){return (MATCHES[a].at||0)-(MATCHES[b].at||0);});
+  var mineHtml=mine.length?mine.map(function(mid){
+    var r=computeRoster(mid); var inN=r.inList.some(function(s){return s.key===myKey;});
+    return '<div class="kv"><span>'+esc(MATCHES[mid].title||'مباراة')+'<br><small class="muted">'+fmtDate(MATCHES[mid].at)+'</small></span>'+(inN?'<span class="tag open">مسجّل</span>':'<span class="tag soon">احتياط</span>')+'</div>';
+  }).join(''):'<div class="muted" style="font-size:13px;padding:6px 0">لا مباريات مسجّلة</div>';
+
+  $('meCard').innerHTML=
+    '<div class="card" style="text-align:center">'+
+      '<span class="avatar" style="width:72px;height:72px;font-size:26px;margin:4px auto 10px;background:'+colorFor(myName)+'">'+esc(initials(myName))+'</span>'+
+      '<h3 style="margin:0;font-size:20px">'+esc(myName)+'</h3>'+
+      '<div style="margin:8px 0">'+tierPill(tier)+'</div>'+
+      '<div class="grid2" style="margin-top:12px">'+
+        '<div class="card" style="margin:0;padding:12px"><div class="pts" style="font-size:26px">'+pts+'</div><div class="muted" style="font-size:12px">النقاط</div></div>'+
+        '<div class="card" style="margin:0;padding:12px"><div class="pts" style="font-size:26px">'+(rank||'-')+'</div><div class="muted" style="font-size:12px">الترتيب العام</div></div>'+
+      '</div>'+
+      '<div class="grid2" style="margin-top:10px">'+
+        '<div class="card" style="margin:0;padding:12px"><div class="pts" style="font-size:22px;color:var(--ok)">'+(p.w||0)+'</div><div class="muted" style="font-size:12px">فوز</div></div>'+
+        '<div class="card" style="margin:0;padding:12px"><div class="pts" style="font-size:22px;color:var(--danger)">'+(p.l||0)+'</div><div class="muted" style="font-size:12px">خسارة</div></div>'+
+      '</div>'+
+      '<div class="banner" style="margin-top:12px;color:var(--sub);background:rgba(76,201,240,.06);border-color:var(--line)">'+toNext+'</div>'+
+    '</div>'+
+    '<div class="card"><h2 class="sec" style="margin-top:0">مبارياتي القادمة</h2>'+mineHtml+'</div>'+
+    '<div class="card"><div class="kv"><span>وضع المشرف</span><span>'+(isAdmin?'مُفعّل ✅':'—')+'</span></div>'+
+      (isAdmin?'':'<button class="btn ghost block sm" style="margin-top:10px" onclick="promptAdmin()">🔐 إدخال رمز المشرف</button>')+
+      '<button class="btn danger block sm" style="margin-top:10px" onclick="logout()">تسجيل الخروج</button></div>';
+}
+function promptAdmin(){
+  openOv('<div class="grab"></div><h3>رمز المشرف</h3><label class="fl">أدخل الرمز</label><input id="adcode" type="password" placeholder="••••••">'+
+    '<button class="btn block" style="margin-top:12px" onclick="checkAdmin()">تأكيد</button>'+
+    '<button class="btn ghost block sm" style="margin-top:8px" onclick="closeOv()">إلغاء</button>');
+}
+function checkAdmin(){
+  var v=($('adcode').value||'').trim();
+  if(v===ADMIN_CODE){isAdmin=true;try{localStorage.setItem('pd_admin','1');}catch(e){}applyAdminUI();closeOv();toast('تم تفعيل وضع المشرف 🔐');switchTab('Admin');}
+  else toast('رمز غير صحيح');
+}
+function logout(){try{localStorage.removeItem('pd_name');localStorage.removeItem('pd_pin');}catch(e){}location.reload();}
+
+/* ============================================================
+   ADMIN
+   ============================================================ */
+function renderAdmin(){
+  if(!isAdmin){$('adminBody').innerHTML='<div class="empty">للمشرفين فقط</div>';return;}
+  var pCount=Object.keys(PLAYERS).length, mCount=Object.keys(MATCHES).length;
+  var openM=Object.keys(MATCHES).filter(function(m){return MATCHES[m].status!=='done';}).length;
+  $('adminBody').innerHTML=
+    '<div class="grid2">'+
+      '<div class="card" style="margin:0;text-align:center;padding:14px"><div class="pts" style="font-size:24px">'+pCount+'</div><div class="muted" style="font-size:12px">لاعب</div></div>'+
+      '<div class="card" style="margin:0;text-align:center;padding:14px"><div class="pts" style="font-size:24px">'+openM+'</div><div class="muted" style="font-size:12px">مباراة قادمة</div></div>'+
+    '</div>'+
+    '<div class="card"><h2 class="sec" style="margin-top:0">إجراءات سريعة</h2>'+
+      '<button class="btn block" onclick="sheetAddMatch()">➕ إضافة مباراة</button>'+
+      '<button class="btn ghost block" style="margin-top:8px" onclick="sheetAddPlayer()">👥 إضافة لاعب</button>'+
+      '<div class="grid2" style="margin-top:8px">'+
+        '<button class="btn ghost sm" onclick="switchAdmin(\'players\')">إدارة اللاعبين</button>'+
+        '<button class="btn ghost sm" onclick="sheetSettings()">⚙️ الإعدادات</button>'+
+      '</div>'+
+    '</div>'+
+    '<div id="adminSub"></div>';
+  switchAdmin(adminSub);
+}
+var adminSub='matches';
+function switchAdmin(which){
+  adminSub=which; var host=$('adminSub'); if(!host)return;
+  if(which==='players')host.innerHTML=adminPlayersHtml();
+  else host.innerHTML=adminMatchesHtml();
+}
+function adminMatchesHtml(){
+  var ids=sortedMatchIds();
+  var rows=ids.map(function(mid){
+    var m=MATCHES[mid]; var r=computeRoster(mid); var rs=regState(mid);
+    var st=rs.phase==='done'?'انتهت':rs.phase==='open'?'مفتوح':rs.phase==='early'?'مبكر':rs.phase==='locked'?'مُقفلة':'قريباً';
+    return '<div class="card" style="margin:8px 0;padding:12px">'+
+      '<div class="row"><div style="flex:1"><b>'+esc(m.title||'مباراة')+'</b><div class="when">'+fmtDate(m.at)+' • '+r.inList.length+'/'+r.slots+' • '+st+'</div></div></div>'+
+      '<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">'+
+        '<button class="btn sm" onclick="sheetResults(\''+mid+'\')">🏓 النتائج والفرق</button>'+
+        '<button class="btn ghost sm" onclick="sheetAddMatch(\''+mid+'\')">تعديل</button>'+
+        (m.status!=='locked'&&m.status!=='done'?'<button class="btn warn sm" onclick="setMatchStatus(\''+mid+'\',\'locked\')">قفل</button>':'<button class="btn ghost sm" onclick="setMatchStatus(\''+mid+'\',\'open\')">فتح</button>')+
+        '<button class="btn danger sm" onclick="delMatch(\''+mid+'\')">حذف</button>'+
+      '</div></div>';
+  }).join('');
+  return '<div class="seg" style="margin:14px 0 4px"><button class="on" onclick="switchAdmin(\'matches\')">المباريات</button><button onclick="switchAdmin(\'players\')">اللاعبون</button></div>'+
+    (rows||'<div class="empty">لا مباريات — أضف واحدة</div>');
+}
+function adminPlayersHtml(){
+  var ids=Object.keys(PLAYERS).sort(function(a,b){return (PLAYERS[b].points||0)-(PLAYERS[a].points||0);});
+  var rows=ids.map(function(k){
+    var p=PLAYERS[k];var pts=p.points!=null?p.points:S('startPts');var tier=p.tier||tierForPoints(pts);
+    return '<div class="lbrow"><span class="avatar" style="background:'+colorFor(p.name)+'">'+esc(initials(p.name))+'</span>'+
+      '<div class="who"><b>'+esc(p.name)+(p.active===false?' <span class="muted">(موقوف)</span>':'')+'</b><small>'+tierPill(tier)+' • '+pts+' نقطة</small></div>'+
+      '<button class="btn ghost sm" onclick="sheetEditPlayer(\''+k+'\')">تعديل</button></div>';
+  }).join('');
+  return '<div class="seg" style="margin:14px 0 4px"><button onclick="switchAdmin(\'matches\')">المباريات</button><button class="on" onclick="switchAdmin(\'players\')">اللاعبون</button></div>'+
+    '<div class="card" style="padding:6px 12px">'+(rows||'<div class="empty">لا لاعبون</div>')+'</div>';
+}
+
+/* add / edit player */
+function sheetAddPlayer(){
+  openOv('<div class="grab"></div><h3>إضافة لاعب</h3>'+
+    '<label class="fl">اسم اللاعب</label><input id="pn" placeholder="مثال: فهد">'+
+    '<label class="fl">التصنيف المبدئي</label>'+tierSelect('pt',2)+
+    '<label class="fl">النقاط المبدئية (اختياري)</label><input id="pp" type="tel" inputmode="numeric" placeholder="'+S('startPts')+'">'+
+    '<div class="sub" style="font-size:12px;margin-top:8px">اللاعب يثبّت رمزه السري في أول دخول باسمه.</div>'+
+    '<button class="btn block" style="margin-top:14px" onclick="doAddPlayer()">حفظ</button>'+
+    '<button class="btn ghost block sm" style="margin-top:8px" onclick="closeOv()">إلغاء</button>');
+}
+function tierSelect(id,val){return '<select id="'+id+'"><option value="1"'+(val===1?' selected':'')+'>Tier 1</option><option value="2"'+(val===2?' selected':'')+'>Tier 2</option><option value="3"'+(val===3?' selected':'')+'>Tier 3</option></select>';}
+function doAddPlayer(){
+  var name=($('pn').value||'').trim();if(!name){toast('اكتب الاسم');return;}
+  var key=sanitize(name);if(PLAYERS[key]){toast('الاسم موجود مسبقاً');return;}
+  var tier=parseInt($('pt').value,10);
+  var pts=$('pp').value.trim()!==''?parseInt($('pp').value,10):S('startPts');
+  ROOT.child('players/'+key).set({name:name,tier:tier,points:pts,w:0,l:0,played:0,active:true,createdAt:now()})
+    .then(function(){closeOv();toast('أُضيف اللاعب ✅');}).catch(function(e){toast(writeErr(e));});
+}
+function sheetEditPlayer(k){
+  var p=PLAYERS[k];var pts=p.points!=null?p.points:S('startPts');
+  openOv('<div class="grab"></div><h3>تعديل: '+esc(p.name)+'</h3>'+
+    '<label class="fl">التصنيف</label>'+tierSelect('et',p.tier||tierForPoints(pts))+
+    '<label class="fl">النقاط</label><input id="ep" type="tel" inputmode="numeric" value="'+pts+'">'+
+    '<div class="grid2" style="margin-top:6px"><div><label class="fl">فوز</label><input id="ew" type="tel" value="'+(p.w||0)+'"></div><div><label class="fl">خسارة</label><input id="el" type="tel" value="'+(p.l||0)+'"></div></div>'+
+    '<label class="fl">الحالة</label><select id="ea"><option value="1"'+(p.active!==false?' selected':'')+'>نشط</option><option value="0"'+(p.active===false?' selected':'')+'>موقوف</option></select>'+
+    '<button class="btn block" style="margin-top:14px" onclick="doEditPlayer(\''+k+'\')">حفظ</button>'+
+    '<button class="btn ghost block sm" style="margin-top:8px" onclick="resetPin(\''+k+'\')">🔄 إعادة تعيين الرمز السري</button>'+
+    '<button class="btn danger block sm" style="margin-top:8px" onclick="delPlayer(\''+k+'\')">حذف اللاعب</button>');
+}
+function doEditPlayer(k){
+  var upd={tier:parseInt($('et').value,10),points:parseInt($('ep').value,10)||0,w:parseInt($('ew').value,10)||0,l:parseInt($('el').value,10)||0,active:$('ea').value==='1'};
+  ROOT.child('players/'+k).update(upd).then(function(){closeOv();toast('تم الحفظ');}).catch(function(e){toast(writeErr(e));});
+}
+function resetPin(k){if(!confirm('إعادة تعيين الرمز السري؟ سيثبّت اللاعب رمزاً جديداً في الدخول التالي.'))return;ROOT.child('players/'+k+'/ph').remove().then(function(){toast('أُعيد تعيين الرمز');});}
+function delPlayer(k){if(!confirm('حذف اللاعب نهائياً؟'))return;ROOT.child('players/'+k).remove().then(function(){closeOv();toast('حُذف');});}
+
+/* add / edit match */
+function sheetAddMatch(mid){
+  var m=mid?MATCHES[mid]:null;
+  var dv=m&&m.at?new Date(m.at):new Date(now()+3*86400000);
+  var dstr=dv.getFullYear()+'-'+String(dv.getMonth()+1).padStart(2,'0')+'-'+String(dv.getDate()).padStart(2,'0')+'T'+String(dv.getHours()).padStart(2,'0')+':'+String(dv.getMinutes()).padStart(2,'0');
+  openOv('<div class="grab"></div><h3>'+(mid?'تعديل مباراة':'مباراة جديدة')+'</h3>'+
+    '<label class="fl">العنوان</label><input id="mt" placeholder="مثال: جولة الجمعة" value="'+esc(m?m.title:'')+'">'+
+    '<label class="fl">الموعد</label><input id="md" type="datetime-local" value="'+dstr+'">'+
+    '<label class="fl">الملعب / ملاحظة</label><input id="mn" placeholder="ملعب الجبيل" value="'+esc(m?(m.note||''):'')+'">'+
+    '<div class="grid2"><div><label class="fl">عدد اللاعبين</label><input id="ms" type="tel" inputmode="numeric" value="'+(m?m.slots:S('slots'))+'"></div>'+
+      '<div><label class="fl">فتح Tier1 (ساعة قبل)</label><input id="me" type="tel" inputmode="numeric" value="'+(m&&m.earlyH!=null?m.earlyH:S('earlyH'))+'"></div></div>'+
+    '<label class="fl">فتح التسجيل العام (ساعة قبل الموعد)</label><input id="mo" type="tel" inputmode="numeric" value="'+(m&&m.openH!=null?m.openH:S('openH'))+'">'+
+    '<button class="btn block" style="margin-top:14px" onclick="doSaveMatch('+(mid?'\''+mid+'\'':'null')+')">حفظ</button>'+
+    '<button class="btn ghost block sm" style="margin-top:8px" onclick="closeOv()">إلغاء</button>');
+}
+function doSaveMatch(mid){
+  var title=($('mt').value||'').trim()||'مباراة';
+  var at=new Date($('md').value).getTime(); if(!at){toast('حدد الموعد');return;}
+  var slots=Math.max(2,parseInt($('ms').value,10)||S('slots')); if(slots%2)slots++;
+  var earlyH=Math.max(0,parseInt($('me').value,10)||0);
+  var openH=Math.max(0,parseInt($('mo').value,10)||0);
+  var note=($('mn').value||'').trim();
+  var data={title:title,at:at,slots:slots,earlyH:earlyH,openH:openH,note:note};
+  var ref=mid?ROOT.child('matches/'+mid):ROOT.child('matches').push();
+  if(!mid){data.status='upcoming';data.createdAt=now();}
+  (mid?ref.update(data):ref.set(data)).then(function(){closeOv();toast('حُفظت المباراة ✅');}).catch(function(e){toast(writeErr(e));});
+}
+function setMatchStatus(mid,st){ROOT.child('matches/'+mid+'/status').set(st).then(function(){toast(st==='locked'?'قُفلت المباراة':'فُتحت المباراة');});}
+function delMatch(mid){if(!confirm('حذف المباراة وكل تسجيلاتها؟'))return;
+  ROOT.child('matches/'+mid).remove();ROOT.child('signups/'+mid).remove();ROOT.child('results/'+mid).remove();ROOT.child('teams/'+mid).remove();
+  toast('حُذفت المباراة');}
+
+/* results + teams + points */
+function sheetResults(mid){
+  var m=MATCHES[mid];var r=computeRoster(mid);var res=RESULTS[mid]||{};var applied=m.applied;
+  var rows=r.inList.map(function(s){
+    var cur=res[s.key]||'';
+    return '<div class="team"><span class="avatar" style="background:'+colorFor(s.name)+'">'+esc(initials(s.name))+'</span>'+
+      '<b style="flex:1">'+esc(s.name)+'</b>'+
+      '<div class="resbtns" style="width:150px"><button class="btn sm '+(cur==='win'?'on-win':'ghost')+'" onclick="setRes(\''+mid+'\',\''+s.key+'\',\'win\')">فوز</button>'+
+      '<button class="btn sm '+(cur==='loss'?'on-loss':'ghost')+'" onclick="setRes(\''+mid+'\',\''+s.key+'\',\'loss\')">خسارة</button></div></div>';
+  }).join('');
+  openOv('<div class="grab"></div><h3>نتائج: '+esc(m.title||'مباراة')+'</h3>'+
+    '<div class="sub" style="font-size:12.5px;margin-bottom:8px">حدّد الفائزين والخاسرين ثم اعتمد النتيجة لاحتساب النقاط وتحديث التصنيفات.</div>'+
+    '<button class="btn ghost block sm" onclick="autoTeams(\''+mid+'\')">🔀 توزيع الفرق تلقائياً</button>'+
+    '<div style="margin-top:12px">'+(rows||'<div class="empty">لا لاعبون مسجّلون</div>')+'</div>'+
+    (applied?'<div class="banner" style="color:var(--ok);border-color:rgba(37,211,102,.3);background:rgba(37,211,102,.08)">✅ احتُسبت النقاط لهذه المباراة</div>':'')+
+    '<button class="btn block" style="margin-top:8px" onclick="applyResults(\''+mid+'\')">'+(applied?'إعادة الاحتساب':'اعتماد النتيجة واحتساب النقاط')+'</button>'+
+    '<button class="btn ghost block sm" style="margin-top:8px" onclick="closeOv()">إغلاق</button>');
+}
+function setRes(mid,key,val){
+  var cur=(RESULTS[mid]&&RESULTS[mid][key])||'';
+  var nv=cur===val?null:val;
+  ROOT.child('results/'+mid+'/'+key).set(nv).then(function(){sheetResults(mid);});
+}
+function autoTeams(mid){
+  var r=computeRoster(mid);var pl=r.inList.slice();
+  // pair strong+weak by points for balance
+  pl.sort(function(a,b){return (PLAYERS[b.key]&&PLAYERS[b.key].points||0)-(PLAYERS[a.key]&&PLAYERS[a.key].points||0);});
+  var teams={},i=0,j=pl.length-1,ci=0;
+  while(i<j){teams[ci++]=[pl[i].key,pl[j].key];i++;j--;}
+  if(i===j)teams[ci++]=[pl[i].key];
+  ROOT.child('teams/'+mid).set(teams).then(function(){toast('وُزّعت الفرق');sheetResults(mid);});
+}
+function applyResults(mid){
+  var res=RESULTS[mid]||{};var keys=Object.keys(res);
+  if(!keys.length){toast('حدّد النتائج أولاً');return;}
+  var m=MATCHES[mid];
+  // If previously applied, revert first using stored deltas
+  var prev=m.deltas||{};
+  var updates={};
+  // revert previous
+  Object.keys(prev).forEach(function(k){
+    var p=PLAYERS[k];if(!p)return;
+    var d=prev[k];
+    var pts=(p.points!=null?p.points:S('startPts'))-d.pts;
+    var w=(p.w||0)-(d.w||0), l=(p.l||0)-(d.l||0), played=(p.played||0)-(d.played||0);
+    updates['players/'+k+'/points']=pts;updates['players/'+k+'/w']=w;updates['players/'+k+'/l']=l;
+    updates['players/'+k+'/played']=played;updates['players/'+k+'/tier']=tierForPoints(pts);
+  });
+  // apply new — read from (already reverted) baseline
+  var base={};
+  Object.keys(PLAYERS).forEach(function(k){base[k]={points:(PLAYERS[k].points!=null?PLAYERS[k].points:S('startPts')),w:PLAYERS[k].w||0,l:PLAYERS[k].l||0,played:PLAYERS[k].played||0};});
+  Object.keys(prev).forEach(function(k){if(base[k]){base[k].points-=prev[k].pts;base[k].w-=(prev[k].w||0);base[k].l-=(prev[k].l||0);base[k].played-=(prev[k].played||0);}});
+  var deltas={};
+  keys.forEach(function(k){
+    if(!PLAYERS[k])return;
+    var r=res[k];var dpts=r==='win'?S('winPts'):(r==='loss'?-S('lossPts'):0);
+    var dw=r==='win'?1:0, dl=r==='loss'?1:0, dp=(r==='win'||r==='loss')?1:0;
+    deltas[k]={pts:dpts,w:dw,l:dl,played:dp};
+    var b=base[k]||{points:S('startPts'),w:0,l:0,played:0};
+    var np=b.points+dpts;
+    updates['players/'+k+'/points']=np;
+    updates['players/'+k+'/w']=b.w+dw;
+    updates['players/'+k+'/l']=b.l+dl;
+    updates['players/'+k+'/played']=b.played+dp;
+    updates['players/'+k+'/tier']=tierForPoints(np);
+  });
+  updates['matches/'+mid+'/applied']=true;
+  updates['matches/'+mid+'/deltas']=deltas;
+  updates['matches/'+mid+'/status']='done';
+  ROOT.update(updates).then(function(){closeOv();toast('احتُسبت النقاط وحُدّثت التصنيفات ✅');}).catch(function(e){toast(writeErr(e));});
+}
+
+/* settings */
+function sheetSettings(){
+  openOv('<div class="grab"></div><h3>إعدادات الدوري</h3>'+
+    '<div class="grid2"><div><label class="fl">نقاط البداية</label><input id="s_start" type="tel" value="'+S('startPts')+'"></div>'+
+    '<div><label class="fl">عدد اللاعبين الافتراضي</label><input id="s_slots" type="tel" value="'+S('slots')+'"></div></div>'+
+    '<div class="grid2"><div><label class="fl">حد Tier 1</label><input id="s_t1" type="tel" value="'+S('t1min')+'"></div>'+
+    '<div><label class="fl">حد Tier 2</label><input id="s_t2" type="tel" value="'+S('t2min')+'"></div></div>'+
+    '<div class="grid2"><div><label class="fl">نقاط الفوز</label><input id="s_win" type="tel" value="'+S('winPts')+'"></div>'+
+    '<div><label class="fl">نقاط الخسارة</label><input id="s_loss" type="tel" value="'+S('lossPts')+'"></div></div>'+
+    '<div class="grid2"><div><label class="fl">تسجيل Tier1 (ساعة قبل)</label><input id="s_early" type="tel" value="'+S('earlyH')+'"></div>'+
+    '<div><label class="fl">تسجيل عام (ساعة قبل)</label><input id="s_open" type="tel" value="'+S('openH')+'"></div></div>'+
+    '<button class="btn block" style="margin-top:14px" onclick="doSaveSettings()">حفظ الإعدادات</button>'+
+    '<button class="btn ghost block sm" style="margin-top:8px" onclick="closeOv()">إلغاء</button>');
+}
+function doSaveSettings(){
+  var s={startPts:num('s_start',DEFAULTS.startPts),slots:num('s_slots',DEFAULTS.slots),t1min:num('s_t1',DEFAULTS.t1min),t2min:num('s_t2',DEFAULTS.t2min),winPts:num('s_win',DEFAULTS.winPts),lossPts:num('s_loss',DEFAULTS.lossPts),earlyH:num('s_early',DEFAULTS.earlyH),openH:num('s_open',DEFAULTS.openH)};
+  ROOT.child('settings').set(s).then(function(){closeOv();toast('حُفظت الإعدادات');}).catch(function(e){toast(writeErr(e));});
+}
+function num(id,d){var v=parseInt($(id).value,10);return isNaN(v)?d:v;}
+
+/* ============================================================
+   OVERLAY + TICK
+   ============================================================ */
+function openOv(html){$('ovSheet').innerHTML=html;$('ov').classList.add('show');}
+function closeOv(){$('ov').classList.remove('show');}
+$('ov').addEventListener('click',function(e){if(e.target===$('ov'))closeOv();});
+
+function tick(){
+  // live countdowns
+  Array.prototype.forEach.call(document.querySelectorAll('.countdown[data-cd]'),function(el){
+    var t=parseInt(el.getAttribute('data-cd'),10);var left=t-now();
+    if(left<=0){renderMatches();return;}
+    el.textContent=humanLeft(left);
+  });
+}
+
+/* ---- initial screen ---- */
+showLogin();
+
+/* expose fns used by inline handlers */
+window.closeOv=closeOv;window.promptAdmin=promptAdmin;window.checkAdmin=checkAdmin;window.logout=logout;
+window.switchAdmin=switchAdmin;window.sheetAddMatch=sheetAddMatch;window.sheetAddPlayer=sheetAddPlayer;
+window.doAddPlayer=doAddPlayer;window.sheetEditPlayer=sheetEditPlayer;window.doEditPlayer=doEditPlayer;
+window.resetPin=resetPin;window.delPlayer=delPlayer;window.doSaveMatch=doSaveMatch;window.setMatchStatus=setMatchStatus;
+window.delMatch=delMatch;window.sheetResults=sheetResults;window.setRes=setRes;window.autoTeams=autoTeams;
+window.applyResults=applyResults;window.sheetSettings=sheetSettings;window.doSaveSettings=doSaveSettings;
+</script>
+</body>
+</html>

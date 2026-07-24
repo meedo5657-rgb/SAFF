@@ -148,6 +148,62 @@
           }
         }
       }
+    },
+
+    "padel": {
+      ".read": "auth != null",
+
+      "players": {
+        "$key": {
+          ".write": "auth != null && newData.exists()",
+          "name": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40"
+          },
+          "ph": {
+            ".validate": "!data.exists() || newData.val() === data.val()"
+          },
+          "points":  { ".validate": "newData.isNumber()" },
+          "tier":    { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 3" },
+          "w":       { ".validate": "newData.isNumber()" },
+          "l":       { ".validate": "newData.isNumber()" },
+          "played":  { ".validate": "newData.isNumber()" },
+          "active":  { ".validate": "newData.isBoolean()" }
+        }
+      },
+
+      "matches": {
+        "$mid": {
+          ".write": "auth != null"
+        }
+      },
+
+      "signups": {
+        "$mid": {
+          "$key": {
+            ".write": "auth != null",
+            ".validate": "!newData.exists() || (newData.hasChild('name') && newData.hasChild('ts'))"
+          }
+        }
+      },
+
+      "results": {
+        "$mid": {
+          "$key": {
+            ".write": "auth != null",
+            ".validate": "!newData.exists() || (newData.isString() && (newData.val() === 'win' || newData.val() === 'loss'))"
+          }
+        }
+      },
+
+      "teams": {
+        "$mid": {
+          ".write": "auth != null"
+        }
+      },
+
+      "settings": {
+        ".write": "auth != null"
+      }
     }
   }
 }
