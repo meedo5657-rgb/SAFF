@@ -1,0 +1,17 @@
+{
+  "name": "تمرين الطائرة الأسبوعي",
+  "short_name": "الطائرة",
+  "description": "تسجيل اللاعبين، التشكيلة، الفيديوهات، النتائج، وتصويت أفضل لاعب.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./volley.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "icons": [
+    {"src": "icon-volley-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-volley-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

@@ -148,6 +148,84 @@
           }
         }
       }
+    },
+
+    "volley": {
+      ".read": "auth != null",
+
+      "users": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid",
+          "name": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
+          }
+        }
+      },
+
+      "players": {
+        "$pid": {
+          ".write": "auth != null",
+          "name": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40"
+          },
+          "num": {
+            ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 99)"
+          }
+        }
+      },
+
+      "videos": {
+        "$vid": {
+          ".write": "auth != null",
+          "title": {
+            ".validate": "newData.isString() && newData.val().length <= 80"
+          },
+          "type": {
+            ".validate": "newData.isString() && (newData.val() === 'link' || newData.val() === 'file')"
+          }
+        }
+      },
+
+      "saved": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid",
+          "$vid": {
+            ".validate": "newData.isBoolean()"
+          }
+        }
+      },
+
+      "results": {
+        "$rid": {
+          ".write": "auth != null"
+        }
+      },
+
+      "lineup": {
+        ".write": "auth != null"
+      },
+
+      "mvp": {
+        "$sid": {
+          "title": {
+            ".write": "auth != null",
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "open": {
+            ".write": "auth != null",
+            ".validate": "newData.isBoolean()"
+          },
+          "ts": {
+            ".write": "auth != null"
+          },
+          "votes": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid",
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            }
+          }
+        }
+      }
     }
   }
 }
