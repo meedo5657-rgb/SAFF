@@ -286,18 +286,21 @@ nav button.on .ic{transform:translateY(-1px)}
 
 <script>
 /* =========================================================
-   Firebase config — same project as the rest of the SAFF apps.
-   Data lives under the "volley" namespace. Videos (files) go to
-   Firebase Storage under volley/videos/<id>/<filename>.
+   Firebase config — INDEPENDENT project dedicated to this app.
+   انسخ إعدادات مشروعك الجديد من:
+   Firebase Console > Project settings (⚙️) > Your apps > SDK setup > Config
+   وتأكد من إضافة databaseURL من صفحة Realtime Database.
+   بيانات التطبيق تُخزَّن تحت المسار "volley"، والفيديوهات المرفوعة تحت
+   volley/videos/<id>/<filename> في Firebase Storage.
    ========================================================= */
 var firebaseConfig = {
-  apiKey:"AIzaSyBlRu52dh7N58H9j1HebKwI1OSttWyX5ZA",
-  authDomain:"wc-2026-predictions---saff.firebaseapp.com",
-  databaseURL:"https://wc-2026-predictions---saff-default-rtdb.firebaseio.com",
-  projectId:"wc-2026-predictions---saff",
-  storageBucket:"wc-2026-predictions---saff.firebasestorage.app",
-  messagingSenderId:"505320213469",
-  appId:"1:505320213469:web:3f008271525eeb5ef54434"
+  apiKey:"YOUR_API_KEY",
+  authDomain:"YOUR_PROJECT.firebaseapp.com",
+  databaseURL:"https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId:"YOUR_PROJECT",
+  storageBucket:"YOUR_PROJECT.firebasestorage.app",
+  messagingSenderId:"YOUR_SENDER_ID",
+  appId:"YOUR_APP_ID"
 };
 var ADMIN_CODE = "2026"; // كود المشرف — غيّره وقت ما تبي
 
@@ -335,7 +338,7 @@ if(configReady){
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});
   }catch(e){ showCfg('⚠️ خطأ في تهيئة Firebase: '+esc(e.message||e)); }
 }else{
-  showCfg('⚙️ <b>الإعداد مطلوب:</b> ضع إعدادات Firebase في الكود (ابحث عن <code>firebaseConfig</code>).');
+  showCfg('⚙️ <b>الإعداد مطلوب:</b> افتح <code>volley.html</code> وابحث عن <code>firebaseConfig</code>، والصق إعدادات مشروعك المستقل في Firebase (apiKey / projectId / databaseURL … إلخ). التطبيق ما يحفظ شي قبل هذي الخطوة.');
 }
 
 function boot(){
