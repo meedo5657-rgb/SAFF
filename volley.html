@@ -384,17 +384,30 @@ function toggleAdmin(){
 function updateAdminUI(){ $('adminBtn').classList.toggle('on',isAdmin); renderAll(); }
 
 /* ========================================================= SESSION PAGE */
-function newSession(){
-  if(!isAdmin){toast('إنشاء تمرين للمشرف فقط');return;}
-  var t=prompt('عنوان التمرين / التاريخ:', 'تمرين '+new Date().toLocaleDateString('ar-EG'));
-  if(t===null)return;
-  var sid=pushId('sessions');
-  ROOT.child('sessions/'+sid).set({title:(t||'تمرين').slice(0,80),status:'upcoming',ts:nowTs(),mvp:{open:true}})
-    .then(function(){toast('أُنشئ التمرين ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));});
+function todayISO(){ var d=new Date(); var m=String(d.getMonth()+1),day=String(d.getDate()); if(m.length<2)m='0'+m; if(day.length<2)day='0'+day; return d.getFullYear()+'-'+m+'-'+day; }
+function fmtDate(iso){ if(!iso)return ''; try{ var d=new Date(iso+'T00:00:00'); if(isNaN(d.getTime()))return iso; return d.toLocaleDateString('ar',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }catch(e){ return iso; } }
+function sessionForm(id){
+  if(!isAdmin){toast('التمرين للمشرف فقط');return;}
+  var s=id?(sessions[id]||{}):{};
+  modal('<div class="grab"></div><h2 style="margin:0 0 12px">'+(id?'تعديل التمرين':'تمرين جديد')+'</h2>'+
+    '<label>عنوان التمرين</label><input class="inp" id="sfTitle" maxlength="80" placeholder="مثال: تمرين الخميس" value="'+esc(s.title||'')+'">'+
+    '<div style="height:10px"></div>'+
+    '<label>التاريخ</label><input class="inp" id="sfDate" type="date" value="'+esc(s.date||todayISO())+'">'+
+    '<div style="height:14px"></div>'+
+    '<button class="btn" onclick="saveSession(\''+(id||'')+'\')">'+(id?'حفظ':'إنشاء التمرين')+'</button>'+
+    '<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إلغاء</button>');
 }
-function editSessionTitle(sid){
-  var s=sessions[sid]||{}; var t=prompt('عنوان التمرين / التاريخ:', s.title||'');
-  if(t===null)return; ROOT.child('sessions/'+sid+'/title').set((t||'تمرين').slice(0,80));
+function saveSession(id){
+  if(!isAdmin){toast('للمشرف فقط');return;}
+  var title=($('sfTitle').value||'').trim().slice(0,80)||'تمرين';
+  var date=$('sfDate').value||'';
+  if(id){
+    ROOT.child('sessions/'+id).update({title:title,date:date}).then(function(){closeModal();toast('تم الحفظ ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));});
+  }else{
+    var sid=pushId('sessions');
+    ROOT.child('sessions/'+sid).set({title:title,date:date,status:'upcoming',ts:nowTs(),mvp:{open:true}})
+      .then(function(){closeModal();toast('أُنشئ التمرين ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));});
+  }
 }
 function endSession(sid){
   if(!isAdmin){toast('للمشرف فقط');return;}
@@ -419,16 +432,17 @@ function renderSession(){
     host.innerHTML='<div class="sectitle"><h2>التمرين القادم</h2></div>'+
       '<div class="card"><div class="empty">ما فيه تمرين حالي 🏐<br>'+
       (isAdmin?'أنشئ تمرين جديد عشان تبدأ.':'المشرف بيفتح التمرين قريب.')+'</div>'+
-      (isAdmin?'<button class="btn" onclick="newSession()">＋ إنشاء تمرين جديد</button>':'')+'</div>';
+      (isAdmin?'<button class="btn" onclick="sessionForm()">＋ إنشاء تمرين جديد</button>':'')+'</div>';
     return;
   }
   var sid=s.id;
   var html='<div class="sectitle"><h2>التمرين القادم</h2>'+
-    (isAdmin?'<button class="btn sm sec" onclick="newSession()">＋ تمرين</button>':'')+'</div>';
+    (isAdmin?'<button class="btn sm sec" onclick="sessionForm()">＋ تمرين</button>':'')+'</div>';
 
   /* header */
   html+='<div class="seshead"><div class="ttl">'+esc(s.title||'تمرين')+
-    (isAdmin?' <button class="tgt" style="vertical-align:middle" onclick="editSessionTitle(\''+sid+'\')">✏️</button>':'')+'</div>'+
+    (isAdmin?' <button class="tgt" style="vertical-align:middle" onclick="sessionForm(\''+sid+'\')">✏️</button>':'')+'</div>'+
+    (s.date?'<div class="meta" style="margin-top:6px">📅 '+esc(fmtDate(s.date))+'</div>':'')+
     '<div class="meta"><span class="statusdot"></span> التمرين الحالي · '+countInLineup(s)+' لاعب بالتشكيلة</div></div>';
 
   /* lineup */
@@ -653,7 +667,7 @@ function renderResults(){
       scoreHtml='<div class="score"><div class="tm '+(aw?'win':'')+'">🔵 '+TEAM_A_NAME+'</div><div class="sc '+(aw?'win':'')+'">'+(r.setsA||0)+'</div><div class="muted">–</div><div class="sc '+(bw?'win':'')+'">'+(r.setsB||0)+'</div><div class="tm '+(bw?'win':'')+'">🟠 '+TEAM_B_NAME+'</div></div>';
     } else scoreHtml='<div class="muted" style="text-align:center;padding:6px">بدون نتيجة</div>';
     return '<div class="res" style="margin-bottom:12px" onclick="openResultDetail(\''+s.id+'\')">'+
-      '<div class="head"><span>'+esc(s.title||'تمرين')+'</span><span>'+(vcount?('🎬 '+vcount):'')+'</span></div>'+
+      '<div class="head"><span>'+esc(s.title||'تمرين')+(s.date?' · 📅 '+esc(fmtDate(s.date)):'')+'</span><span>'+(vcount?('🎬 '+vcount):'')+'</span></div>'+
       scoreHtml+
       '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px">'+mvpLine+'</div></div>';
   }).join('');
@@ -664,7 +678,8 @@ function openResultDetail(sid){
   function names(map){return Object.keys(map).map(function(pid){return (players[pid]||{}).name||'?';});}
   var setLine=r&&r.sets?r.sets.map(function(x){return '<span class="setbox">'+x.a+'-'+x.b+'</span>';}).join(''):'';
   var vids=sessionVideos(sid);
-  var html='<div class="grab"></div><h2 style="margin:0 0 10px">'+esc(s.title||'تمرين')+'</h2>';
+  var html='<div class="grab"></div><h2 style="margin:0 0 2px">'+esc(s.title||'تمرين')+'</h2>'+
+    (s.date?'<div class="muted" style="font-size:12px;margin:0 2px 10px">📅 '+esc(fmtDate(s.date))+'</div>':'<div style="height:8px"></div>');
   if(r){var aw=r.setsA>r.setsB,bw=r.setsB>r.setsA;
     html+='<div class="res"><div class="score"><div class="tm '+(aw?'win':'')+'">🔵 '+TEAM_A_NAME+'</div><div class="sc '+(aw?'win':'')+'">'+(r.setsA||0)+'</div><div class="muted">–</div><div class="sc '+(bw?'win':'')+'">'+(r.setsB||0)+'</div><div class="tm '+(bw?'win':'')+'">🟠 '+TEAM_B_NAME+'</div></div>'+
       (setLine?'<div class="setline">'+setLine+'</div>':'')+(r.note?'<div class="muted" style="text-align:center;font-size:12px;margin-top:8px">'+esc(r.note)+'</div>':'')+'</div>';
