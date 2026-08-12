@@ -176,7 +176,7 @@ nav button.on{color:var(--brand)}
 
 <header>
   <div class="logo"></div>
-  <div class="htxt"><h1>تمرين الطائرة الأسبوعي 🏐</h1><small id="hsub">جاري التحميل…</small></div>
+  <div class="htxt"><h1>تمرين الطائرة الأسبوعي 🏐</h1><small id="hsub">جارٍ التحميل…</small></div>
   <div class="chip" onclick="accountMenu()"><span>👤</span><b id="meName">—</b></div>
   <button class="iconbtn" id="adminBtn" onclick="toggleAdmin()" title="المشرف">⚙️</button>
 </header>
@@ -191,15 +191,15 @@ nav button.on{color:var(--brand)}
   <section class="view hide" id="v_results">
     <div class="sectitle"><h2>النتائج</h2><span class="sub">التمارين المنتهية</span></div>
     <div id="resultsList"></div>
-    <div id="resultsEmpty" class="empty hide">ما فيه تمارين منتهية بعد.<br>أنهِ التمرين الحالي عشان ينحفظ هنا.</div>
+    <div id="resultsEmpty" class="empty hide">لا توجد تمارين منتهية بعد.<br>أنهِ التمرين الحالي ليُحفظ هنا.</div>
   </section>
 
   <!-- ===== STANDINGS ===== -->
   <section class="view hide" id="v_standings">
-    <div class="sectitle"><h2>الترتيب</h2><span class="sub">من نتائج التمارين</span></div>
-    <div class="legend"><span><b>لعب</b> = عدد التمارين</span><span><b>أشواط</b> = أشواط فاز فريقه</span><span><b>نقاط</b> = نقاط فريقه</span><span><b>⭐</b> = مرات الأفضل</span></div>
+    <div class="sectitle"><h2>الترتيب</h2></div>
+    <div class="legend"><span><b>لعب</b> = عدد التمارين</span><span><b>أشواط</b> = أشواط فاز بها فريقه</span><span><b>نقاط</b> = نقاط فريقه</span><span><b>⭐</b> = مرات الأفضل</span></div>
     <div class="card" style="padding:6px"><div class="standwrap"><table class="stand" id="standTable"></table></div></div>
-    <div id="standEmpty" class="empty hide">ما فيه بيانات بعد.<br>أضف لاعبين وأدخل نتائج التمارين.</div>
+    <div id="standEmpty" class="empty hide">لا توجد بيانات بعد.<br>أضف لاعبين وأدخل نتائج التمارين.</div>
   </section>
 
   <!-- ===== VIDEOS ===== -->
@@ -211,7 +211,7 @@ nav button.on{color:var(--brand)}
       <button id="vfMine" onclick="setVideoFilter('mine')">⭐ محفوظاتي</button>
     </div>
     <div id="videosList"></div>
-    <div id="videosEmpty" class="empty hide">ما فيه فيديوهات بعد.</div>
+    <div id="videosEmpty" class="empty hide">لا توجد فيديوهات بعد.</div>
   </section>
 </main>
 
@@ -241,7 +241,7 @@ var firebaseConfig = {
   messagingSenderId:"1384225671",
   appId:"1:1384225671:web:b4b26b509b352859c7d122"
 };
-var ADMIN_CODE = "2026";      // كود المشرف — غيّره وقت ما تبي
+var ADMIN_CODE = "2026";      // رمز المشرف — غيّره متى شئت
 var ENABLE_UPLOAD = false;    // رفع ملفات الفيديو يحتاج Firebase Storage (بفلوس). خلّه true لو فعّلته.
 
 var TEAM_A_NAME = "الأزرق", TEAM_B_NAME = "البرتقالي";
@@ -327,7 +327,7 @@ function showLogin(){
   modal('<div class="grab"></div>'+
     '<div style="text-align:center;margin-bottom:6px"><div style="font-size:40px">🏐</div>'+
     '<h2 style="margin:6px 0 2px">تسجيل الدخول</h2>'+
-    '<p class="muted" style="margin:0 0 16px;font-size:13px">اكتب اسم المستخدم ورقمك السري.<br>لاعب جديد؟ اكتب اسم ورقم سري جديد وبينحفظ لك.</p></div>'+
+    '<p class="muted" style="margin:0 0 16px;font-size:13px">أدخل اسم المستخدم ورقمك السري.<br>لاعب جديد؟ أدخل اسمًا ورقمًا سريًا جديدًا وسيُحفظ لك.</p></div>'+
     '<label>اسم المستخدم</label><input class="inp" id="lgName" maxlength="30" placeholder="مثال: محمود">'+
     '<div style="height:10px"></div>'+
     '<label>الرقم السري (4 أرقام)</label>'+
@@ -340,10 +340,10 @@ function showLogin(){
 function doLogin(){
   var name=($('lgName').value||'').trim();
   var pin=($('lgPin').value||'').trim();
-  if(!name){ $('lgErr').textContent='اكتب اسم المستخدم'; return; }
-  if(!/^[0-9]{4}$/.test(pin)){ $('lgErr').textContent='الرقم السري لازم 4 أرقام'; return; }
-  if(!configReady){ $('lgErr').textContent='لازم تضبط إعدادات Firebase أولاً.'; return; }
-  if(!authReady){ $('lgErr').textContent='جارٍ الاتصال… حاول بعد ثانية.'; return; }
+  if(!name){ $('lgErr').textContent='أدخل اسم المستخدم'; return; }
+  if(!/^[0-9]{4}$/.test(pin)){ $('lgErr').textContent='يجب أن يتكوّن الرقم السري من 4 أرقام'; return; }
+  if(!configReady){ $('lgErr').textContent='يجب ضبط إعدادات Firebase أولاً.'; return; }
+  if(!authReady){ $('lgErr').textContent='جارٍ الاتصال… أعد المحاولة بعد قليل.'; return; }
   $('lgErr').textContent='جارٍ الدخول…';
   attemptLogin(name,pin,false);
 }
@@ -365,7 +365,7 @@ function loginOk(name,pin,key){
   myName=name.slice(0,30); myKey=key; loggedIn=true;
   try{ localStorage.setItem('volley_name',name); localStorage.setItem('volley_pin',pin); }catch(e){}
   $('meName').textContent=myName; attachSaved(); closeModal(); renderAll();
-  toast('أهلاً '+myName+' 👋');
+  toast('مرحبًا '+myName+' 👋');
 }
 function loginFail(msg,fromAuto){
   myName='';myKey='';loggedIn=false;
@@ -393,17 +393,17 @@ function accountMenu(){
   if(!loggedIn){ showLogin(); return; }
   modal('<div class="grab"></div><div style="text-align:center;margin-bottom:14px">'+
     '<div style="font-size:34px">👤</div><h2 style="margin:6px 0 0">'+esc(myName)+'</h2>'+
-    '<div class="muted" style="font-size:12px">مسجّل دخول</div></div>'+
+    '<div class="muted" style="font-size:12px">مسجّل الدخول</div></div>'+
     '<button class="btn sec red" style="background:#3a1414;color:#ffd7d7;border:1px solid #7a2626" onclick="logout()">🚪 تسجيل الخروج</button>'+
     '<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إغلاق</button>');
 }
 
 /* ========================================================= ADMIN */
 function toggleAdmin(){
-  if(isAdmin){ if(confirm('تسجيل خروج المشرف؟')){ isAdmin=false; try{localStorage.removeItem('volley_admin');}catch(e){} updateAdminUI(); toast('خرجت من وضع المشرف'); } return; }
-  var c=prompt('كود المشرف:'); if(c===null)return;
-  if(c===ADMIN_CODE){ isAdmin=true; try{localStorage.setItem('volley_admin','1');}catch(e){} updateAdminUI(); toast('أهلاً يا مشرف ⚙️'); }
-  else toast('كود غير صحيح');
+  if(isAdmin){ if(confirm('تسجيل خروج المشرف؟')){ isAdmin=false; try{localStorage.removeItem('volley_admin');}catch(e){} updateAdminUI(); toast('تم الخروج من وضع المشرف'); } return; }
+  var c=prompt('رمز المشرف:'); if(c===null)return;
+  if(c===ADMIN_CODE){ isAdmin=true; try{localStorage.setItem('volley_admin','1');}catch(e){} updateAdminUI(); toast('مرحبًا أيها المشرف ⚙️'); }
+  else toast('الرمز غير صحيح');
 }
 function updateAdminUI(){ $('adminBtn').classList.toggle('on',isAdmin); renderAll(); }
 
@@ -436,16 +436,16 @@ function saveSession(id){
 function endSession(sid){
   if(!isAdmin){toast('للمشرف فقط');return;}
   var s=sessions[sid]||{};
-  if(!s.result){ if(!confirm('ما أدخلت نتيجة التمرين. تبي تنهيه بدون نتيجة؟'))return; }
+  if(!s.result){ if(!confirm('لم تُدخل نتيجة التمرين. هل تريد إنهاءه بدون نتيجة؟'))return; }
   else if(!confirm('إنهاء التمرين ونقله للنتائج؟'))return;
   ROOT.child('sessions/'+sid).update({status:'done'}).then(function(){
     ROOT.child('sessions/'+sid+'/mvp/open').set(false);
-    toast('انتهى التمرين ✓ صار بالنتائج');
+    toast('انتهى التمرين ✓ وأُضيف إلى النتائج');
   });
 }
 function reopenSession(sid){
   if(!isAdmin)return;
-  if(!confirm('إرجاع هذا التمرين كتمرين حالي؟'))return;
+  if(!confirm('إعادة هذا التمرين كتمرينٍ حالي؟'))return;
   ROOT.child('sessions/'+sid+'/status').set('upcoming');
 }
 
@@ -454,8 +454,8 @@ function renderSession(){
   var s=activeSession();
   if(!s){
     host.innerHTML='<div class="sectitle"><h2>التمرين القادم</h2></div>'+
-      '<div class="card"><div class="empty">ما فيه تمرين حالي 🏐<br>'+
-      (isAdmin?'أنشئ تمرين جديد عشان تبدأ.':'المشرف بيفتح التمرين قريب.')+'</div>'+
+      '<div class="card"><div class="empty">لا يوجد تمرين حالي 🏐<br>'+
+      (isAdmin?'أنشئ تمرينًا جديدًا للبدء.':'سيفتح المشرف التمرين قريبًا.')+'</div>'+
       (isAdmin?'<button class="btn" onclick="sessionForm()">＋ إنشاء تمرين جديد</button>':'')+'</div>';
     return;
   }
@@ -467,7 +467,7 @@ function renderSession(){
   html+='<div class="seshead"><div class="ttl">'+esc(s.title||'تمرين')+
     (isAdmin?' <button class="tgt" style="vertical-align:middle" onclick="sessionForm(\''+sid+'\')">✏️</button>':'')+'</div>'+
     (s.date?'<div class="meta" style="margin-top:6px">📅 '+esc(fmtDate(s.date))+'</div>':'')+
-    '<div class="meta"><span class="statusdot"></span> التمرين الحالي · '+countInLineup(s)+' لاعب بالتشكيلة</div></div>';
+    '<div class="meta"><span class="statusdot"></span> التمرين الحالي · '+countInLineup(s)+' لاعبًا في التشكيلة</div></div>';
 
   /* lineup */
   html+='<div class="card"><div class="blocktitle"><span class="ic">📋</span> التشكيلة'+
@@ -484,8 +484,8 @@ function renderSession(){
   html+='<div class="card"><div class="blocktitle"><span class="ic">🎬</span> فيديوهات التمرين'+
     '<button class="btn sm act" onclick="openVideoForm(\''+sid+'\')">＋ فيديو</button></div>'+
     (vids.length? vids.slice(0,4).map(videoRowMini).join('')+
-       (vids.length>4?'<button class="btn sec sm" style="margin-top:4px" onclick="setVideoFilter(\'cur\');nav(\'videos\')">شوف كل الفيديوهات ('+vids.length+')</button>':'')
-     : '<div class="muted" style="font-size:13px;padding:4px 2px">ما فيه فيديوهات لهذا التمرين بعد.</div>')+'</div>';
+       (vids.length>4?'<button class="btn sec sm" style="margin-top:4px" onclick="setVideoFilter(\'cur\');nav(\'videos\')">عرض كل الفيديوهات ('+vids.length+')</button>':'')
+     : '<div class="muted" style="font-size:13px;padding:4px 2px">لا توجد فيديوهات لهذا التمرين بعد.</div>')+'</div>';
 
   /* admin: end session */
   if(isAdmin){
@@ -497,7 +497,7 @@ function countInLineup(s){var l=s.lineup||{};return (Object.keys(l.teamA||{}).le
 
 function lineupHtml(s){
   var ids=Object.keys(players);
-  if(!ids.length) return '<div class="muted" style="font-size:13px;padding:4px 2px">'+(isAdmin?'أضف لاعبين بزر «＋ لاعب».':'المشرف ما أضاف لاعبين بعد.')+'</div>';
+  if(!ids.length) return '<div class="muted" style="font-size:13px;padding:4px 2px">'+(isAdmin?'أضف لاعبين عبر زر «＋ لاعب».':'لم يُضِف المشرف لاعبين بعد.')+'</div>';
   var l=s.lineup||{}, A=l.teamA||{}, B=l.teamB||{};
   var arr=ids.map(function(k){var p=players[k]||{};p._id=k;return p;}).sort(function(a,b){return (a.name||'').localeCompare(b.name||'','ar');});
   var la=[],lb=[],bench=[];
@@ -516,11 +516,11 @@ function lineupHtml(s){
     '<div class="teamcol"><h3><span>🟠 '+TEAM_B_NAME+'</span><span class="muted">'+lb.length+'</span></h3>'+
       (lb.map(function(p){return slot(p,'B');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">فارغ</div>')+'</div></div>';
   if(!isAdmin){
-    if(!la.length && !lb.length) return '<div class="muted" style="font-size:13px;padding:4px 2px">المشرف ما حدّد التشكيلة بعد.</div>';
+    if(!la.length && !lb.length) return '<div class="muted" style="font-size:13px;padding:4px 2px">لم يحدّد المشرف التشكيلة بعد.</div>';
     return teams;
   }
-  return teams+'<div class="divider"></div><div class="muted" style="font-size:12px;margin:0 2px 8px">قائمة اللاعبين — اضغط 🔵/🟠 لتوزيعه</div>'+
-    (bench.map(function(p){return slot(p,'');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">الكل موزّع ✓</div>');
+  return teams+'<div class="divider"></div><div class="muted" style="font-size:12px;margin:0 2px 8px">قائمة اللاعبين — اضغط 🔵/🟠 للتوزيع</div>'+
+    (bench.map(function(p){return slot(p,'');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">تم توزيع الجميع ✓</div>');
 }
 function setTeam(sid,pid,team){
   if(!isAdmin){toast('التشكيلة للمشرف فقط');return;}
@@ -535,10 +535,10 @@ function mvpHtml(s){
   Object.keys(votes).forEach(function(u){var pid=votes[u];tally[pid]=(tally[pid]||0)+1;total++;});
   var myVote=votes[myKey]||null;
   var html='<div class="blocktitle"><span class="ic">⭐</span> أفضل لاعب'+
-    (isAdmin?'<button class="btn sm act sec" onclick="toggleMvp(\''+sid+'\','+(open?'false':'true')+')">'+(open?'🔒 إقفال':'🔓 فتح')+'</button>':
-      '<span class="act muted" style="font-size:12px">'+(open?'التصويت مفتوح 🟢':'مقفل 🔴')+'</span>')+'</div>';
+    (isAdmin?'<button class="btn sm act sec" onclick="toggleMvp(\''+sid+'\','+(open?'false':'true')+')">'+(open?'🔒 إغلاق':'🔓 فتح')+'</button>':
+      '<span class="act muted" style="font-size:12px">'+(open?'التصويت مفتوح 🟢':'مغلق 🔴')+'</span>')+'</div>';
   var pids=Object.keys(players);
-  if(!pids.length) return html+'<div class="muted" style="font-size:13px">أضف لاعبين أول.</div>';
+  if(!pids.length) return html+'<div class="muted" style="font-size:13px">أضف لاعبين أولًا.</div>';
   if(open){
     html+=pids.map(function(pid){var p=players[pid]||{};var sel=myVote===pid;
       return '<div class="voteopt'+(sel?' sel':'')+'" onclick="castVote(\''+sid+'\',\''+pid+'\')">'+mini(p)+
@@ -552,18 +552,18 @@ function mvpHtml(s){
       return '<div class="votebar'+(myVote===x.pid?' mine':'')+'"><div class="fill" style="width:'+pct+'%"></div>'+
         '<div class="vc">'+mini(p)+'<span class="nm">'+esc(p.name||'')+'</span><span class="cnt">'+x.n+'</span></div></div>';
     }).join('');
-  } else if(!open){ html+='<div class="muted" style="font-size:13px">ما فيه أصوات.</div>'; }
+  } else if(!open){ html+='<div class="muted" style="font-size:13px">لا توجد أصوات.</div>'; }
   return html;
 }
-function toggleMvp(sid,open){ if(!isAdmin){toast('للمشرف فقط');return;} ROOT.child('sessions/'+sid+'/mvp/open').set(open).then(function(){toast(open?'فُتح التصويت':'أُقفل');}); }
-function castVote(sid,pid){ if(!loggedIn){showLogin();return;} var s=sessions[sid]; if(!s||!s.mvp||!s.mvp.open){toast('التصويت مقفل');return;} ROOT.child('sessions/'+sid+'/mvp/votes/'+myKey).set(pid).then(function(){toast('تم تصويتك ✓');}); }
+function toggleMvp(sid,open){ if(!isAdmin){toast('للمشرف فقط');return;} ROOT.child('sessions/'+sid+'/mvp/open').set(open).then(function(){toast(open?'فُتح التصويت':'أُغلق');}); }
+function castVote(sid,pid){ if(!loggedIn){showLogin();return;} var s=sessions[sid]; if(!s||!s.mvp||!s.mvp.open){toast('التصويت مغلق');return;} ROOT.child('sessions/'+sid+'/mvp/votes/'+myKey).set(pid).then(function(){toast('تم تصويتك ✓');}); }
 
 /* ---------- result within session ---------- */
 function resultBlockHtml(s){
   var r=s.result;
   var html='<div class="blocktitle"><span class="ic">🏆</span> النتيجة'+
     (isAdmin?'<button class="btn sm act sec" onclick="openResultForm(\''+s.id+'\')">'+(r?'✏️ تعديل':'＋ إدخال')+'</button>':'')+'</div>';
-  if(!r){ return html+'<div class="muted" style="font-size:13px">ما أُدخلت نتيجة بعد.</div>'; }
+  if(!r){ return html+'<div class="muted" style="font-size:13px">لم تُدخل نتيجة بعد.</div>'; }
   var aw=r.setsA>r.setsB, bw=r.setsB>r.setsA;
   var setLine=(r.sets||[]).map(function(x){return '<span class="setbox">'+x.a+'-'+x.b+'</span>';}).join('');
   return html+'<div class="score">'+
@@ -581,7 +581,7 @@ function openResultForm(sid){
     '<button class="btn sec sm" onclick="addSetRow()">＋ شوط</button>'+
     '<div style="height:12px"></div><label>ملاحظة (اختياري)</label><textarea class="inp" id="rNote" maxlength="200">'+esc(r.note||'')+'</textarea>'+
     '<div style="height:14px"></div><button class="btn" onclick="saveResult(\''+sid+'\')">حفظ النتيجة</button>'+
-    (s.result?'<button class="btn sec" style="margin-top:8px" onclick="clearResult(\''+sid+'\')">🗑️ مسح النتيجة</button>':'')+
+    (s.result?'<button class="btn sec" style="margin-top:8px" onclick="clearResult(\''+sid+'\')">🗑️ حذف النتيجة</button>':'')+
     '<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إلغاء</button>');
   window._sets=sets.map(function(x){return {a:x.a,b:x.b};}); renderSetRows();
 }
@@ -604,11 +604,11 @@ function saveResult(sid){
   ROOT.child('sessions/'+sid+'/result').set({sets:sets,setsA:wa,setsB:wb,note:($('rNote').value||'').slice(0,200),ts:nowTs()})
     .then(function(){closeModal();toast('حُفظت النتيجة ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));});
 }
-function clearResult(sid){ if(!confirm('مسح نتيجة التمرين؟'))return; ROOT.child('sessions/'+sid+'/result').remove().then(function(){closeModal();toast('مُسحت');}); }
+function clearResult(sid){ if(!confirm('حذف نتيجة التمرين؟'))return; ROOT.child('sessions/'+sid+'/result').remove().then(function(){closeModal();toast('حُذفت');}); }
 
 /* ========================================================= PLAYERS (roster) */
 function openPlayerForm(id){
-  if(!isAdmin){toast('إضافة/تعديل اللاعبين للمشرف فقط');return;}
+  if(!isAdmin){toast('إضافة وتعديل اللاعبين للمشرف فقط');return;}
   var p=id?(players[id]||{}):{};
   modal('<div class="grab"></div><h2 style="margin:0 0 12px">'+(id?'تعديل لاعب':'لاعب جديد')+'</h2>'+
     '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">'+
@@ -635,10 +635,10 @@ function onPhoto(inp){
 function savePlayer(id){
   if(!isAdmin){toast('اللاعبون للمشرف فقط');return;}
   if(!loggedIn){showLogin();return;}
-  var name=($('pfName').value||'').trim(); if(!name){toast('اكتب اسم اللاعب');return;}
+  var name=($('pfName').value||'').trim(); if(!name){toast('أدخل اسم اللاعب');return;}
   var obj={name:name.slice(0,40),bio:($('pfBio').value||'').slice(0,300),photo:$('pfPhoto').value||''};
   var key=id||pushId('players'); if(!id){obj.ts=nowTs();obj.by=myKey;}
-  ROOT.child('players/'+key).update(obj).then(function(){closeModal();toast(id?'تم التعديل':'أضيف اللاعب ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));});
+  ROOT.child('players/'+key).update(obj).then(function(){closeModal();toast(id?'تم التعديل':'تمت إضافة اللاعب ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));});
 }
 function delPlayer(id){
   if(!isAdmin){toast('الحذف للمشرف فقط');return;}
@@ -656,7 +656,7 @@ function openProfile(id){
     (p.bio?'<p style="margin:14px 2px 0;line-height:1.6;font-size:14px">'+esc(p.bio)+'</p>':'')+
     '<div class="statgrid"><div class="stat"><b>'+wins+'</b><span>مرات الأفضل</span></div>'+
       '<div class="stat"><b>'+votes+'</b><span>أصوات مجمّعة</span></div>'+
-      '<div class="stat"><b>'+team+'</b><span>بالتشكيلة</span></div></div>'+
+      '<div class="stat"><b>'+team+'</b><span>في التشكيلة</span></div></div>'+
     '<div style="height:16px"></div>'+
     (isAdmin?'<button class="btn sec" onclick="openPlayerForm(\''+id+'\')">✏️ تعديل</button>'+
       '<button class="btn red" style="margin-top:8px" onclick="delPlayer(\''+id+'\')">🗑️ حذف اللاعب</button>':'')+
@@ -756,7 +756,7 @@ function openResultDetail(sid){
     '<div class="teamcol"><h3><span>🔵 '+TEAM_A_NAME+'</span></h3>'+(names(A).map(function(n){return '<div class="slot"><span>'+esc(n)+'</span></div>';}).join('')||'<div class="muted" style="font-size:12px;padding:4px">—</div>')+'</div>'+
     '<div class="teamcol"><h3><span>🟠 '+TEAM_B_NAME+'</span></h3>'+(names(B).map(function(n){return '<div class="slot"><span>'+esc(n)+'</span></div>';}).join('')||'<div class="muted" style="font-size:12px;padding:4px">—</div>')+'</div></div>';
   if(vids.length){ html+='<div class="divider"></div><div class="muted" style="font-size:12px;margin:0 2px 8px">🎬 فيديوهات التمرين</div>'+vids.map(videoRowMini).join(''); }
-  if(isAdmin){ html+='<div style="height:14px"></div><button class="btn sec" onclick="reopenSession(\''+sid+'\')">↩︎ إرجاعه كتمرين حالي</button>'+
+  if(isAdmin){ html+='<div style="height:14px"></div><button class="btn sec" onclick="reopenSession(\''+sid+'\')">↩︎ إعادته كتمرينٍ حالي</button>'+
     '<button class="btn red" style="margin-top:8px" onclick="delSession(\''+sid+'\')">🗑️ حذف التمرين</button>'; }
   html+='<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إغلاق</button>';
   modal(html);
@@ -782,7 +782,7 @@ function renderVideos(){
   if(videoFilter==='mine') arr=arr.filter(function(v){return saved[v._id];});
   else if(videoFilter==='cur') arr=arr.filter(function(v){return act&&v.sessionId===act.id;});
   $('videosEmpty').classList.toggle('hide',arr.length>0);
-  $('videosEmpty').textContent = videoFilter==='mine'?'ما حفظت أي فيديو بعد — اضغط ★.' : (videoFilter==='cur'?'ما فيه فيديوهات للتمرين الحالي.':'ما فيه فيديوهات بعد.');
+  $('videosEmpty').textContent = videoFilter==='mine'?'لم تحفظ أي فيديو بعد — اضغط ★.' : (videoFilter==='cur'?'لا توجد فيديوهات للتمرين الحالي.':'لا توجد فيديوهات بعد.');
   $('videosList').innerHTML=arr.map(function(v){
     var th=videoThumb(v);
     var stag=v.sessionId&&sessions[v.sessionId]?'<span class="tag">🏐 '+esc(sessionTitle(v.sessionId))+'</span>':'';
@@ -810,9 +810,9 @@ function openVideoForm(preSid){
   var sopts='<option value="">— بدون تمرين —</option>'+Object.keys(sessions).map(function(sid){var s=sessions[sid];return '<option value="'+sid+'" '+(sid===defSid?'selected':'')+'>'+esc(s.title||'تمرين')+(s.status==='done'?' (منتهي)':'')+'</option>';}).join('');
   var popts='<option value="">— بدون —</option>'+Object.keys(players).map(function(k){return '<option value="'+k+'">'+esc(players[k].name)+'</option>';}).join('');
   var tabs = ENABLE_UPLOAD ? '<div class="filterbar" style="margin-bottom:14px"><button id="tbFile" class="on" onclick="vTab(\'file\')">📤 رفع ملف</button><button id="tbLink" onclick="vTab(\'link\')">🔗 رابط</button></div>' : '';
-  var fileBox = ENABLE_UPLOAD ? '<div id="vFileBox"><button class="btn sec" onclick="document.getElementById(\'vFile\').click()">🎥 اختر مقطع من الجوال</button><input type="file" id="vFile" accept="video/*" class="hide" onchange="onVideoFile(this)"><div id="vFileName" class="muted" style="font-size:12px;margin-top:8px;text-align:center"></div><div class="progress hide" id="vProg"><i></i></div></div>' : '';
+  var fileBox = ENABLE_UPLOAD ? '<div id="vFileBox"><button class="btn sec" onclick="document.getElementById(\'vFile\').click()">🎥 اختر مقطعًا من الجهاز</button><input type="file" id="vFile" accept="video/*" class="hide" onchange="onVideoFile(this)"><div id="vFileName" class="muted" style="font-size:12px;margin-top:8px;text-align:center"></div><div class="progress hide" id="vProg"><i></i></div></div>' : '';
   modal('<div class="grab"></div><h2 style="margin:0 0 12px">إضافة فيديو</h2>'+tabs+
-    '<label>عنوان المقطع</label><input class="inp" id="vTitle" maxlength="80" placeholder="مثال: سحقة رقم 12">'+
+    '<label>عنوان المقطع</label><input class="inp" id="vTitle" maxlength="80" placeholder="مثال: ضربة ساحقة رقم 12">'+
     '<div style="height:10px"></div><label>التمرين</label><select class="inp" id="vSession">'+sopts+'</select>'+
     '<div style="height:10px"></div><label>وسم لاعب (اختياري)</label><select class="inp" id="vPlayer">'+popts+'</select>'+
     '<div style="height:12px"></div>'+fileBox+
@@ -831,16 +831,16 @@ function submitVideo(){
   var vid=pushId('videos'); var base={title:title,by:myKey,byName:myName||'لاعب',ts:nowTs()};
   if(sessionId)base.sessionId=sessionId; if(playerId)base.playerId=playerId;
   if(window._vTab==='link'){
-    var url=($('vUrl').value||'').trim(); if(!/^https?:\/\//i.test(url)){toast('اكتب رابط صحيح يبدأ بـ http');return;}
+    var url=($('vUrl').value||'').trim(); if(!/^https?:\/\//i.test(url)){toast('أدخل رابطًا صحيحًا يبدأ بـ http');return;}
     base.type='link'; base.url=url;
-    ROOT.child('videos/'+vid).set(base).then(function(){closeModal();toast('أُضيف الفيديو ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));}); return;
+    ROOT.child('videos/'+vid).set(base).then(function(){closeModal();toast('تمت إضافة الفيديو ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));}); return;
   }
   var f=window._vFile; if(!f){toast('اختر ملف فيديو');return;}
-  if(!storage){toast('التخزين غير مُفعّل. استخدم رابط.');return;}
-  var btn=$('vSubmit'); btn.disabled=true; btn.textContent='جاري الرفع…'; $('vProg').classList.remove('hide');
+  if(!storage){toast('التخزين غير مُفعّل. استخدم رابطًا.');return;}
+  var btn=$('vSubmit'); btn.disabled=true; btn.textContent='جارٍ الرفع…'; $('vProg').classList.remove('hide');
   var safe=f.name.replace(/[^\w.\-]+/g,'_').slice(-60); var ref=storage.ref('volley/videos/'+vid+'/'+safe); var task=ref.put(f,{contentType:f.type});
-  task.on('state_changed',function(sn){var pct=sn.totalBytes?Math.round(sn.bytesTransferred/sn.totalBytes*100):0;$('vProg').firstElementChild.style.width=pct+'%';btn.textContent='جاري الرفع… '+pct+'%';},
-    function(err){btn.disabled=false;btn.textContent='إضافة';var code=(err&&err.code)||'';if(/unauth/i.test(code))toast('التخزين يحتاج ضبط قواعد Storage. جرّب رابط.');else toast('فشل الرفع: '+(code||err));},
+  task.on('state_changed',function(sn){var pct=sn.totalBytes?Math.round(sn.bytesTransferred/sn.totalBytes*100):0;$('vProg').firstElementChild.style.width=pct+'%';btn.textContent='جارٍ الرفع… '+pct+'%';},
+    function(err){btn.disabled=false;btn.textContent='إضافة';var code=(err&&err.code)||'';if(/unauth/i.test(code))toast('يتطلب التخزين ضبط قواعد Storage. استخدم رابطًا.');else toast('فشل الرفع: '+(code||err));},
     function(){ref.getDownloadURL().then(function(url){base.type='file';base.url=url;base.storagePath='volley/videos/'+vid+'/'+safe;ROOT.child('videos/'+vid).set(base).then(function(){closeModal();toast('تم الرفع ✓');});});});
 }
 function delVideo(id){
