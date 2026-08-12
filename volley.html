@@ -481,7 +481,7 @@ function lineupHtml(s){
     if(!la.length && !lb.length) return '<div class="muted" style="font-size:13px;padding:4px 2px">المشرف ما حدّد التشكيلة بعد.</div>';
     return teams;
   }
-  return teams+'<div class="divider"></div><div class="muted" style="font-size:12px;margin:0 2px 8px">الاحتياط — اضغط 🔵/🟠 لتوزيعه</div>'+
+  return teams+'<div class="divider"></div><div class="muted" style="font-size:12px;margin:0 2px 8px">قائمة اللاعبين — اضغط 🔵/🟠 لتوزيعه</div>'+
     (bench.map(function(p){return slot(p,'');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">الكل موزّع ✓</div>');
 }
 function setTeam(sid,pid,team){
