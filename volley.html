@@ -433,7 +433,7 @@ function renderSession(){
 
   /* lineup */
   html+='<div class="card"><div class="blocktitle"><span class="ic">📋</span> التشكيلة'+
-    '<button class="btn sm act" onclick="openPlayerForm()">＋ لاعب</button></div>'+ lineupHtml(s) +'</div>';
+    (isAdmin?'<button class="btn sm act" onclick="openPlayerForm()">＋ لاعب</button>':'')+'</div>'+ lineupHtml(s) +'</div>';
 
   /* mvp */
   html+='<div class="card">'+ mvpHtml(s) +'</div>';
@@ -459,29 +459,33 @@ function countInLineup(s){var l=s.lineup||{};return (Object.keys(l.teamA||{}).le
 
 function lineupHtml(s){
   var ids=Object.keys(players);
-  if(!ids.length) return '<div class="muted" style="font-size:13px;padding:4px 2px">أضف لاعبين بزر «＋ لاعب».</div>';
+  if(!ids.length) return '<div class="muted" style="font-size:13px;padding:4px 2px">'+(isAdmin?'أضف لاعبين بزر «＋ لاعب».':'المشرف ما أضاف لاعبين بعد.')+'</div>';
   var l=s.lineup||{}, A=l.teamA||{}, B=l.teamB||{};
   var arr=ids.map(function(k){var p=players[k]||{};p._id=k;return p;}).sort(function(a,b){return (a.name||'').localeCompare(b.name||'','ar');});
   var la=[],lb=[],bench=[];
   arr.forEach(function(p){ if(A[p._id])la.push(p); else if(B[p._id])lb.push(p); else bench.push(p); });
   function slot(p,team){
-    return '<div class="slot"><div class="who" onclick="openProfile(\''+p._id+'\')">'+mini(p)+'<span>'+esc(p.name||'')+'</span></div>'+
-      '<span class="assignrow">'+
+    var buttons = isAdmin ? '<span class="assignrow">'+
         (team!=='A'?'<button class="tgt a" onclick="setTeam(\''+s.id+'\',\''+p._id+'\',\'A\')">🔵</button>':'')+
         (team!=='B'?'<button class="tgt b" onclick="setTeam(\''+s.id+'\',\''+p._id+'\',\'B\')">🟠</button>':'')+
         (team!==''?'<button class="tgt" onclick="setTeam(\''+s.id+'\',\''+p._id+'\',\'\')">↩︎</button>':'')+
-      '</span></div>';
+      '</span>' : '';
+    return '<div class="slot"><div class="who" onclick="openProfile(\''+p._id+'\')">'+mini(p)+'<span>'+esc(p.name||'')+'</span></div>'+buttons+'</div>';
   }
-  return '<div class="row" style="align-items:flex-start">'+
+  var teams='<div class="row" style="align-items:flex-start">'+
     '<div class="teamcol"><h3><span>🔵 '+TEAM_A_NAME+'</span><span class="muted">'+la.length+'</span></h3>'+
       (la.map(function(p){return slot(p,'A');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">فارغ</div>')+'</div>'+
     '<div class="teamcol"><h3><span>🟠 '+TEAM_B_NAME+'</span><span class="muted">'+lb.length+'</span></h3>'+
-      (lb.map(function(p){return slot(p,'B');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">فارغ</div>')+'</div>'+
-    '</div>'+
-    '<div class="divider"></div><div class="muted" style="font-size:12px;margin:0 2px 8px">الاحتياط — اضغط 🔵/🟠 لتوزيعه</div>'+
+      (lb.map(function(p){return slot(p,'B');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">فارغ</div>')+'</div></div>';
+  if(!isAdmin){
+    if(!la.length && !lb.length) return '<div class="muted" style="font-size:13px;padding:4px 2px">المشرف ما حدّد التشكيلة بعد.</div>';
+    return teams;
+  }
+  return teams+'<div class="divider"></div><div class="muted" style="font-size:12px;margin:0 2px 8px">الاحتياط — اضغط 🔵/🟠 لتوزيعه</div>'+
     (bench.map(function(p){return slot(p,'');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">الكل موزّع ✓</div>');
 }
 function setTeam(sid,pid,team){
+  if(!isAdmin){toast('التشكيلة للمشرف فقط');return;}
   var upd={}; upd['teamA/'+pid]=(team==='A')?true:null; upd['teamB/'+pid]=(team==='B')?true:null;
   ROOT.child('sessions/'+sid+'/lineup').update(upd);
 }
@@ -520,7 +524,7 @@ function castVote(sid,pid){ if(!loggedIn){showLogin();return;} var s=sessions[si
 function resultBlockHtml(s){
   var r=s.result;
   var html='<div class="blocktitle"><span class="ic">🏆</span> النتيجة'+
-    '<button class="btn sm act sec" onclick="openResultForm(\''+s.id+'\')">'+(r?'✏️ تعديل':'＋ إدخال')+'</button></div>';
+    (isAdmin?'<button class="btn sm act sec" onclick="openResultForm(\''+s.id+'\')">'+(r?'✏️ تعديل':'＋ إدخال')+'</button>':'')+'</div>';
   if(!r){ return html+'<div class="muted" style="font-size:13px">ما أُدخلت نتيجة بعد.</div>'; }
   var aw=r.setsA>r.setsB, bw=r.setsB>r.setsA;
   var setLine=(r.sets||[]).map(function(x){return '<span class="setbox">'+x.a+'-'+x.b+'</span>';}).join('');
@@ -531,6 +535,7 @@ function resultBlockHtml(s){
     (r.note?'<div class="muted" style="text-align:center;font-size:12px;margin-top:8px">'+esc(r.note)+'</div>':'');
 }
 function openResultForm(sid){
+  if(!isAdmin){toast('إدخال النتيجة للمشرف فقط');return;}
   var s=sessions[sid]||{}; var r=s.result||{}; var sets=(r.sets&&r.sets.length)?r.sets:[{a:'',b:''}];
   modal('<div class="grab"></div><h2 style="margin:0 0 4px">نتيجة التمرين</h2>'+
     '<p class="muted" style="margin:0 0 14px;font-size:12px">🔵 '+TEAM_A_NAME+' ضد 🟠 '+TEAM_B_NAME+'</p>'+
@@ -553,6 +558,7 @@ function renderSetRows(){
 function addSetRow(){window._sets.push({a:'',b:''});renderSetRows();}
 function rmSetRow(i){window._sets.splice(i,1);renderSetRows();}
 function saveResult(sid){
+  if(!isAdmin){toast('النتيجة للمشرف فقط');return;}
   if(!loggedIn){showLogin();return;}
   var sets=window._sets.filter(function(x){return x.a!==''||x.b!=='';}).map(function(x){return {a:parseInt(x.a||0,10)||0,b:parseInt(x.b||0,10)||0};});
   if(!sets.length){toast('أدخل نتيجة شوط واحد على الأقل');return;}
@@ -564,6 +570,7 @@ function clearResult(sid){ if(!confirm('مسح نتيجة التمرين؟'))ret
 
 /* ========================================================= PLAYERS (roster) */
 function openPlayerForm(id){
+  if(!isAdmin){toast('إضافة/تعديل اللاعبين للمشرف فقط');return;}
   var p=id?(players[id]||{}):{};
   modal('<div class="grab"></div><h2 style="margin:0 0 12px">'+(id?'تعديل لاعب':'لاعب جديد')+'</h2>'+
     '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">'+
@@ -588,6 +595,7 @@ function onPhoto(inp){
   }; img.src=rd.result; }; rd.readAsDataURL(f);
 }
 function savePlayer(id){
+  if(!isAdmin){toast('اللاعبون للمشرف فقط');return;}
   if(!loggedIn){showLogin();return;}
   var name=($('pfName').value||'').trim(); if(!name){toast('اكتب اسم اللاعب');return;}
   var obj={name:name.slice(0,40),bio:($('pfBio').value||'').slice(0,300),photo:$('pfPhoto').value||''};
@@ -611,8 +619,9 @@ function openProfile(id){
     '<div class="statgrid"><div class="stat"><b>'+wins+'</b><span>مرات الأفضل</span></div>'+
       '<div class="stat"><b>'+votes+'</b><span>أصوات مجمّعة</span></div>'+
       '<div class="stat"><b>'+team+'</b><span>بالتشكيلة</span></div></div>'+
-    '<div style="height:16px"></div><button class="btn sec" onclick="openPlayerForm(\''+id+'\')">✏️ تعديل</button>'+
-    (isAdmin?'<button class="btn red" style="margin-top:8px" onclick="delPlayer(\''+id+'\')">🗑️ حذف اللاعب</button>':'')+
+    '<div style="height:16px"></div>'+
+    (isAdmin?'<button class="btn sec" onclick="openPlayerForm(\''+id+'\')">✏️ تعديل</button>'+
+      '<button class="btn red" style="margin-top:8px" onclick="delPlayer(\''+id+'\')">🗑️ حذف اللاعب</button>':'')+
     '<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إغلاق</button>');
 }
 function computeMvpVotes(){ var res={}; Object.keys(sessions).forEach(function(sid){var v=(sessions[sid].mvp||{}).votes||{};Object.keys(v).forEach(function(u){res[v[u]]=(res[v[u]]||0)+1;});}); return res; }
