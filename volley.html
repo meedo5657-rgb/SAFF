@@ -394,12 +394,16 @@ function nav(v){
 }
 
 /* ========================================================= ACCOUNT MENU */
+function myPlayerId(){ var mine=null; Object.keys(players).forEach(function(pid){ if(players[pid].ownerKey===myKey)mine=pid; }); return mine; }
 function accountMenu(){
   if(!loggedIn){ showLogin(); return; }
+  var mine=myPlayerId();
   modal('<div class="grab"></div><div style="text-align:center;margin-bottom:14px">'+
     '<div style="font-size:34px">👤</div><h2 style="margin:6px 0 0">'+esc(myName)+'</h2>'+
     '<div class="muted" style="font-size:12px">مسجّل الدخول</div></div>'+
-    '<button class="btn sec red" style="background:#3a1414;color:#ffd7d7;border:1px solid #7a2626" onclick="logout()">🚪 تسجيل الخروج</button>'+
+    (mine?'<button class="btn" onclick="closeModal();openProfile(\''+mine+'\')">🪪 بطاقتي (تعديل الصورة والنبذة)</button>':
+      '<div class="muted" style="font-size:12.5px;text-align:center;margin-bottom:10px;line-height:1.6">لتعديل صورتك ونبذتك: افتح بطاقتك من «الترتيب» أو «قائمة اللاعبين» واضغط «🙋 هذا أنا».</div>')+
+    '<button class="btn sec red" style="margin-top:8px;background:#3a1414;color:#ffd7d7;border:1px solid #7a2626" onclick="logout()">🚪 تسجيل الخروج</button>'+
     '<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إغلاق</button>');
 }
 
@@ -520,12 +524,11 @@ function lineupHtml(s){
       (la.map(function(p){return slot(p,'A');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">فارغ</div>')+'</div>'+
     '<div class="teamcol"><h3><span>🟠 '+TEAM_B_NAME+'</span><span class="muted">'+lb.length+'</span></h3>'+
       (lb.map(function(p){return slot(p,'B');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">فارغ</div>')+'</div></div>';
-  if(!isAdmin){
-    if(!la.length && !lb.length) return '<div class="muted" style="font-size:13px;padding:4px 2px">لم يحدّد المشرف التشكيلة بعد.</div>';
-    return teams;
-  }
-  return teams+'<div class="divider"></div><div class="muted" style="font-size:12px;margin:0 2px 8px">قائمة اللاعبين — اضغط 🔵/🟠 للتوزيع</div>'+
-    (bench.map(function(p){return slot(p,'');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">تم توزيع الجميع ✓</div>');
+  var showTeams=(la.length||lb.length||isAdmin);
+  var hint=isAdmin?'قائمة اللاعبين — اضغط 🔵/🟠 للتوزيع':'قائمة اللاعبين — اضغط على اسمك لتعديل صورتك ونبذتك';
+  var listHtml=bench.map(function(p){return slot(p,'');}).join('')||'<div class="muted" style="font-size:12px;padding:4px">'+(isAdmin?'تم توزيع الجميع ✓':'—')+'</div>';
+  return (showTeams?teams+'<div class="divider"></div>':'')+
+    '<div class="muted" style="font-size:12px;margin:0 2px 8px">'+hint+'</div>'+listHtml;
 }
 function setTeam(sid,pid,team){
   if(!isAdmin){toast('التشكيلة للمشرف فقط');return;}
