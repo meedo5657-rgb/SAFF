@@ -146,8 +146,23 @@ textarea.inp{resize:vertical;min-height:64px}
 .voteopt.sel{border-color:var(--brand);background:#241a10}
 .voteopt .nm{flex:1;font-weight:700}
 
-nav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(11,18,32,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0))}
-nav button{flex:1;background:transparent;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;padding:6px 2px;border-radius:12px}
+/* standings */
+.standwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.stand{width:100%;border-collapse:collapse;font-size:13px}
+.stand th{color:var(--muted);font-weight:700;font-size:11px;padding:9px 5px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+.stand td{padding:9px 5px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+.stand tr:last-child td{border-bottom:0}
+.stand .rk{font-weight:900;width:30px;font-size:14px}
+.stand td.pl{text-align:right}
+.stand .who2{display:flex;align-items:center;gap:8px}
+.stand .who2 .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis}
+.stand .big{font-weight:900;color:var(--brand2)}
+.stand tr.top td{background:linear-gradient(90deg,rgba(255,183,3,.08),transparent)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:11px;margin:0 2px 12px}
+.legend b{color:var(--ink)}
+
+nav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(11,18,32,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;padding:6px 2px calc(6px + env(safe-area-inset-bottom,0))}
+nav button{flex:1;background:transparent;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;padding:6px 1px;border-radius:12px}
 nav button .ic{font-size:21px;line-height:1}
 nav button.on{color:var(--brand)}
 
@@ -179,6 +194,14 @@ nav button.on{color:var(--brand)}
     <div id="resultsEmpty" class="empty hide">ما فيه تمارين منتهية بعد.<br>أنهِ التمرين الحالي عشان ينحفظ هنا.</div>
   </section>
 
+  <!-- ===== STANDINGS ===== -->
+  <section class="view hide" id="v_standings">
+    <div class="sectitle"><h2>الترتيب</h2><span class="sub">من نتائج التمارين</span></div>
+    <div class="legend"><span><b>لعب</b> = عدد التمارين</span><span><b>أشواط</b> = أشواط فاز فريقه</span><span><b>نقاط</b> = نقاط فريقه</span><span><b>⭐</b> = مرات الأفضل</span></div>
+    <div class="card" style="padding:6px"><div class="standwrap"><table class="stand" id="standTable"></table></div></div>
+    <div id="standEmpty" class="empty hide">ما فيه بيانات بعد.<br>أضف لاعبين وأدخل نتائج التمارين.</div>
+  </section>
+
   <!-- ===== VIDEOS ===== -->
   <section class="view hide" id="v_videos">
     <div class="sectitle"><h2>الفيديوهات</h2><button class="btn sm" onclick="openVideoForm()">＋ إضافة فيديو</button></div>
@@ -195,6 +218,7 @@ nav button.on{color:var(--brand)}
 <nav>
   <button class="on" data-v="session" onclick="nav('session')"><span class="ic">🏐</span>التمرين</button>
   <button data-v="results" onclick="nav('results')"><span class="ic">🏆</span>النتائج</button>
+  <button data-v="standings" onclick="nav('standings')"><span class="ic">📊</span>الترتيب</button>
   <button data-v="videos" onclick="nav('videos')"><span class="ic">🎬</span>الفيديو</button>
 </nav>
 
@@ -292,7 +316,7 @@ function attachSaved(){
   savedRef=ROOT.child('saved/'+myKey);
   savedRef.on('value',function(s){saved=s.val()||{};renderVideos();renderSession();});
 }
-function renderAll(){ renderSession(); renderResults(); renderVideos(); }
+function renderAll(){ renderSession(); renderResults(); renderStandings(); renderVideos(); }
 
 /* ========================================================= LOGIN (اسم مستخدم + رقم سري) */
 function sanitize(s){return String(s).replace(/[.#$\[\]\/]/g,'_').trim();}
@@ -359,7 +383,7 @@ function logout(){
 /* ========================================================= NAV */
 function nav(v){
   curView=v;
-  ['session','results','videos'].forEach(function(x){$('v_'+x).classList.toggle('hide',x!==v);});
+  ['session','results','standings','videos'].forEach(function(x){$('v_'+x).classList.toggle('hide',x!==v);});
   document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.v===v);});
   window.scrollTo(0,0);
 }
@@ -651,6 +675,49 @@ function mvpWinner(s){
   Object.keys(votes).forEach(function(u){var pid=votes[u];tally[pid]=(tally[pid]||0)+1;});
   Object.keys(tally).forEach(function(pid){if(tally[pid]>best){best=tally[pid];winner=pid;tie=false;}else if(tally[pid]===best){tie=true;}});
   if(!winner||best<=0)return null; return {pid:winner,n:best,tie:tie};
+}
+
+/* ========================================================= STANDINGS PAGE */
+function computeStandings(){
+  var stat={};
+  function ensure(pid){ if(!stat[pid])stat[pid]={pid:pid,played:0,sets:0,points:0,mvp:0}; return stat[pid]; }
+  doneSessions().forEach(function(s){
+    var l=s.lineup||{}, A=Object.keys(l.teamA||{}), B=Object.keys(l.teamB||{}), r=s.result;
+    A.concat(B).forEach(function(pid){ ensure(pid).played++; });
+    if(r){
+      var ptsA=0,ptsB=0; (r.sets||[]).forEach(function(x){ptsA+=(x.a||0);ptsB+=(x.b||0);});
+      A.forEach(function(pid){ var st=ensure(pid); st.sets+=(r.setsA||0); st.points+=ptsA; });
+      B.forEach(function(pid){ var st=ensure(pid); st.sets+=(r.setsB||0); st.points+=ptsB; });
+    }
+    var w=mvpWinner(s); if(w&&!w.tie) ensure(w.pid).mvp++;
+  });
+  Object.keys(players).forEach(function(pid){ ensure(pid); });
+  var arr=Object.keys(stat).filter(function(pid){return players[pid];}).map(function(pid){var o=stat[pid];o.name=(players[pid]||{}).name||'?';return o;});
+  arr.sort(function(a,b){ return (b.sets-a.sets)||(b.points-a.points)||(b.mvp-a.mvp)||(b.played-a.played)||a.name.localeCompare(b.name,'ar'); });
+  return arr;
+}
+function renderStandings(){
+  var t=$('standTable'); if(!t)return;
+  var arr=computeStandings();
+  var any=arr.length>0;
+  $('standEmpty').classList.toggle('hide',any);
+  $('standTable').parentElement.parentElement.classList.toggle('hide',!any);
+  if(!any){ t.innerHTML=''; return; }
+  var medals=['🥇','🥈','🥉'];
+  var rows=arr.map(function(o,i){
+    var p=players[o.pid]||{};
+    var rk=(i<3 && o.played>0)?medals[i]:(i+1);
+    var av=p.photo?'<img class="mini" src="'+p.photo+'">':'<div class="mininoph">🏐</div>';
+    return '<tr class="'+(i<3&&o.played>0?'top':'')+'" onclick="openProfile(\''+o.pid+'\')">'+
+      '<td class="rk">'+rk+'</td>'+
+      '<td class="pl"><div class="who2">'+av+'<span class="nm">'+esc(o.name)+'</span></div></td>'+
+      '<td>'+o.played+'</td>'+
+      '<td class="big">'+o.sets+'</td>'+
+      '<td>'+o.points+'</td>'+
+      '<td>'+(o.mvp?('⭐'+o.mvp):'0')+'</td>'+
+    '</tr>';
+  }).join('');
+  t.innerHTML='<thead><tr><th>#</th><th style="text-align:right">اللاعب</th><th>لعب</th><th>أشواط</th><th>نقاط</th><th>⭐</th></tr></thead><tbody>'+rows+'</tbody>';
 }
 
 /* ========================================================= RESULTS PAGE */
