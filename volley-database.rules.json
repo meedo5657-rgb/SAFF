@@ -36,21 +36,6 @@
             }
           }
         }
-      },
-
-      "videos": {
-        "$vid": {
-          ".write": "auth != null",
-          "title": { ".validate": "newData.isString() && newData.val().length <= 80" },
-          "type":  { ".validate": "newData.isString() && (newData.val() === 'link' || newData.val() === 'file')" }
-        }
-      },
-
-      "saved": {
-        "$key": {
-          ".write": "auth != null",
-          "$vid": { ".validate": "newData.isBoolean()" }
-        }
       }
     }
   }

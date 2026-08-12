@@ -8,7 +8,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
 :root{
@@ -111,18 +110,6 @@ textarea.inp{resize:vertical;min-height:64px}
 .stat b{display:block;font-size:20px}
 .stat span{color:var(--muted);font-size:11px}
 
-/* videos */
-.vcard{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.vthumb{position:relative;width:100%;aspect-ratio:16/9;background:#000;display:grid;place-items:center;overflow:hidden}
-.vthumb img{width:100%;height:100%;object-fit:cover}
-.vthumb .play{position:absolute;width:52px;height:52px;border-radius:99px;background:rgba(0,0,0,.55);border:2px solid #fff;display:grid;place-items:center;color:#fff;font-size:20px}
-.vmeta{padding:10px}
-.vmeta .t{font-weight:800;font-size:14px;line-height:1.3}
-.vmeta .s{color:var(--muted);font-size:11px;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.save{position:absolute;top:8px;inset-inline-end:8px;background:rgba(0,0,0,.55);border:1px solid #ffffff33;border-radius:10px;width:34px;height:34px;display:grid;place-items:center;font-size:16px;color:#fff}
-.save.on{background:var(--brand);color:#1a0f00;border-color:var(--brand)}
-.tag{background:#1c2c4d;border:1px solid var(--line);border-radius:8px;padding:2px 7px;font-size:11px;color:var(--brand2)}
-
 /* results */
 .res{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
 .res .head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
@@ -207,24 +194,12 @@ nav button.on{color:var(--brand)}
     <div id="standEmpty" class="empty hide">لا توجد بيانات بعد.<br>أضف لاعبين وأدخل نتائج التمارين.</div>
   </section>
 
-  <!-- ===== VIDEOS ===== -->
-  <section class="view hide" id="v_videos">
-    <div class="sectitle"><h2>الفيديوهات</h2><button class="btn sm" onclick="openVideoForm()">＋ إضافة فيديو</button></div>
-    <div class="filterbar">
-      <button id="vfAll" class="on" onclick="setVideoFilter('all')">الكل</button>
-      <button id="vfCur" onclick="setVideoFilter('cur')">🏐 التمرين الحالي</button>
-      <button id="vfMine" onclick="setVideoFilter('mine')">⭐ محفوظاتي</button>
-    </div>
-    <div id="videosList"></div>
-    <div id="videosEmpty" class="empty hide">لا توجد فيديوهات بعد.</div>
-  </section>
 </main>
 
 <nav>
   <button class="on" data-v="session" onclick="nav('session')"><span class="ic">🏐</span>التمرين</button>
   <button data-v="results" onclick="nav('results')"><span class="ic">🏆</span>النتائج</button>
   <button data-v="standings" onclick="nav('standings')"><span class="ic">📊</span>الترتيب</button>
-  <button data-v="videos" onclick="nav('videos')"><span class="ic">🎬</span>الفيديو</button>
 </nav>
 
 <div id="toast"></div>
@@ -234,7 +209,7 @@ nav button.on{color:var(--brand)}
 /* =========================================================
    مشروع Firebase مستقل خاص بالتطبيق.
    البيانات مبنية على "التمرين" (session): كل تمرين يحتوي
-   تشكيلته + تصويت أفضل لاعب + نتيجته، والفيديوهات مربوطة به.
+   تشكيلته + تصويت أفضل لاعب + نتيجته.
    المسار الجذر: volley/
    ========================================================= */
 var firebaseConfig = {
@@ -247,15 +222,14 @@ var firebaseConfig = {
   appId:"1:1384225671:web:b4b26b509b352859c7d122"
 };
 var ADMIN_CODE = "2026";      // رمز المشرف — غيّره متى شئت
-var ENABLE_UPLOAD = false;    // رفع ملفات الفيديو يحتاج Firebase Storage (بفلوس). خلّه true لو فعّلته.
 
 var TEAM_A_NAME = "الأزرق", TEAM_B_NAME = "البرتقالي";
 
 /* ---------- state ---------- */
-var db=null, auth=null, storage=null, ROOT=null, uid=null;
-var myName='', myKey='', isAdmin=false, authReady=false, loggedIn=false, savedRef=null, myPlayerEnsured=false;
-var sessions={}, players={}, videos={}, saved={}, users={};
-var videoFilter='all', curView='session';
+var db=null, auth=null, ROOT=null, uid=null;
+var myName='', myKey='', isAdmin=false, authReady=false, loggedIn=false, myPlayerEnsured=false;
+var sessions={}, players={}, users={};
+var curView='session';
 
 try{ isAdmin = localStorage.getItem('volley_admin')==='1'; }catch(e){}
 
@@ -291,7 +265,6 @@ if(configReady){
   try{
     firebase.initializeApp(firebaseConfig);
     db=firebase.database(); auth=firebase.auth();
-    try{ storage=firebase.storage(); }catch(e){ storage=null; }
     ROOT=db.ref('volley');
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});
   }catch(e){ showCfg('⚠️ خطأ في تهيئة Firebase: '+esc(e.message||e)); }
@@ -314,15 +287,9 @@ function attach(){
   ROOT.child('sessions').on('value',function(s){sessions=s.val()||{};ensureThursdayVote();renderAll();});
   if(!attach._t){ attach._t=setInterval(ensureThursdayVote,60000); }
   ROOT.child('players').on('value',function(s){players=s.val()||{};ensureMyPlayer();renderAll();});
-  ROOT.child('videos').on('value',function(s){videos=s.val()||{};renderVideos();renderSession();});
   ROOT.child('users').on('value',function(s){users=s.val()||{};renderAll();});
 }
-function attachSaved(){
-  if(savedRef){ try{savedRef.off();}catch(e){} }
-  savedRef=ROOT.child('saved/'+myKey);
-  savedRef.on('value',function(s){saved=s.val()||{};renderVideos();renderSession();});
-}
-function renderAll(){ renderSession(); renderResults(); renderStandings(); renderVideos(); }
+function renderAll(){ renderSession(); renderResults(); renderStandings(); }
 
 /* ========================================================= LOGIN (اسم مستخدم + رقم سري) */
 function sanitize(s){return String(s).replace(/[.#$\[\]\/]/g,'_').trim();}
@@ -370,7 +337,7 @@ function attemptLogin(name,pin,fromAuto){
 function loginOk(name,pin,key){
   myName=name.slice(0,30); myKey=key; loggedIn=true;
   try{ localStorage.setItem('volley_name',name); localStorage.setItem('volley_pin',pin); }catch(e){}
-  $('meName').textContent=myName; attachSaved(); ensureMyPlayer(); closeModal(); renderAll();
+  $('meName').textContent=myName; ensureMyPlayer(); closeModal(); renderAll();
   toast('مرحبًا '+myName+' 👋');
 }
 /* أي مستخدم يسجّل دخول يُضاف كلاعب تلقائياً (أو يُربط بلاعب موجود بنفس الاسم) */
@@ -393,8 +360,7 @@ function loginFail(msg,fromAuto){
 }
 function logout(){
   if(!confirm('تسجيل الخروج؟'))return;
-  if(savedRef){ try{savedRef.off();}catch(e){} savedRef=null; }
-  myName='';myKey='';loggedIn=false;saved={};myPlayerEnsured=false;
+  myName='';myKey='';loggedIn=false;myPlayerEnsured=false;
   try{ localStorage.removeItem('volley_name'); localStorage.removeItem('volley_pin'); }catch(e){}
   $('meName').textContent='—'; closeModal(); renderAll(); showLogin();
 }
@@ -402,7 +368,7 @@ function logout(){
 /* ========================================================= NAV */
 function nav(v){
   curView=v;
-  ['session','results','standings','videos'].forEach(function(x){$('v_'+x).classList.toggle('hide',x!==v);});
+  ['session','results','standings'].forEach(function(x){$('v_'+x).classList.toggle('hide',x!==v);});
   document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.v===v);});
   window.scrollTo(0,0);
 }
@@ -501,14 +467,6 @@ function renderSession(){
 
   /* result */
   html+='<div class="card">'+ resultBlockHtml(s) +'</div>';
-
-  /* videos of this session */
-  var vids=sessionVideos(sid);
-  html+='<div class="card"><div class="blocktitle"><span class="ic">🎬</span> فيديوهات التمرين'+
-    '<button class="btn sm act" onclick="openVideoForm(\''+sid+'\')">＋ فيديو</button></div>'+
-    (vids.length? vids.slice(0,4).map(videoRowMini).join('')+
-       (vids.length>4?'<button class="btn sec sm" style="margin-top:4px" onclick="setVideoFilter(\'cur\');nav(\'videos\')">عرض كل الفيديوهات ('+vids.length+')</button>':'')
-     : '<div class="muted" style="font-size:13px;padding:4px 2px">لا توجد فيديوهات لهذا التمرين بعد.</div>')+'</div>';
 
   /* admin: end session */
   if(isAdmin){
@@ -813,13 +771,12 @@ function renderResults(){
   $('resultsList').innerHTML=arr.map(function(s){
     var r=s.result; var w=mvpWinner(s);
     var mvpLine=w?'<span class="pill">⭐ '+esc((players[w.pid]||{}).name||'')+(w.tie?' (تعادل)':'')+'</span>':'';
-    var vcount=sessionVideos(s.id).length;
     var scoreHtml;
     if(r){ var aw=r.setsA>r.setsB,bw=r.setsB>r.setsA;
       scoreHtml='<div class="score"><div class="tm '+(aw?'win':'')+'">🔵 '+TEAM_A_NAME+'</div><div class="sc '+(aw?'win':'')+'">'+(r.setsA||0)+'</div><div class="muted">–</div><div class="sc '+(bw?'win':'')+'">'+(r.setsB||0)+'</div><div class="tm '+(bw?'win':'')+'">🟠 '+TEAM_B_NAME+'</div></div>';
     } else scoreHtml='<div class="muted" style="text-align:center;padding:6px">بدون نتيجة</div>';
     return '<div class="res" style="margin-bottom:12px" onclick="openResultDetail(\''+s.id+'\')">'+
-      '<div class="head"><span>'+esc(s.title||'تمرين')+(s.date?' · 📅 '+esc(fmtDate(s.date)):'')+'</span><span>'+(vcount?('🎬 '+vcount):'')+'</span></div>'+
+      '<div class="head"><span>'+esc(s.title||'تمرين')+(s.date?' · 📅 '+esc(fmtDate(s.date)):'')+'</span><span></span></div>'+
       scoreHtml+
       '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px">'+mvpLine+'</div></div>';
   }).join('');
@@ -828,7 +785,6 @@ function openResultDetail(sid){
   var s=Object.assign({},sessions[sid]); s.id=sid; var r=s.result; var w=mvpWinner(s);
   var l=s.lineup||{}, A=l.teamA||{}, B=l.teamB||{};
   function names(map){return Object.keys(map).map(function(pid){return (players[pid]||{}).name||'?';});}
-  var vids=sessionVideos(sid);
   var html='<div class="grab"></div><h2 style="margin:0 0 2px">'+esc(s.title||'تمرين')+'</h2>'+
     (s.date?'<div class="muted" style="font-size:12px;margin:0 2px 10px">📅 '+esc(fmtDate(s.date))+'</div>':'<div style="height:8px"></div>');
   if(r){var aw=r.setsA>r.setsB,bw=r.setsB>r.setsA;
@@ -839,100 +795,12 @@ function openResultDetail(sid){
   html+='<div class="divider"></div><div class="row" style="align-items:flex-start">'+
     '<div class="teamcol"><h3><span>🔵 '+TEAM_A_NAME+'</span></h3>'+(names(A).map(function(n){return '<div class="slot"><span>'+esc(n)+'</span></div>';}).join('')||'<div class="muted" style="font-size:12px;padding:4px">—</div>')+'</div>'+
     '<div class="teamcol"><h3><span>🟠 '+TEAM_B_NAME+'</span></h3>'+(names(B).map(function(n){return '<div class="slot"><span>'+esc(n)+'</span></div>';}).join('')||'<div class="muted" style="font-size:12px;padding:4px">—</div>')+'</div></div>';
-  if(vids.length){ html+='<div class="divider"></div><div class="muted" style="font-size:12px;margin:0 2px 8px">🎬 فيديوهات التمرين</div>'+vids.map(videoRowMini).join(''); }
   if(isAdmin){ html+='<div style="height:14px"></div><button class="btn sec" onclick="reopenSession(\''+sid+'\')">↩︎ إعادته كتمرينٍ حالي</button>'+
     '<button class="btn red" style="margin-top:8px" onclick="delSession(\''+sid+'\')">🗑️ حذف التمرين</button>'; }
   html+='<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إغلاق</button>';
   modal(html);
 }
 function delSession(sid){ if(!isAdmin)return; if(!confirm('حذف التمرين نهائياً؟'))return; ROOT.child('sessions/'+sid).remove().then(function(){closeModal();toast('حُذف التمرين');}); }
-
-/* ========================================================= VIDEOS */
-function sessionVideos(sid){ return Object.keys(videos).map(function(k){var v=Object.assign({},videos[k]);v._id=k;return v;}).filter(function(v){return v.sessionId===sid;}).sort(function(a,b){return (b.ts||0)-(a.ts||0);}); }
-function setVideoFilter(f){videoFilter=f;$('vfAll').classList.toggle('on',f==='all');$('vfCur').classList.toggle('on',f==='cur');$('vfMine').classList.toggle('on',f==='mine');renderVideos();}
-function ytId(u){var m=String(u).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/))([\w-]{11})/);return m?m[1]:null;}
-function driveId(u){var m=String(u).match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/);return m?m[1]:null;}
-function videoThumb(v){ if(v.type==='link'){var y=ytId(v.url); if(y)return 'https://i.ytimg.com/vi/'+y+'/hqdefault.jpg';} return null; }
-function sessionTitle(sid){ return (sessions[sid]&&sessions[sid].title)||''; }
-function videoRowMini(v){
-  return '<div class="slot" onclick="playVideo(\''+v._id+'\')"><span style="font-size:16px">🎬</span>'+
-    '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(v.title||'مقطع')+'</span>'+
-    '<span class="save'+(saved[v._id]?' on':'')+'" style="position:static;width:28px;height:28px" onclick="event.stopPropagation();toggleSave(\''+v._id+'\')">'+(saved[v._id]?'★':'☆')+'</span></div>';
-}
-function renderVideos(){
-  if(!$('videosList'))return;
-  var arr=Object.keys(videos).map(function(k){var v=Object.assign({},videos[k]);v._id=k;return v;}).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
-  var act=activeSession();
-  if(videoFilter==='mine') arr=arr.filter(function(v){return saved[v._id];});
-  else if(videoFilter==='cur') arr=arr.filter(function(v){return act&&v.sessionId===act.id;});
-  $('videosEmpty').classList.toggle('hide',arr.length>0);
-  $('videosEmpty').textContent = videoFilter==='mine'?'لم تحفظ أي فيديو بعد — اضغط ★.' : (videoFilter==='cur'?'لا توجد فيديوهات للتمرين الحالي.':'لا توجد فيديوهات بعد.');
-  $('videosList').innerHTML=arr.map(function(v){
-    var th=videoThumb(v);
-    var stag=v.sessionId&&sessions[v.sessionId]?'<span class="tag">🏐 '+esc(sessionTitle(v.sessionId))+'</span>':'';
-    var ptag=v.playerId&&players[v.playerId]?'<span class="tag">👤 '+esc(players[v.playerId].name)+'</span>':'';
-    return '<div class="vcard" style="margin-bottom:12px"><div class="vthumb" onclick="playVideo(\''+v._id+'\')">'+
-      (th?'<img src="'+th+'">':'<div style="color:#446;font-size:40px">🎬</div>')+'<div class="play">▶</div>'+
-      '<button class="save'+(saved[v._id]?' on':'')+'" onclick="event.stopPropagation();toggleSave(\''+v._id+'\')">'+(saved[v._id]?'★':'☆')+'</button></div>'+
-      '<div class="vmeta"><div class="t">'+esc(v.title||'مقطع')+'</div><div class="s"><span>👤 '+esc(v.byName||nameOf(v.by))+'</span>'+stag+ptag+
-      (isAdmin?'<button class="tgt" onclick="delVideo(\''+v._id+'\')" style="margin-inline-start:auto">🗑️</button>':'')+'</div></div></div>';
-  }).join('');
-}
-function toggleSave(id){ if(!loggedIn){showLogin();return;} ROOT.child('saved/'+myKey+'/'+id).set(saved[id]?null:true); }
-function playVideo(id){
-  var v=videos[id]; if(!v)return; var body='';
-  if(v.type==='link'){
-    var y=ytId(v.url), d=driveId(v.url);
-    if(y) body='<div style="position:relative;padding-top:56.25%"><iframe src="https://www.youtube.com/embed/'+y+'?autoplay=1" style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px" allow="autoplay;encrypted-media" allowfullscreen></iframe></div>';
-    else if(d) body='<div style="position:relative;padding-top:75%"><iframe src="https://drive.google.com/file/d/'+d+'/preview" style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px" allowfullscreen></iframe></div>';
-    else body='<video src="'+esc(v.url)+'" controls autoplay playsinline style="width:100%;border-radius:12px;max-height:60vh;background:#000"></video><a class="btn sec" style="margin-top:8px;display:block;text-align:center;text-decoration:none" href="'+esc(v.url)+'" target="_blank" rel="noopener">فتح الرابط ↗</a>';
-  } else body='<video src="'+esc(v.url)+'" controls autoplay playsinline style="width:100%;border-radius:12px;max-height:60vh;background:#000"></video>';
-  modal('<div class="grab"></div><h2 style="margin:0 0 12px;font-size:17px">'+esc(v.title||'مقطع')+'</h2>'+body+'<button class="btn sec" style="margin-top:12px" onclick="closeModal()">إغلاق</button>');
-}
-function openVideoForm(preSid){
-  var act=activeSession(); var defSid=preSid||(act?act.id:'');
-  var sopts='<option value="">— بدون تمرين —</option>'+Object.keys(sessions).map(function(sid){var s=sessions[sid];return '<option value="'+sid+'" '+(sid===defSid?'selected':'')+'>'+esc(s.title||'تمرين')+(s.status==='done'?' (منتهي)':'')+'</option>';}).join('');
-  var popts='<option value="">— بدون —</option>'+Object.keys(players).map(function(k){return '<option value="'+k+'">'+esc(players[k].name)+'</option>';}).join('');
-  var tabs = ENABLE_UPLOAD ? '<div class="filterbar" style="margin-bottom:14px"><button id="tbFile" class="on" onclick="vTab(\'file\')">📤 رفع ملف</button><button id="tbLink" onclick="vTab(\'link\')">🔗 رابط</button></div>' : '';
-  var fileBox = ENABLE_UPLOAD ? '<div id="vFileBox"><button class="btn sec" onclick="document.getElementById(\'vFile\').click()">🎥 اختر مقطعًا من الجهاز</button><input type="file" id="vFile" accept="video/*" class="hide" onchange="onVideoFile(this)"><div id="vFileName" class="muted" style="font-size:12px;margin-top:8px;text-align:center"></div><div class="progress hide" id="vProg"><i></i></div></div>' : '';
-  modal('<div class="grab"></div><h2 style="margin:0 0 12px">إضافة فيديو</h2>'+tabs+
-    '<label>عنوان المقطع</label><input class="inp" id="vTitle" maxlength="80" placeholder="مثال: ضربة ساحقة رقم 12">'+
-    '<div style="height:10px"></div><label>التمرين</label><select class="inp" id="vSession">'+sopts+'</select>'+
-    '<div style="height:10px"></div><label>وسم لاعب (اختياري)</label><select class="inp" id="vPlayer">'+popts+'</select>'+
-    '<div style="height:12px"></div>'+fileBox+
-    '<div id="vLinkBox"'+(ENABLE_UPLOAD?' class="hide"':'')+'><label>رابط الفيديو (YouTube / Google Drive / رابط مباشر)</label><input class="inp" id="vUrl" placeholder="https://…" dir="ltr">'+
-      (ENABLE_UPLOAD?'':'<div class="muted" style="font-size:12px;margin-top:8px">انسخ رابط المقطع من يوتيوب أو Google Drive والصقه هنا.</div>')+'</div>'+
-    '<div style="height:14px"></div><button class="btn" id="vSubmit" onclick="submitVideo()">إضافة</button>'+
-    '<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إلغاء</button>');
-  window._vTab=ENABLE_UPLOAD?'file':'link'; window._vFile=null;
-}
-function vTab(t){window._vTab=t;$('tbFile').classList.toggle('on',t==='file');$('tbLink').classList.toggle('on',t==='link');$('vFileBox').classList.toggle('hide',t!=='file');$('vLinkBox').classList.toggle('hide',t!=='link');}
-function onVideoFile(inp){var f=inp.files&&inp.files[0];if(!f)return;if(f.size>200*1024*1024){toast('الحجم كبير (أقصى 200MB)');inp.value='';return;}window._vFile=f;$('vFileName').textContent='📎 '+f.name+' — '+(f.size/1048576).toFixed(1)+'MB';if(!$('vTitle').value)$('vTitle').value=f.name.replace(/\.[^.]+$/,'').slice(0,80);}
-function submitVideo(){
-  if(!loggedIn){showLogin();return;}
-  var title=($('vTitle').value||'').trim().slice(0,80)||'مقطع';
-  var sessionId=$('vSession').value||null, playerId=$('vPlayer').value||null;
-  var vid=pushId('videos'); var base={title:title,by:myKey,byName:myName||'لاعب',ts:nowTs()};
-  if(sessionId)base.sessionId=sessionId; if(playerId)base.playerId=playerId;
-  if(window._vTab==='link'){
-    var url=($('vUrl').value||'').trim(); if(!/^https?:\/\//i.test(url)){toast('أدخل رابطًا صحيحًا يبدأ بـ http');return;}
-    base.type='link'; base.url=url;
-    ROOT.child('videos/'+vid).set(base).then(function(){closeModal();toast('تمت إضافة الفيديو ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));}); return;
-  }
-  var f=window._vFile; if(!f){toast('اختر ملف فيديو');return;}
-  if(!storage){toast('التخزين غير مُفعّل. استخدم رابطًا.');return;}
-  var btn=$('vSubmit'); btn.disabled=true; btn.textContent='جارٍ الرفع…'; $('vProg').classList.remove('hide');
-  var safe=f.name.replace(/[^\w.\-]+/g,'_').slice(-60); var ref=storage.ref('volley/videos/'+vid+'/'+safe); var task=ref.put(f,{contentType:f.type});
-  task.on('state_changed',function(sn){var pct=sn.totalBytes?Math.round(sn.bytesTransferred/sn.totalBytes*100):0;$('vProg').firstElementChild.style.width=pct+'%';btn.textContent='جارٍ الرفع… '+pct+'%';},
-    function(err){btn.disabled=false;btn.textContent='إضافة';var code=(err&&err.code)||'';if(/unauth/i.test(code))toast('يتطلب التخزين ضبط قواعد Storage. استخدم رابطًا.');else toast('فشل الرفع: '+(code||err));},
-    function(){ref.getDownloadURL().then(function(url){base.type='file';base.url=url;base.storagePath='volley/videos/'+vid+'/'+safe;ROOT.child('videos/'+vid).set(base).then(function(){closeModal();toast('تم الرفع ✓');});});});
-}
-function delVideo(id){
-  if(!isAdmin){toast('الحذف للمشرف فقط');return;}
-  if(!confirm('حذف هذا الفيديو؟'))return; var v=videos[id]||{};
-  var after=function(){ROOT.child('videos/'+id).remove().then(function(){toast('حُذف');});};
-  if(v.storagePath&&storage){storage.ref(v.storagePath).delete().then(after).catch(after);} else after();
-}
 
 /* ========================================================= MODAL */
 function modal(html,noDismiss){ $('modalHost').innerHTML='<div class="overlay" '+(noDismiss?'':'onclick="if(event.target===this)closeModal()"')+'><div class="sheet">'+html+'</div></div>'; document.body.style.overflow='hidden'; }
