@@ -556,7 +556,13 @@ function mvpHtml(s){
   return html;
 }
 function toggleMvp(sid,open){ if(!isAdmin){toast('للمشرف فقط');return;} ROOT.child('sessions/'+sid+'/mvp/open').set(open).then(function(){toast(open?'فُتح التصويت':'أُغلق');}); }
-function castVote(sid,pid){ if(!loggedIn){showLogin();return;} var s=sessions[sid]; if(!s||!s.mvp||!s.mvp.open){toast('التصويت مغلق');return;} ROOT.child('sessions/'+sid+'/mvp/votes/'+myKey).set(pid).then(function(){toast('تم تصويتك ✓');}); }
+function castVote(sid,pid){
+  if(!loggedIn){showLogin();return;}
+  var s=sessions[sid]; if(!s||!s.mvp||!s.mvp.open){toast('التصويت مغلق');return;}
+  var cur=(s.mvp.votes||{})[myKey];
+  if(cur===pid){ ROOT.child('sessions/'+sid+'/mvp/votes/'+myKey).remove().then(function(){toast('أُلغي تصويتك');}); }
+  else { ROOT.child('sessions/'+sid+'/mvp/votes/'+myKey).set(pid).then(function(){toast('تم تصويتك ✓');}); }
+}
 
 /* ---------- result within session ---------- */
 function resultBlockHtml(s){
