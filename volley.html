@@ -162,7 +162,7 @@ nav button.on{color:var(--brand)}
 <header>
   <div class="logo"></div>
   <div class="htxt"><h1>تمرين الطائرة الأسبوعي 🏐</h1><small id="hsub">جاري التحميل…</small></div>
-  <div class="chip" onclick="editName()"><span>👤</span><b id="meName">—</b></div>
+  <div class="chip" onclick="accountMenu()"><span>👤</span><b id="meName">—</b></div>
   <button class="iconbtn" id="adminBtn" onclick="toggleAdmin()" title="المشرف">⚙️</button>
 </header>
 
@@ -223,13 +223,12 @@ var ENABLE_UPLOAD = false;    // رفع ملفات الفيديو يحتاج Fir
 var TEAM_A_NAME = "الأزرق", TEAM_B_NAME = "البرتقالي";
 
 /* ---------- state ---------- */
-var db=null, auth=null, storage=null, ROOT=null, uid=null, ready=false;
-var myName='', isAdmin=false;
+var db=null, auth=null, storage=null, ROOT=null, uid=null;
+var myName='', myKey='', isAdmin=false, authReady=false, loggedIn=false, savedRef=null;
 var sessions={}, players={}, videos={}, saved={}, users={};
 var videoFilter='all', curView='session';
 
 try{ isAdmin = localStorage.getItem('volley_admin')==='1'; }catch(e){}
-try{ myName = localStorage.getItem('volley_name')||''; }catch(e){}
 
 /* ---------- helpers ---------- */
 function $(id){return document.getElementById(id);}
@@ -275,20 +274,87 @@ function boot(){
   if(!db) return;
   auth.onAuthStateChanged(function(u){
     if(!u){ auth.signInAnonymously().catch(function(e){ showCfg('⚠️ فشل الدخول المجهول: '+esc((e&&e.code)||e)+' — فعّل Anonymous Auth في Firebase.'); }); return; }
-    uid=u.uid; ready=true; $('hsub').textContent='متصل ✓';
-    if(!myName){ askName(true); } else { registerMe(); }
+    uid=u.uid; authReady=true; $('hsub').textContent='متصل ✓';
     attach();
+    // محاولة تسجيل دخول تلقائي من الجهاز
+    var sn='',sp=''; try{ sn=localStorage.getItem('volley_name')||''; sp=localStorage.getItem('volley_pin')||''; }catch(e){}
+    if(sn && sp){ attemptLogin(sn,sp,true); } else { showLogin(); }
   });
 }
-function registerMe(){ $('meName').textContent=myName||'—'; if(uid&&myName){ ROOT.child('users/'+uid).update({name:myName}).catch(function(){}); } }
 function attach(){
   ROOT.child('sessions').on('value',function(s){sessions=s.val()||{};renderAll();});
   ROOT.child('players').on('value',function(s){players=s.val()||{};renderAll();});
   ROOT.child('videos').on('value',function(s){videos=s.val()||{};renderVideos();renderSession();});
-  ROOT.child('saved/'+uid).on('value',function(s){saved=s.val()||{};renderVideos();});
   ROOT.child('users').on('value',function(s){users=s.val()||{};renderAll();});
 }
+function attachSaved(){
+  if(savedRef){ try{savedRef.off();}catch(e){} }
+  savedRef=ROOT.child('saved/'+myKey);
+  savedRef.on('value',function(s){saved=s.val()||{};renderVideos();renderSession();});
+}
 function renderAll(){ renderSession(); renderResults(); renderVideos(); }
+
+/* ========================================================= LOGIN (اسم مستخدم + رقم سري) */
+function sanitize(s){return String(s).replace(/[.#$\[\]\/]/g,'_').trim();}
+function hashPin(s){var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h)+s.charCodeAt(i);h|=0;}return 'p'+(h>>>0).toString(36);}
+function writeErr(e){var m=(e&&(e.code||e.message))?(''+(e.code||e.message)):'';if(/permission|denied/i.test(m))return 'مرفوض من القواعد';return 'خطأ — تحقّق من اتصالك.';}
+
+function showLogin(){
+  modal('<div class="grab"></div>'+
+    '<div style="text-align:center;margin-bottom:6px"><div style="font-size:40px">🏐</div>'+
+    '<h2 style="margin:6px 0 2px">تسجيل الدخول</h2>'+
+    '<p class="muted" style="margin:0 0 16px;font-size:13px">اكتب اسم المستخدم ورقمك السري.<br>لاعب جديد؟ اكتب اسم ورقم سري جديد وبينحفظ لك.</p></div>'+
+    '<label>اسم المستخدم</label><input class="inp" id="lgName" maxlength="30" placeholder="مثال: محمود">'+
+    '<div style="height:10px"></div>'+
+    '<label>الرقم السري (4 أرقام)</label>'+
+    '<input class="inp" id="lgPin" type="tel" inputmode="numeric" maxlength="4" placeholder="••••" dir="ltr" style="text-align:center;letter-spacing:8px;font-size:20px">'+
+    '<div id="lgErr" style="color:var(--red);font-size:12.5px;min-height:16px;margin:8px 2px 0;text-align:center"></div>'+
+    '<button class="btn" style="margin-top:6px" onclick="doLogin()">دخول</button>', true);
+  setTimeout(function(){var i=$('lgName'); if(i)i.focus();},60);
+  var pin=$('lgPin'); if(pin){ pin.addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,4);}); pin.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();}); }
+}
+function doLogin(){
+  var name=($('lgName').value||'').trim();
+  var pin=($('lgPin').value||'').trim();
+  if(!name){ $('lgErr').textContent='اكتب اسم المستخدم'; return; }
+  if(!/^[0-9]{4}$/.test(pin)){ $('lgErr').textContent='الرقم السري لازم 4 أرقام'; return; }
+  if(!configReady){ $('lgErr').textContent='لازم تضبط إعدادات Firebase أولاً.'; return; }
+  if(!authReady){ $('lgErr').textContent='جارٍ الاتصال… حاول بعد ثانية.'; return; }
+  $('lgErr').textContent='جارٍ الدخول…';
+  attemptLogin(name,pin,false);
+}
+function attemptLogin(name,pin,fromAuto){
+  var key=sanitize(name);
+  if(!key){ if(!fromAuto)$('lgErr').textContent='اسم غير صالح'; return; }
+  ROOT.child('users/'+key).once('value').then(function(snap){
+    var u=snap.val();
+    if(u){ // اسم موجود -> تحقّق من الرقم السري
+      if(u.ph && u.ph!==hashPin(pin)){ loginFail('الرقم السري خاطئ لهذا الاسم.',fromAuto); return; }
+      var upd={name:name.slice(0,30)}; if(!u.ph) upd.ph=hashPin(pin);
+      ROOT.child('users/'+key).update(upd).then(function(){loginOk(name,pin,key);}).catch(function(e){loginFail(writeErr(e),fromAuto);});
+    } else { // اسم جديد -> إنشاء حساب
+      ROOT.child('users/'+key).set({name:name.slice(0,30),ph:hashPin(pin)}).then(function(){loginOk(name,pin,key);}).catch(function(e){loginFail(writeErr(e),fromAuto);});
+    }
+  }).catch(function(e){ loginFail(writeErr(e),fromAuto); });
+}
+function loginOk(name,pin,key){
+  myName=name.slice(0,30); myKey=key; loggedIn=true;
+  try{ localStorage.setItem('volley_name',name); localStorage.setItem('volley_pin',pin); }catch(e){}
+  $('meName').textContent=myName; attachSaved(); closeModal(); renderAll();
+  toast('أهلاً '+myName+' 👋');
+}
+function loginFail(msg,fromAuto){
+  myName='';myKey='';loggedIn=false;
+  if(fromAuto){ try{localStorage.removeItem('volley_name');localStorage.removeItem('volley_pin');}catch(e){} showLogin(); }
+  var el=$('lgErr'); if(el)el.textContent=msg;
+}
+function logout(){
+  if(!confirm('تسجيل الخروج؟'))return;
+  if(savedRef){ try{savedRef.off();}catch(e){} savedRef=null; }
+  myName='';myKey='';loggedIn=false;saved={};
+  try{ localStorage.removeItem('volley_name'); localStorage.removeItem('volley_pin'); }catch(e){}
+  $('meName').textContent='—'; closeModal(); renderAll(); showLogin();
+}
 
 /* ========================================================= NAV */
 function nav(v){
@@ -298,20 +364,14 @@ function nav(v){
   window.scrollTo(0,0);
 }
 
-/* ========================================================= NAME */
-function askName(force){
-  modal('<div class="grab"></div><h2 style="margin:0 0 4px">وش اسمك؟</h2>'+
-    '<p class="muted" style="margin:0 0 14px;font-size:13px">يظهر اسمك عند إضافة الفيديوهات والتصويت.</p>'+
-    '<input class="inp" id="nmInp" maxlength="30" placeholder="اسمك" value="'+esc(myName||'')+'">'+
-    '<div style="height:12px"></div><button class="btn" onclick="saveName()">حفظ</button>'+
-    (force?'':'<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إلغاء</button>'), !force);
-  setTimeout(function(){var i=$('nmInp'); if(i)i.focus();},60);
-}
-function editName(){ askName(false); }
-function saveName(){
-  var v=($('nmInp').value||'').trim(); if(!v){toast('اكتب اسمك');return;}
-  myName=v.slice(0,30); try{ localStorage.setItem('volley_name',myName); }catch(e){}
-  registerMe(); closeModal(); toast('أهلاً '+myName+' 👋');
+/* ========================================================= ACCOUNT MENU */
+function accountMenu(){
+  if(!loggedIn){ showLogin(); return; }
+  modal('<div class="grab"></div><div style="text-align:center;margin-bottom:14px">'+
+    '<div style="font-size:34px">👤</div><h2 style="margin:6px 0 0">'+esc(myName)+'</h2>'+
+    '<div class="muted" style="font-size:12px">مسجّل دخول</div></div>'+
+    '<button class="btn sec red" style="background:#3a1414;color:#ffd7d7;border:1px solid #7a2626" onclick="logout()">🚪 تسجيل الخروج</button>'+
+    '<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إغلاق</button>');
 }
 
 /* ========================================================= ADMIN */
@@ -431,7 +491,7 @@ function mvpHtml(s){
   var sid=s.id; var m=s.mvp||{}; var open=!!m.open;
   var votes=m.votes||{}; var tally={},total=0;
   Object.keys(votes).forEach(function(u){var pid=votes[u];tally[pid]=(tally[pid]||0)+1;total++;});
-  var myVote=votes[uid]||null;
+  var myVote=votes[myKey]||null;
   var html='<div class="blocktitle"><span class="ic">⭐</span> أفضل لاعب'+
     (isAdmin?'<button class="btn sm act sec" onclick="toggleMvp(\''+sid+'\','+(open?'false':'true')+')">'+(open?'🔒 إقفال':'🔓 فتح')+'</button>':
       '<span class="act muted" style="font-size:12px">'+(open?'التصويت مفتوح 🟢':'مقفل 🔴')+'</span>')+'</div>';
@@ -454,7 +514,7 @@ function mvpHtml(s){
   return html;
 }
 function toggleMvp(sid,open){ if(!isAdmin){toast('للمشرف فقط');return;} ROOT.child('sessions/'+sid+'/mvp/open').set(open).then(function(){toast(open?'فُتح التصويت':'أُقفل');}); }
-function castVote(sid,pid){ var s=sessions[sid]; if(!s||!s.mvp||!s.mvp.open){toast('التصويت مقفل');return;} ROOT.child('sessions/'+sid+'/mvp/votes/'+uid).set(pid).then(function(){toast('تم تصويتك ✓');}); }
+function castVote(sid,pid){ if(!loggedIn){showLogin();return;} var s=sessions[sid]; if(!s||!s.mvp||!s.mvp.open){toast('التصويت مقفل');return;} ROOT.child('sessions/'+sid+'/mvp/votes/'+myKey).set(pid).then(function(){toast('تم تصويتك ✓');}); }
 
 /* ---------- result within session ---------- */
 function resultBlockHtml(s){
@@ -493,7 +553,7 @@ function renderSetRows(){
 function addSetRow(){window._sets.push({a:'',b:''});renderSetRows();}
 function rmSetRow(i){window._sets.splice(i,1);renderSetRows();}
 function saveResult(sid){
-  if(!ready){toast('لسه يتصل…');return;}
+  if(!loggedIn){showLogin();return;}
   var sets=window._sets.filter(function(x){return x.a!==''||x.b!=='';}).map(function(x){return {a:parseInt(x.a||0,10)||0,b:parseInt(x.b||0,10)||0};});
   if(!sets.length){toast('أدخل نتيجة شوط واحد على الأقل');return;}
   var wa=0,wb=0; sets.forEach(function(x){if(x.a>x.b)wa++;else if(x.b>x.a)wb++;});
@@ -528,10 +588,10 @@ function onPhoto(inp){
   }; img.src=rd.result; }; rd.readAsDataURL(f);
 }
 function savePlayer(id){
-  if(!ready){toast('لسه يتصل…');return;}
+  if(!loggedIn){showLogin();return;}
   var name=($('pfName').value||'').trim(); if(!name){toast('اكتب اسم اللاعب');return;}
   var obj={name:name.slice(0,40),bio:($('pfBio').value||'').slice(0,300),photo:$('pfPhoto').value||''};
-  var key=id||pushId('players'); if(!id){obj.ts=nowTs();obj.by=uid;}
+  var key=id||pushId('players'); if(!id){obj.ts=nowTs();obj.by=myKey;}
   ROOT.child('players/'+key).update(obj).then(function(){closeModal();toast(id?'تم التعديل':'أضيف اللاعب ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));});
 }
 function delPlayer(id){
@@ -643,7 +703,7 @@ function renderVideos(){
       (isAdmin?'<button class="tgt" onclick="delVideo(\''+v._id+'\')" style="margin-inline-start:auto">🗑️</button>':'')+'</div></div></div>';
   }).join('');
 }
-function toggleSave(id){ if(!ready)return; ROOT.child('saved/'+uid+'/'+id).set(saved[id]?null:true); }
+function toggleSave(id){ if(!loggedIn){showLogin();return;} ROOT.child('saved/'+myKey+'/'+id).set(saved[id]?null:true); }
 function playVideo(id){
   var v=videos[id]; if(!v)return; var body='';
   if(v.type==='link'){
@@ -674,10 +734,10 @@ function openVideoForm(preSid){
 function vTab(t){window._vTab=t;$('tbFile').classList.toggle('on',t==='file');$('tbLink').classList.toggle('on',t==='link');$('vFileBox').classList.toggle('hide',t!=='file');$('vLinkBox').classList.toggle('hide',t!=='link');}
 function onVideoFile(inp){var f=inp.files&&inp.files[0];if(!f)return;if(f.size>200*1024*1024){toast('الحجم كبير (أقصى 200MB)');inp.value='';return;}window._vFile=f;$('vFileName').textContent='📎 '+f.name+' — '+(f.size/1048576).toFixed(1)+'MB';if(!$('vTitle').value)$('vTitle').value=f.name.replace(/\.[^.]+$/,'').slice(0,80);}
 function submitVideo(){
-  if(!ready){toast('لسه يتصل…');return;}
+  if(!loggedIn){showLogin();return;}
   var title=($('vTitle').value||'').trim().slice(0,80)||'مقطع';
   var sessionId=$('vSession').value||null, playerId=$('vPlayer').value||null;
-  var vid=pushId('videos'); var base={title:title,by:uid,byName:myName||'لاعب',ts:nowTs()};
+  var vid=pushId('videos'); var base={title:title,by:myKey,byName:myName||'لاعب',ts:nowTs()};
   if(sessionId)base.sessionId=sessionId; if(playerId)base.playerId=playerId;
   if(window._vTab==='link'){
     var url=($('vUrl').value||'').trim(); if(!/^https?:\/\//i.test(url)){toast('اكتب رابط صحيح يبدأ بـ http');return;}

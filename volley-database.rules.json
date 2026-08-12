@@ -4,10 +4,13 @@
       ".read": "auth != null",
 
       "users": {
-        "$uid": {
-          ".write": "auth != null && auth.uid === $uid",
+        "$key": {
+          ".write": "auth != null && newData.exists()",
           "name": {
             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
+          },
+          "ph": {
+            ".validate": "!data.exists() || newData.val() === data.val()"
           }
         }
       },
@@ -31,8 +34,8 @@
           "mvp": {
             "open": { ".write": "auth != null", ".validate": "newData.isBoolean()" },
             "votes": {
-              "$uid": {
-                ".write": "auth != null && auth.uid === $uid",
+              "$key": {
+                ".write": "auth != null",
                 ".validate": "newData.isString() && newData.val().length <= 40"
               }
             }
@@ -49,8 +52,8 @@
       },
 
       "saved": {
-        "$uid": {
-          ".write": "auth != null && auth.uid === $uid",
+        "$key": {
+          ".write": "auth != null",
           "$vid": { ".validate": "newData.isBoolean()" }
         }
       }
