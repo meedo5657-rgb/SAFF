@@ -307,8 +307,6 @@ var ADMIN_CODE = "2026"; // كود المشرف — غيّره وقت ما تب�
 // خلّه true فقط لو فعّلت Storage ونشرت storage.rules.
 var ENABLE_UPLOAD = false;
 
-var POSITIONS = ["معد","ليبرو","مهاجم أطراف","مهاجم وسط","ارتكاز (2)","حر"];
-
 /* ---------- state ---------- */
 var db=null, auth=null, storage=null, ROOT=null, uid=null, ready=false;
 var myName='', isAdmin=false;
@@ -419,21 +417,19 @@ function updateAdminUI(){
 function renderPlayers(){
   var grid=$('playersGrid'); if(!grid) return;
   var arr=Object.keys(players).map(function(k){var p=players[k]||{};p._id=k;return p;});
-  arr.sort(function(a,b){var na=(a.num==null?999:a.num),nb=(b.num==null?999:b.num);if(na!==nb)return na-nb;return (a.name||'').localeCompare(b.name||'','ar');});
+  arr.sort(function(a,b){return (a.name||'').localeCompare(b.name||'','ar');});
   $('playersEmpty').classList.toggle('hide',arr.length>0);
   var mvpWins=computeMvpWins();
   grid.innerHTML=arr.map(function(p){
     var star=mvpWins[p._id]?'<span class="mvpstar" title="أفضل لاعب">⭐'+(mvpWins[p._id]>1?mvpWins[p._id]:'')+'</span>':'';
     var img=p.photo?'<img class="ph" src="'+p.photo+'" alt="">':'<div class="noph">🏐</div>';
-    var num=(p.num!=null&&p.num!=='')?'<span class="num">'+esc(p.num)+'</span>':'';
-    return '<div class="pcard" onclick="openProfile(\''+p._id+'\')">'+num+star+img+
-      '<div class="nm">'+esc(p.name||'')+'</div><div class="po">'+esc(p.pos||'')+'</div></div>';
+    return '<div class="pcard" onclick="openProfile(\''+p._id+'\')">'+star+img+
+      '<div class="nm" style="padding-bottom:9px">'+esc(p.name||'')+'</div></div>';
   }).join('');
 }
 
 function openPlayerForm(id){
   var p=id?(players[id]||{}):{};
-  var opts=POSITIONS.map(function(o){return '<option '+(p.pos===o?'selected':'')+'>'+esc(o)+'</option>';}).join('');
   modal('<div class="grab"></div>'+
     '<h2 style="margin:0 0 12px">'+(id?'تعديل لاعب':'لاعب جديد')+'</h2>'+
     '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">'+
@@ -444,10 +440,7 @@ function openPlayerForm(id){
         '<input type="file" id="phInp" accept="image/*" class="hide" onchange="onPhoto(this)"></div>'+
     '</div>'+
     '<input type="hidden" id="pfPhoto" value="'+esc(p.photo||'')+'">'+
-    '<div class="row"><div style="flex:2"><label>الاسم</label><input class="inp" id="pfName" maxlength="40" value="'+esc(p.name||'')+'"></div>'+
-      '<div style="flex:1"><label>الرقم</label><input class="inp" id="pfNum" type="number" min="0" max="99" value="'+esc(p.num==null?'':p.num)+'"></div></div>'+
-    '<div style="height:10px"></div>'+
-    '<label>المركز</label><select class="inp" id="pfPos"><option value="">—</option>'+opts+'</select>'+
+    '<label>الاسم</label><input class="inp" id="pfName" maxlength="40" value="'+esc(p.name||'')+'">'+
     '<div style="height:10px"></div>'+
     '<label>نبذة</label><textarea class="inp" id="pfBio" maxlength="300" placeholder="مهاراته، ملاحظات…">'+esc(p.bio||'')+'</textarea>'+
     '<div style="height:14px"></div>'+
@@ -474,8 +467,7 @@ function savePlayer(id){
   if(!ready){toast('لسه يتصل…');return;}
   var name=($('pfName').value||'').trim();
   if(!name){toast('اكتب اسم اللاعب');return;}
-  var numRaw=$('pfNum').value; var num=(numRaw===''?null:Math.max(0,Math.min(99,parseInt(numRaw,10)||0)));
-  var obj={name:name.slice(0,40),num:num,pos:$('pfPos').value||'',bio:($('pfBio').value||'').slice(0,300),photo:$('pfPhoto').value||''};
+  var obj={name:name.slice(0,40),bio:($('pfBio').value||'').slice(0,300),photo:$('pfPhoto').value||''};
   var key=id||pushId('players');
   if(!id){obj.ts=nowTs();obj.by=uid;}
   ROOT.child('players/'+key).update(obj).then(function(){closeModal();toast(id?'تم التعديل':'أضيف اللاعب ✓');})
@@ -496,9 +488,7 @@ function openProfile(id){
   modal('<div class="grab"></div>'+
     '<div class="prof-top">'+img+
       '<div style="flex:1;min-width:0">'+
-        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h2 style="margin:0;font-size:20px">'+esc(p.name||'')+'</h2>'+
-          (p.num!=null&&p.num!==''?'<span class="pill">#'+esc(p.num)+'</span>':'')+'</div>'+
-        (p.pos?'<div class="pill" style="margin-top:6px">'+esc(p.pos)+'</div>':'')+
+        '<h2 style="margin:0;font-size:20px">'+esc(p.name||'')+'</h2>'+
         (wins?'<div style="margin-top:6px;color:var(--brand2);font-weight:800">⭐ أفضل لاعب ×'+wins+'</div>':'')+
       '</div>'+
     '</div>'+
@@ -534,12 +524,12 @@ function renderLineup(){
   var A=lineup.teamA||{}, B=lineup.teamB||{};
   var listA=[],listB=[],benchArr=[];
   ids.map(function(k){var p=players[k]||{};p._id=k;return p;})
-    .sort(function(a,b){var na=(a.num==null?999:a.num),nb=(b.num==null?999:b.num);return na-nb;})
+    .sort(function(a,b){return (a.name||'').localeCompare(b.name||'','ar');})
     .forEach(function(p){ if(A[p._id])listA.push(p); else if(B[p._id])listB.push(p); else benchArr.push(p); });
   function mini(p){return p.photo?'<img class="mini" src="'+p.photo+'">':'<div class="mininoph">🏐</div>';}
   function slot(p,team){
     return '<div class="slot">'+mini(p)+
-      '<span style="flex:1">'+(p.num!=null&&p.num!==''?'<b>#'+esc(p.num)+'</b> ':'')+esc(p.name||'')+'</span>'+
+      '<span style="flex:1">'+esc(p.name||'')+'</span>'+
       '<span class="assignrow">'+
         (team!=='A'?'<button class="tgt a" onclick="setTeam(\''+p._id+'\',\'A\')">🔵</button>':'')+
         (team!=='B'?'<button class="tgt b" onclick="setTeam(\''+p._id+'\',\'B\')">🟠</button>':'')+
@@ -846,7 +836,7 @@ function renderMVP(){
       var p=players[pid]; var sel=myVote===pid;
       var mini=p.photo?'<img class="mini" src="'+p.photo+'">':'<div class="mininoph">🏐</div>';
       return '<div class="voteopt'+(sel?' sel':'')+'" onclick="castVote(\''+r._id+'\',\''+pid+'\')">'+mini+
-        '<span class="nm">'+esc(p.name||'')+(p.pos?' <span class="muted" style="font-weight:400;font-size:11px">'+esc(p.pos)+'</span>':'')+'</span>'+
+        '<span class="nm">'+esc(p.name||'')+'</span>'+
         (sel?'<span style="color:var(--brand)">✓</span>':'')+'</div>';
     }).join(''):'<div class="empty">أضف لاعبين أول.</div>';
   }
