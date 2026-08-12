@@ -253,7 +253,7 @@ var TEAM_A_NAME = "الأزرق", TEAM_B_NAME = "البرتقالي";
 
 /* ---------- state ---------- */
 var db=null, auth=null, storage=null, ROOT=null, uid=null;
-var myName='', myKey='', isAdmin=false, authReady=false, loggedIn=false, savedRef=null;
+var myName='', myKey='', isAdmin=false, authReady=false, loggedIn=false, savedRef=null, myPlayerEnsured=false;
 var sessions={}, players={}, videos={}, saved={}, users={};
 var videoFilter='all', curView='session';
 
@@ -312,7 +312,7 @@ function boot(){
 }
 function attach(){
   ROOT.child('sessions').on('value',function(s){sessions=s.val()||{};renderAll();});
-  ROOT.child('players').on('value',function(s){players=s.val()||{};renderAll();});
+  ROOT.child('players').on('value',function(s){players=s.val()||{};ensureMyPlayer();renderAll();});
   ROOT.child('videos').on('value',function(s){videos=s.val()||{};renderVideos();renderSession();});
   ROOT.child('users').on('value',function(s){users=s.val()||{};renderAll();});
 }
@@ -369,8 +369,21 @@ function attemptLogin(name,pin,fromAuto){
 function loginOk(name,pin,key){
   myName=name.slice(0,30); myKey=key; loggedIn=true;
   try{ localStorage.setItem('volley_name',name); localStorage.setItem('volley_pin',pin); }catch(e){}
-  $('meName').textContent=myName; attachSaved(); closeModal(); renderAll();
+  $('meName').textContent=myName; attachSaved(); ensureMyPlayer(); closeModal(); renderAll();
   toast('مرحبًا '+myName+' 👋');
+}
+/* أي مستخدم يسجّل دخول يُضاف كلاعب تلقائياً (أو يُربط بلاعب موجود بنفس الاسم) */
+function ensureMyPlayer(){
+  if(!loggedIn||!myKey||myPlayerEnsured) return;
+  if(myPlayerId()){ myPlayerEnsured=true; return; }
+  var match=null;
+  Object.keys(players).forEach(function(pid){ var pp=players[pid]||{}; if(!pp.ownerKey && (pp.name||'')===myName) match=pid; });
+  myPlayerEnsured=true; // لا نكرّر الإنشاء
+  if(match){ ROOT.child('players/'+match+'/ownerKey').set(myKey).catch(function(){myPlayerEnsured=false;}); }
+  else {
+    var pid=pushId('players');
+    ROOT.child('players/'+pid).set({name:myName.slice(0,40),ownerKey:myKey,bio:'',photo:'',ts:nowTs(),by:myKey}).catch(function(){myPlayerEnsured=false;});
+  }
 }
 function loginFail(msg,fromAuto){
   myName='';myKey='';loggedIn=false;
@@ -380,7 +393,7 @@ function loginFail(msg,fromAuto){
 function logout(){
   if(!confirm('تسجيل الخروج؟'))return;
   if(savedRef){ try{savedRef.off();}catch(e){} savedRef=null; }
-  myName='';myKey='';loggedIn=false;saved={};
+  myName='';myKey='';loggedIn=false;saved={};myPlayerEnsured=false;
   try{ localStorage.removeItem('volley_name'); localStorage.removeItem('volley_pin'); }catch(e){}
   $('meName').textContent='—'; closeModal(); renderAll(); showLogin();
 }
