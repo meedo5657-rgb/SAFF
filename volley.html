@@ -240,7 +240,7 @@ nav button.on .ic{transform:translateY(-1px)}
   <section class="view hide" id="v_videos">
     <div class="sectitle">
       <h2>الفيديوهات</h2>
-      <button class="btn sm" onclick="openVideoForm()">＋ رفع / إضافة</button>
+      <button class="btn sm" onclick="openVideoForm()">＋ إضافة فيديو</button>
     </div>
     <div class="filterbar">
       <button id="vfAll" class="on" onclick="setVideoFilter('all')">الكل</button>
@@ -303,6 +303,9 @@ var firebaseConfig = {
   appId:"1:1384225671:web:b4b26b509b352859c7d122"
 };
 var ADMIN_CODE = "2026"; // كود المشرف — غيّره وقت ما تبي
+// رفع ملفات الفيديو يحتاج Firebase Storage (فيه تكلفة). مقفول افتراضياً.
+// خلّه true فقط لو فعّلت Storage ونشرت storage.rules.
+var ENABLE_UPLOAD = false;
 
 var POSITIONS = ["معد","ليبرو","مهاجم أطراف","مهاجم وسط","ارتكاز (2)","حر"];
 
@@ -609,31 +612,35 @@ function playVideo(id){
 }
 function openVideoForm(){
   var popts='<option value="">— بدون —</option>'+Object.keys(players).map(function(k){return '<option value="'+k+'">'+esc(players[k].name)+'</option>';}).join('');
-  modal('<div class="grab"></div>'+
-    '<h2 style="margin:0 0 12px">إضافة فيديو</h2>'+
+  var tabs = ENABLE_UPLOAD ?
     '<div class="filterbar" style="margin-bottom:14px">'+
       '<button id="tbFile" class="on" onclick="vTab(\'file\')">📤 رفع ملف</button>'+
       '<button id="tbLink" onclick="vTab(\'link\')">🔗 رابط</button>'+
-    '</div>'+
-    '<label>عنوان المقطع</label><input class="inp" id="vTitle" maxlength="80" placeholder="مثال: سحقة رقم 12">'+
-    '<div style="height:10px"></div>'+
-    '<label>وسم لاعب (اختياري)</label><select class="inp" id="vPlayer">'+popts+'</select>'+
-    '<div style="height:12px"></div>'+
+    '</div>' : '';
+  var fileBox = ENABLE_UPLOAD ?
     '<div id="vFileBox">'+
       '<button class="btn sec" onclick="document.getElementById(\'vFile\').click()">🎥 اختر مقطع من الجوال</button>'+
       '<input type="file" id="vFile" accept="video/*" class="hide" onchange="onVideoFile(this)">'+
       '<div id="vFileName" class="muted" style="font-size:12px;margin-top:8px;text-align:center"></div>'+
       '<div class="progress hide" id="vProg"><i></i></div>'+
-    '</div>'+
-    '<div id="vLinkBox" class="hide">'+
+    '</div>' : '';
+  var linkHidden = ENABLE_UPLOAD ? ' class="hide"' : '';
+  modal('<div class="grab"></div>'+
+    '<h2 style="margin:0 0 12px">إضافة فيديو</h2>'+ tabs +
+    '<label>عنوان المقطع</label><input class="inp" id="vTitle" maxlength="80" placeholder="مثال: سحقة رقم 12">'+
+    '<div style="height:10px"></div>'+
+    '<label>وسم لاعب (اختياري)</label><select class="inp" id="vPlayer">'+popts+'</select>'+
+    '<div style="height:12px"></div>'+ fileBox +
+    '<div id="vLinkBox"'+linkHidden+'>'+
       '<label>رابط الفيديو (YouTube / Google Drive / رابط مباشر)</label>'+
       '<input class="inp" id="vUrl" placeholder="https://…" dir="ltr">'+
+      (ENABLE_UPLOAD?'':'<div class="muted" style="font-size:12px;margin-top:8px">انسخ رابط المقطع من يوتيوب أو Google Drive والصقه هنا.</div>')+
     '</div>'+
     '<div style="height:14px"></div>'+
     '<button class="btn" id="vSubmit" onclick="submitVideo()">إضافة</button>'+
     '<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إلغاء</button>'
   );
-  window._vTab='file'; window._vFile=null;
+  window._vTab = ENABLE_UPLOAD ? 'file' : 'link'; window._vFile=null;
 }
 function vTab(t){window._vTab=t;$('tbFile').classList.toggle('on',t==='file');$('tbLink').classList.toggle('on',t==='link');
   $('vFileBox').classList.toggle('hide',t!=='file');$('vLinkBox').classList.toggle('hide',t!=='link');}
