@@ -415,7 +415,7 @@ function accountMenu(){
     '<div style="font-size:34px">👤</div><h2 style="margin:6px 0 0">'+esc(myName)+'</h2>'+
     '<div class="muted" style="font-size:12px">مسجّل الدخول</div></div>'+
     (mine?'<button class="btn" onclick="closeModal();openProfile(\''+mine+'\')">🪪 بطاقتي (تعديل الصورة والنبذة)</button>':
-      '<div class="muted" style="font-size:12.5px;text-align:center;margin-bottom:10px;line-height:1.6">لتعديل صورتك ونبذتك: افتح بطاقتك من «الترتيب» أو «قائمة اللاعبين» واضغط «🙋 هذا أنا».</div>')+
+      '<div class="muted" style="font-size:12.5px;text-align:center;margin-bottom:10px;line-height:1.6">جارٍ تجهيز بطاقتك… حدّث الصفحة إذا ما ظهرت.</div>')+
     '<button class="btn sec red" style="margin-top:8px;background:#3a1414;color:#ffd7d7;border:1px solid #7a2626" onclick="logout()">🚪 تسجيل الخروج</button>'+
     '<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إغلاق</button>');
 }
@@ -685,7 +685,6 @@ function openProfile(id){
   if(s){var l=s.lineup||{}; if((l.teamA||{})[id])team=TEAM_A_NAME; else if((l.teamB||{})[id])team=TEAM_B_NAME;}
   var img=p.photo?'<img class="ph" src="'+p.photo+'">':'<div class="noph">🏐</div>';
   var isOwner=loggedIn && p.ownerKey && p.ownerKey===myKey;
-  var owned=!!p.ownerKey;
   var actions='';
   if(isAdmin){
     actions+='<button class="btn sec" onclick="openPlayerForm(\''+id+'\')">✏️ تعديل (مشرف)</button>'+
@@ -693,8 +692,6 @@ function openProfile(id){
   }
   if(isOwner){
     actions+='<button class="btn'+(isAdmin?' sec':'')+'" style="margin-top:8px" onclick="editMyProfile(\''+id+'\')">✏️ تعديل صورتي والنبذة</button>';
-  } else if(loggedIn && !owned){
-    actions+='<button class="btn sec" style="margin-top:8px" onclick="claimPlayer(\''+id+'\')">🙋 هذا أنا (اربطه بحسابي)</button>';
   }
   modal('<div class="grab"></div><div class="prof-top">'+img+
     '<div style="flex:1;min-width:0"><h2 style="margin:0;font-size:20px">'+esc(p.name||'')+'</h2>'+
@@ -706,13 +703,6 @@ function openProfile(id){
       '<div class="stat"><b>'+team+'</b><span>في التشكيلة</span></div></div>'+
     '<div style="height:16px"></div>'+ actions +
     '<button class="btn sec" style="margin-top:8px" onclick="closeModal()">إغلاق</button>');
-}
-function claimPlayer(id){
-  if(!loggedIn){showLogin();return;}
-  var p=players[id]||{};
-  if(p.ownerKey){toast('هذا اللاعب مربوط بحساب آخر');return;}
-  if(!confirm('ربط «'+(p.name||'')+'» بحسابك؟ بعدها تقدر تعدّل صورته ونبذته.'))return;
-  ROOT.child('players/'+id+'/ownerKey').set(myKey).then(function(){toast('تم الربط ✓ تقدر تعدّل صورتك والنبذة');openProfile(id);}).catch(function(e){toast('فشل: '+((e&&e.code)||e));});
 }
 function editMyProfile(id){
   var p=players[id]||{};
