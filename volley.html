@@ -311,7 +311,8 @@ function boot(){
   });
 }
 function attach(){
-  ROOT.child('sessions').on('value',function(s){sessions=s.val()||{};renderAll();});
+  ROOT.child('sessions').on('value',function(s){sessions=s.val()||{};ensureThursdayVote();renderAll();});
+  if(!attach._t){ attach._t=setInterval(ensureThursdayVote,60000); }
   ROOT.child('players').on('value',function(s){players=s.val()||{};ensureMyPlayer();renderAll();});
   ROOT.child('videos').on('value',function(s){videos=s.val()||{};renderVideos();renderSession();});
   ROOT.child('users').on('value',function(s){users=s.val()||{};renderAll();});
@@ -451,7 +452,7 @@ function saveSession(id){
     ROOT.child('sessions/'+id).update({title:title,date:date}).then(function(){closeModal();toast('تم الحفظ ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));});
   }else{
     var sid=pushId('sessions');
-    ROOT.child('sessions/'+sid).set({title:title,date:date,status:'upcoming',ts:nowTs(),mvp:{open:true}})
+    ROOT.child('sessions/'+sid).set({title:title,date:date,status:'upcoming',ts:nowTs(),mvp:{open:false}})
       .then(function(){closeModal();toast('أُنشئ التمرين ✓');}).catch(function(e){toast('فشل: '+((e&&e.code)||e));});
   }
 }
@@ -550,39 +551,64 @@ function setTeam(sid,pid,team){
 }
 
 /* ---------- MVP within session ---------- */
+function lineupPids(s){ var l=(s&&s.lineup)||{}; return Object.keys(l.teamA||{}).concat(Object.keys(l.teamB||{})).filter(function(pid){return players[pid];}); }
+function amParticipant(s){ var pid=myPlayerId(); return !!(pid && lineupPids(s).indexOf(pid)>=0); }
 function mvpHtml(s){
   var sid=s.id; var m=s.mvp||{}; var open=!!m.open;
   var votes=m.votes||{}; var tally={},total=0;
   Object.keys(votes).forEach(function(u){var pid=votes[u];tally[pid]=(tally[pid]||0)+1;total++;});
   var myVote=votes[myKey]||null;
+  var parts=lineupPids(s); var mine=amParticipant(s);
   var html='<div class="blocktitle"><span class="ic">⭐</span> أفضل لاعب'+
     (isAdmin?'<button class="btn sm act sec" onclick="toggleMvp(\''+sid+'\','+(open?'false':'true')+')">'+(open?'🔒 إغلاق':'🔓 فتح')+'</button>':
       '<span class="act muted" style="font-size:12px">'+(open?'التصويت مفتوح 🟢':'مغلق 🔴')+'</span>')+'</div>';
-  var pids=Object.keys(players);
-  if(!pids.length) return html+'<div class="muted" style="font-size:13px">أضف لاعبين أولًا.</div>';
+  if(!parts.length) return html+'<div class="muted" style="font-size:13px">لا يوجد لاعبون في التشكيلة بعد.</div>';
   if(open){
-    html+=pids.map(function(pid){var p=players[pid]||{};var sel=myVote===pid;
-      return '<div class="voteopt'+(sel?' sel':'')+'" onclick="castVote(\''+sid+'\',\''+pid+'\')">'+mini(p)+
-        '<span class="nm">'+esc(p.name||'')+'</span>'+(sel?'<span style="color:var(--brand)">✓</span>':'')+'</div>';
-    }).join('');
+    if(mine){
+      html+=parts.map(function(pid){var p=players[pid]||{};var sel=myVote===pid;
+        return '<div class="voteopt'+(sel?' sel':'')+'" onclick="castVote(\''+sid+'\',\''+pid+'\')">'+mini(p)+
+          '<span class="nm">'+esc(p.name||'')+'</span>'+(sel?'<span style="color:var(--brand)">✓</span>':'')+'</div>';
+      }).join('');
+    } else {
+      html+='<div class="muted" style="font-size:13px">🔒 التصويت متاح للاعبين المشاركين في التمرين فقط.</div>';
+    }
+  } else {
+    html+='<div class="muted" style="font-size:13px">🕚 يبدأ التصويت تلقائياً الساعة 11 مساءً يوم الخميس.</div>';
   }
-  var ranked=pids.map(function(pid){return {pid:pid,n:tally[pid]||0};}).filter(function(x){return x.n>0;}).sort(function(a,b){return b.n-a.n;});
+  var ranked=parts.map(function(pid){return {pid:pid,n:tally[pid]||0};}).filter(function(x){return x.n>0;}).sort(function(a,b){return b.n-a.n;});
   if(ranked.length){
     html+='<div class="divider"></div><div class="muted" style="font-size:12px;margin:0 2px 8px">النتائج ('+total+' صوت)</div>';
     html+=ranked.map(function(x){var p=players[x.pid]||{};var pct=total?Math.round(x.n/total*100):0;
       return '<div class="votebar'+(myVote===x.pid?' mine':'')+'"><div class="fill" style="width:'+pct+'%"></div>'+
         '<div class="vc">'+mini(p)+'<span class="nm">'+esc(p.name||'')+'</span><span class="cnt">'+x.n+'</span></div></div>';
     }).join('');
-  } else if(!open){ html+='<div class="muted" style="font-size:13px">لا توجد أصوات.</div>'; }
+  }
   return html;
 }
 function toggleMvp(sid,open){ if(!isAdmin){toast('للمشرف فقط');return;} ROOT.child('sessions/'+sid+'/mvp/open').set(open).then(function(){toast(open?'فُتح التصويت':'أُغلق');}); }
 function castVote(sid,pid){
   if(!loggedIn){showLogin();return;}
   var s=sessions[sid]; if(!s||!s.mvp||!s.mvp.open){toast('التصويت مغلق');return;}
+  if(!amParticipant(s)){ toast('التصويت متاح للمشاركين في التمرين فقط'); return; }
   var cur=(s.mvp.votes||{})[myKey];
   if(cur===pid){ ROOT.child('sessions/'+sid+'/mvp/votes/'+myKey).remove().then(function(){toast('أُلغي تصويتك');}); }
   else { ROOT.child('sessions/'+sid+'/mvp/votes/'+myKey).set(pid).then(function(){toast('تم تصويتك ✓');}); }
+}
+/* ---------- بدء تصويت أفضل لاعب تلقائياً كل خميس 11 مساءً ---------- */
+function thursdayAfter(ts){
+  var d=new Date(ts); d.setHours(23,0,0,0);
+  var fwd=(4-d.getDay()+7)%7; d.setDate(d.getDate()+fwd);   // 4 = الخميس
+  if(d.getTime()<ts) d.setDate(d.getDate()+7);
+  return d.getTime();
+}
+function ensureThursdayVote(){
+  if(!ROOT || !authReady) return;
+  var s=activeSession(); if(!s) return;
+  var m=s.mvp||{};
+  if(m.open || m.autoDone) return;                          // مفتوح أصلاً أو فُتح تلقائياً من قبل
+  if(Date.now() >= thursdayAfter(s.ts||Date.now())){
+    ROOT.child('sessions/'+s.id+'/mvp').update({open:true, autoDone:true}).catch(function(){});
+  }
 }
 
 /* ---------- result within session ---------- */
